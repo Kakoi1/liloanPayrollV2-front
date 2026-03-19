@@ -11,14 +11,23 @@
     Payroll Manager
   </button>
 
+  <!-- Auto-save indicator -->
+  <div v-if="autoSaving" class="fixed top-4 right-4 bg-blue-500 text-white px-3 py-2 rounded-lg shadow-lg z-50 flex items-center">
+    <svg class="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+    </svg>
+    Auto-saving...
+  </div>
+
   <!-- Modal -->
-  <div v-if="showModal" class="fixed inset-0 z-50 overflow-y-auto" @click.self="closeModal">
+  <div v-if="showModal" class="fixed inset-0 z-50 overflow-y-auto w-full" @click.self="closeModal">
     <!-- Backdrop with blur effect -->
     <div class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity"></div>
 
     <!-- Modal Content -->
     <div class="flex min-h-full items-center justify-center p-4">
-      <div class="relative w-full max-w-7xl bg-white rounded-xl shadow-2xl transform transition-all">
+      <div class="relative w-full max-w-[97%] bg-white rounded-xl shadow-2xl transform transition-all">
         <!-- Header with gradient -->
         <div class="bg-gradient-to-r from-blue-600 to-blue-800 px-6 py-4 rounded-t-xl flex justify-between items-center">
           <h3 class="text-white font-semibold text-lg flex items-center">
@@ -38,31 +47,40 @@
 
         <!-- Body with improved spacing and design -->
         <div class="p-6 max-h-[80vh] overflow-y-auto bg-gray-50">
-          <!-- Search Period Card -->
+          <!-- Payroll Period Card -->
           <div class="mb-6 bg-white p-5 rounded-xl shadow-sm border border-gray-200">
-            <h4 class="font-semibold text-gray-700 mb-4 flex items-center">
-              <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              SEARCH PAYROLL PERIOD
-            </h4>
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
-              <div class="col-span-1">
-                <label class="block text-xs text-gray-500 mb-1">From Date</label>
-                <input type="date" v-model="Search.from" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-              </div>
-              <div class="col-span-1">
-                <label class="block text-xs text-gray-500 mb-1">To Date</label>
-                <input type="date" v-model="Search.to" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-              </div>
-              <div class="col-span-2 flex items-end">
-                <button @click="checkTask" class="px-6 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg text-sm font-medium hover:from-green-700 hover:to-green-800 focus:ring-2 focus:ring-green-500 shadow-sm transition-all duration-200 flex items-center">
-                  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                  Search Payroll
-                </button>
-              </div>
+            <div class="flex justify-between items-center">
+              <h4 class="font-semibold text-gray-700 flex items-center">
+                <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                PAYROLL PERIOD
+              </h4>
+              <!-- Show CreatePayroll only if no existing payroll data -->
+              <CreatePayroll
+                v-if="!hasPayrollData"
+                :employee="selectedEmployee"
+                @payroll-created="handlePayrollCreated"
+                @closed="handleModalClosed"
+              />
+
+            </div>
+            <div v-if="!hasPayrollData" colspan="14" class="px-3 py-8 text-center text-gray-500">
+                      <svg class="w-12 h-12 mx-auto text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                      </svg>
+                      <p class="text-sm">No tasks added yet. Click "New Task" to add one.</p>
+            </div>
+            <!-- Display payroll info if exists -->
+            <div v-if="hasPayrollData" class="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+              <p class="text-sm text-green-700">
+                <span class="font-medium">Payroll Period:</span> 
+                {{ formatDate(payrollData.payroll?.dateFrom) }} to {{ formatDate(payrollData.payroll?.dateTo) }}
+              </p>
+              <p class="text-sm text-green-700 mt-1">
+                <span class="font-medium">Payroll Date:</span> 
+                {{ formatDate(payrollData.payroll?.dateOfPayroll) }}
+              </p>
             </div>
           </div>
 
@@ -125,15 +143,28 @@
             
             <!-- Task Actions -->
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200 flex flex-wrap justify-between items-center gap-2">
-              <span v-if="draftMSG" class="text-xs text-red-600 bg-red-50 px-2 py-1 rounded">{{ draftMSG }}</span>
+              <div class="flex items-center space-x-4">
+                <span v-if="draftMSG" class="text-xs text-red-600 bg-red-50 px-2 py-1 rounded">{{ draftMSG }}</span>
+                <!-- Process Selected Tasks Button -->
+                <button 
+                  v-if="hasPayrollData && selectedTasks.length > 0"
+                  @click="processSelectedTasks" 
+                  class="px-3 py-1.5 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg text-xs hover:from-purple-700 hover:to-purple-800 focus:ring-2 focus:ring-purple-500 transition-all duration-200 flex items-center"
+                >
+                  <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  Process Selected ({{ selectedTasks.length }})
+                </button>
+              </div>
               <div class="flex gap-2 ml-auto">
-                <button @click="weeklytask" class="px-3 py-1.5 bg-gray-600 text-white rounded-lg text-xs hover:bg-gray-700 focus:ring-2 focus:ring-gray-500 transition-colors duration-200 flex items-center">
+                <button v-if="hasPayrollData" @click="weeklytask" class="px-3 py-1.5 bg-gray-600 text-white rounded-lg text-xs hover:bg-gray-700 focus:ring-2 focus:ring-gray-500 transition-colors duration-200 flex items-center">
                   <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
                   Reload
                 </button>
-                <button @click="addRowTask" class="px-3 py-1.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg text-xs hover:from-blue-700 hover:to-blue-800 focus:ring-2 focus:ring-blue-500 transition-all duration-200 flex items-center">
+                <button v-if="hasPayrollData" @click="addRowTask" class="px-3 py-1.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg text-xs hover:from-blue-700 hover:to-blue-800 focus:ring-2 focus:ring-blue-500 transition-all duration-200 flex items-center">
                   <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                   </svg>
@@ -144,27 +175,44 @@
 
             <!-- Tasks Table with improved styling -->
             <div class="overflow-x-auto">
-              <table class="w-full text-xs">
+              <table class="w-full text-sm border-collapse">
                 <thead class="bg-gray-100">
                   <tr>
-                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Status</th>
-                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Date</th>
-                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Type</th>
-                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">S/P</th>
-                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Task</th>
-                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Class</th>
-                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Rate</th>
-                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Hours</th>
-                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Tarima</th>
-                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Ded</th>
-                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Total</th>
-                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Remarks</th>
-                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Action</th>
+                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider w-8">
+                      <input 
+                        type="checkbox" 
+                        v-model="selectAll" 
+                        @change="toggleSelectAll"
+                        :disabled="!hasPayrollData"
+                        class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                      >
+                    </th>
+                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider w-16">Status</th>
+                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider w-28">Date</th>
+                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider w-16">Type</th>
+                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider w-16">S/P</th>
+                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider w-28">Task</th>
+                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider w-28">Class</th>
+                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider w-20">Rate</th>
+                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider w-24">Hrs/Kg</th>
+                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider w-20">Tarima</th>
+                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider w-16">Ded</th>
+                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider w-24">Total</th>
+                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider w-32">Remarks</th>
+                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider w-20">Action</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
                   <!-- Tasks -->
                   <tr v-for="(task, i) in Task" :key="task.id || 'draft-'+i" :class="task.is_draft ? 'bg-yellow-50 hover:bg-yellow-100' : 'bg-white hover:bg-gray-50'">
+                    <td class="px-3 py-2">
+                      <input 
+                        type="checkbox" 
+                        v-model="task.selected" 
+                        :disabled="!hasPayrollData || task.payrollId != 0"
+                        class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                      >
+                    </td>
                     <td class="px-3 py-2">
                         <span v-if="task.is_draft" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                             Draft
@@ -173,9 +221,22 @@
                             Saved
                         </span>
                     </td>
-                    <td class="px-3 py-2"><input type="date" v-model="task.date" class="w-24 px-2 py-1 border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500"></td>
                     <td class="px-3 py-2">
-                      <select v-model="task.day_type" class="w-20 px-2 py-1 border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500">
+                      <input 
+                        type="date" 
+                        v-model="task.date" 
+                        :disabled="!task.is_draft || hasPayrollData"
+                        class="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
+                        :class="{ 'bg-gray-100 cursor-not-allowed': !task.is_draft || hasPayrollData }"
+                      >
+                    </td>
+                    <td class="px-3 py-2">
+                      <select 
+                        v-model="task.day_type" 
+                        :disabled="!task.is_draft || hasPayrollData"
+                        class="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
+                        :class="{ 'bg-gray-100 cursor-not-allowed': !task.is_draft || hasPayrollData }"
+                      >
                         <option value="regular">Reg</option>
                         <option value="special">Spec</option>
                         <option value="holiday">Hol</option>
@@ -184,22 +245,33 @@
                     <td class="px-3 py-2">
                         <select 
                             v-model="task.sp" 
-                            :disabled="!task.is_draft"
-                            class="w-16 px-2 py-1 border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500"
-                            :class="{ 'bg-gray-100 cursor-not-allowed': !task.is_draft }"
+                            :disabled="!task.is_draft || hasPayrollData"
+                            class="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
+                            :class="{ 'bg-gray-100 cursor-not-allowed': !task.is_draft || hasPayrollData }"
                         >
                             <option value="1">Solo</option>
                             <option value="2">Pair</option>
                         </select>
                     </td>
                     <td class="px-3 py-2">
-                        <select v-model="task.taskId" @change="fetchClass(task.taskId, i)" :disabled="!task.is_draft" :class="{ 'bg-gray-100 cursor-not-allowed': !task.is_draft }" class="w-20 px-2 py-1 border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500">
+                        <select 
+                          v-model="task.taskType" 
+                          @change="fetchClass(task.taskType, i)" 
+                          :disabled="!task.is_draft || hasPayrollData"
+                          :class="{ 'bg-gray-100 cursor-not-allowed': !task.is_draft || hasPayrollData }" 
+                          class="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
+                        >
                             <option value="">--</option>
                             <option v-for="cd in tdrop" :value="cd.id" :key="cd.id">{{ cd.task_name }}</option>
                         </select>
                     </td>
                     <td class="px-3 py-2">
-                        <select v-model="task.posId" :disabled="!task.is_draft" :class="{ 'bg-gray-100 cursor-not-allowed': !task.is_draft }" class="w-20 px-2 py-1 border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500">
+                        <select 
+                          v-model="task.taskId" 
+                          :disabled="!task.is_draft || hasPayrollData"
+                          :class="{ 'bg-gray-100 cursor-not-allowed': !task.is_draft || hasPayrollData }" 
+                          class="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
+                        >
                             <option value="">--</option>
                             <!-- Use task.classOptions if available, otherwise fallback to shared cdrop -->
                             <option 
@@ -211,21 +283,84 @@
                             </option>
                         </select>
                     </td>
-                    <td class="px-3 py-2"><input type="text" v-model="task.rate"  class="w-16 px-2 py-1 border border-gray-300 rounded text-xs"></td>
-                    <td class="px-3 py-2"><input type="number" v-model="task.hour" class="w-16 px-2 py-1 border border-gray-300 rounded text-xs"></td>
-                    <td class="px-3 py-2"><input type="number" v-model="task.tarima" class="w-16 px-2 py-1 border border-gray-300 rounded text-xs"></td>
-                    <td class="px-3 py-2"><input type="number" v-model="task.deduction" class="w-16 px-2 py-1 border border-gray-300 rounded text-xs"></td>
-                    <td class="px-3 py-2"><input type="number" v-model="task.total" readonly class="w-16 px-2 py-1 bg-gray-100 border border-gray-300 rounded text-xs"></td>
-                    <td class="px-3 py-2"><input type="text" v-model="task.remarks" class="w-20 px-2 py-1 border border-gray-300 rounded text-xs"></td>
+                    <td class="px-3 py-2">
+                      <input 
+                        type="text" 
+                        v-model="task.rate"  
+                        class="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                        :class="{ 'bg-gray-100': !task.is_draft || hasPayrollData }"
+                        readonly=""
+                      >
+                    </td>
+                    <td class="px-3 py-2">
+                      <div class="flex items-center space-x-1">
+                        <input 
+                          type="number" 
+                          :title="'original ' + (task.unit == 3 ? 'kg: ' : 'hrs: ') + task.originalNet"
+                          v-model="task.netKgPerEmp" 
+                          class="w-20 px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
+                          :class="{ 'bg-gray-100': !task.is_draft || hasPayrollData }"
+                          :readonly="!task.is_draft || hasPayrollData"
+                        >
+                        <span class="text-xs text-gray-500 whitespace-nowrap">{{ task.unit == 3 ? 'kg' : 'hrs' }}</span>
+                      </div>
+                    </td>
+                    <td class="px-3 py-2">
+                      <input 
+                        type="number" 
+                        v-model="task.tarima" 
+                        class="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
+                        :class="{ 'bg-gray-100': !task.is_draft || hasPayrollData }"
+                        :readonly="!task.is_draft || hasPayrollData"
+                      >
+                    </td>
+                    <td class="px-3 py-2">
+                      <input 
+                        type="number" 
+                        v-model="task.deduction" 
+                        class="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
+                        :class="{ 'bg-gray-100': !task.is_draft || hasPayrollData }"
+                        :readonly="!task.is_draft || hasPayrollData"
+                      >
+                    </td>
+                    <td class="px-3 py-2">
+                      <input 
+                        type="number" 
+                        v-model="task.total" 
+                        readonly 
+                        class="w-full px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm"
+                      >
+                    </td>
+                    <td class="px-3 py-2">
+                      <input 
+                        type="text" 
+                        v-model="task.remarks" 
+                        class="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
+                        :class="{ 'bg-gray-100': !task.is_draft || hasPayrollData }"
+                        :readonly="!task.is_draft || hasPayrollData"
+                      >
+                    </td>
                     <td class="px-3 py-2">
                       <div class="flex space-x-1">
-                        <button @click="saveTask(i)" class="p-1 bg-green-600 text-white rounded hover:bg-green-700 transition-colors duration-150" title="Save">
-                          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <button 
+                          v-if="!hasPayrollData"
+                          @click="saveTask(i)" 
+                          class="p-1.5 bg-green-600 text-white rounded hover:bg-green-700 transition-colors duration-150" 
+                          title="Save"
+                          :disabled="!task.is_draft"
+                          :class="{ 'opacity-50 cursor-not-allowed': !task.is_draft }"
+                        >
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                           </svg>
                         </button>
-                        <button @click="confirmDelete(i)" class="p-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors duration-150" title="Delete">
-                          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <button 
+                          v-if="!hasPayrollData"
+                          @click="confirmDelete(i)" 
+                          class="p-1.5 bg-red-600 text-white rounded hover:bg-red-700 transition-colors duration-150" 
+                          title="Delete"
+                        >
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                           </svg>
                         </button>
@@ -235,7 +370,7 @@
                   
                   <!-- No Tasks Message -->
                   <tr v-if="Task.length === 0">
-                    <td colspan="13" class="px-3 py-8 text-center text-gray-500">
+                    <td colspan="14" class="px-3 py-8 text-center text-gray-500">
                       <svg class="w-12 h-12 mx-auto text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                       </svg>
@@ -248,9 +383,9 @@
 
             <!-- Gross Income -->
             <div class="bg-gray-50 px-4 py-3 border-t border-gray-200 flex justify-end">
-              <div class="w-64 flex items-center justify-between bg-gradient-to-r from-yellow-100 to-yellow-200 px-4 py-2 rounded-lg border border-yellow-300">
+              <div class="w-72 flex items-center justify-between bg-gradient-to-r from-yellow-100 to-yellow-200 px-4 py-2 rounded-lg border border-yellow-300">
                 <span class="text-sm font-semibold text-gray-700">Gross Income:</span>
-                <input type="text" v-model="Dtotal" readonly class="w-28 px-2 py-1 bg-white border border-yellow-300 rounded-lg text-sm text-right font-medium">
+                <input type="text" v-model="Dtotal" readonly class="w-32 px-2 py-1 bg-white border border-yellow-300 rounded-lg text-sm text-right font-medium">
               </div>
             </div>
           </div>
@@ -265,19 +400,15 @@
                 Compensations & Deductions
               </h4>
               <span class="text-xs text-white bg-white bg-opacity-20 px-2 py-1 rounded-full">
-                {{ Deduction.length }} Items
+                {{ nonMandatoryCompensations.length }} Items
               </span>
             </div>
             
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200 flex flex-wrap justify-between items-center gap-2">
               <span v-if="miscMSG" class="text-xs text-red-600 bg-red-50 px-2 py-1 rounded">{{ miscMSG }}</span>
               <div class="flex gap-2 ml-auto">
-                <select v-model="Config.batch" class="px-3 py-1.5 border border-gray-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500">
-                  <option value="">Select Batch</option>
-                  <option v-for="b in 5" :key="b">Batch {{ b }}</option>
-                </select>
-                <button @click="miscdraft" class="px-3 py-1.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg text-xs hover:from-blue-700 hover:to-blue-800 focus:ring-2 focus:ring-blue-500 transition-all duration-200 flex items-center">
-                  <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button v-if="hasPayrollData" @click="miscdraft" class="px-3 py-1.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg text-sm hover:from-blue-700 hover:to-blue-800 focus:ring-2 focus:ring-blue-500 transition-all duration-200 flex items-center">
+                  <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                   </svg>
                   Add Item
@@ -285,63 +416,59 @@
               </div>
             </div>
 
-            <!-- Compensations Table -->
+            <!-- Compensations Table (Non-Mandatory) -->
             <div class="overflow-x-auto">
-              <table class="w-full text-xs">
+              <table class="w-full text-sm">
                 <thead class="bg-gray-100">
                   <tr>
-                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Status</th>
-                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Year</th>
-                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Month</th>
-                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Batch</th>
-                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Type</th>
-                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Name</th>
-                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Amount</th>
-                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Remarks</th>
-                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Action</th>
+                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider w-32">Name</th>
+                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider w-20">Amount</th>
+                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider w-32">Remarks</th>
+                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider w-16">Action</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
-                  <tr v-for="(ded, i) in Deduction" :key="ded.id || 'ded-'+i" :class="ded.is_draft ? 'bg-yellow-50 hover:bg-yellow-100' : 'bg-white hover:bg-gray-50'">
+                  <tr v-for="(ded, i) in nonMandatoryCompensations" :key="ded.id || 'ded-'+i" :class="ded.is_draft ? 'bg-yellow-50 hover:bg-yellow-100' : 'bg-white hover:bg-gray-50'">
                     <td class="px-3 py-2">
-                      <span v-if="ded.is_draft" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                        Draft
-                      </span>
-                      <span v-else class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        Saved
-                      </span>
-                    </td>
-                    <td class="px-3 py-2"><input type="text" v-model="ded.misc_year" placeholder="Year" class="w-16 px-2 py-1 border border-gray-300 rounded text-xs"></td>
-                    <td class="px-3 py-2">
-                      <select v-model="ded.misc_month" class="w-20 px-2 py-1 border border-gray-300 rounded text-xs">
-                        <option value="">Month</option>
-                        <option v-for="m in months" :key="m">{{ m }}</option>
+                      <select 
+                        v-model="ded.misc_desc" 
+                        class="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
+                        :disabled="!ded.is_draft"
+                      >
+                        <option value="0">-- Select Compensation --</option>
+                        <option v-for="comp in compensationOptions" :key="comp.id" :value="comp.id">
+                          {{ comp.name }}
+                        </option>
                       </select>
                     </td>
                     <td class="px-3 py-2">
-                      <select v-model="ded.misc_week" class="w-20 px-2 py-1 border border-gray-300 rounded text-xs">
-                        <option value="">Batch</option>
-                        <option v-for="b in 5" :key="b">Batch {{ b }}</option>
-                      </select>
+                      <input 
+                        type="number" 
+                        v-model="ded.misc_amount" 
+                        placeholder="0.00" 
+                        class="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
+                        step="0.01"
+                        :readonly="!ded.is_draft"
+                      >
                     </td>
                     <td class="px-3 py-2">
-                      <select v-model="ded.misc_type" class="w-24 px-2 py-1 border border-gray-300 rounded text-xs">
-                        <option value="Compensation">Compensation</option>
-                        <option value="Deduction">Deduction</option>
-                      </select>
+                      <input 
+                        type="text" 
+                        v-model="ded.misc_remarks" 
+                        placeholder="Remarks" 
+                        class="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
+                        :readonly="!ded.is_draft"
+                      >
                     </td>
-                    <td class="px-3 py-2"><input type="text" v-model="ded.misc_desc" placeholder="Description" class="w-24 px-2 py-1 border border-gray-300 rounded text-xs"></td>
-                    <td class="px-3 py-2"><input type="number" v-model="ded.misc_amount" placeholder="0.00" class="w-20 px-2 py-1 border border-gray-300 rounded text-xs"></td>
-                    <td class="px-3 py-2"><input type="text" v-model="ded.misc_remarks" placeholder="Remarks" class="w-24 px-2 py-1 border border-gray-300 rounded text-xs"></td>
                     <td class="px-3 py-2">
                       <div class="flex space-x-1">
-                        <button @click="miscSave(i)" class="p-1 bg-green-600 text-white rounded hover:bg-green-700 transition-colors duration-150" title="Save">
-                          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <button v-if="hasPayrollData && ded.is_draft" @click="miscSave(i)" class="p-1.5 bg-green-600 text-white rounded hover:bg-green-700 transition-colors duration-150" title="Save">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                           </svg>
                         </button>
-                        <button @click="confirmMiscDelete(i)" class="p-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors duration-150" title="Delete">
-                          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <button v-if="hasPayrollData" @click="confirmMiscDelete(i)" class="p-1.5 bg-red-600 text-white rounded hover:bg-red-700 transition-colors duration-150" title="Delete">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                           </svg>
                         </button>
@@ -350,8 +477,8 @@
                   </tr>
                   
                   <!-- No Items Message -->
-                  <tr v-if="Deduction.length === 0">
-                    <td colspan="9" class="px-3 py-8 text-center text-gray-500">
+                  <tr v-if="nonMandatoryCompensations.length === 0">
+                    <td colspan="4" class="px-3 py-8 text-center text-gray-500">
                       <svg class="w-12 h-12 mx-auto text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
@@ -362,16 +489,16 @@
               </table>
             </div>
 
-            <!-- Total -->
+            <!-- Total for Non-Mandatory -->
             <div class="bg-gray-50 px-4 py-3 border-t border-gray-200 flex justify-end">
-              <div class="w-64 flex items-center justify-between bg-gradient-to-r from-yellow-100 to-yellow-200 px-4 py-2 rounded-lg border border-yellow-300">
+              <div class="w-72 flex items-center justify-between bg-gradient-to-r from-yellow-100 to-yellow-200 px-4 py-2 rounded-lg border border-yellow-300">
                 <span class="text-sm font-semibold text-gray-700">Total:</span>
-                <input type="text" v-model="CDtotal" readonly class="w-28 px-2 py-1 bg-white border border-yellow-300 rounded-lg text-sm text-right font-medium">
+                <input type="text" v-model="nonMandatoryTotal" readonly class="w-32 px-2 py-1 bg-white border border-yellow-300 rounded-lg text-sm text-right font-medium">
               </div>
             </div>
           </div>
 
-          <!-- Government Deductions with improved design -->
+          <!-- Government Mandatory Deductions with improved design -->
           <div class="mb-6 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <div class="bg-gradient-to-r from-red-600 to-red-700 px-4 py-3">
               <h4 class="text-white font-semibold flex items-center">
@@ -381,45 +508,68 @@
                 Government Mandatory Deductions
               </h4>
             </div>
-            <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="p-4">
               <div class="space-y-3">
-                <div class="flex items-center justify-between bg-gray-50 p-2 rounded-lg">
-                  <span class="text-sm text-gray-600">SSS Premium:</span>
-                  <input type="text" v-model="Contribution.premium" readonly class="w-32 px-3 py-1 bg-white border border-gray-300 rounded-lg text-sm text-right">
+                <!-- Loop through mandatory compensations -->
+                <div v-for="(comp, index) in mandatoryCompensations" :key="index" class="flex items-center justify-between bg-gray-50 p-2 rounded-lg">
+                  <span class="text-sm text-gray-600">{{ comp.name }}:</span>
+                  <input 
+                    type="text" 
+                    v-model="comp.amount" 
+                    readonly 
+                    class="w-36 px-3 py-1 bg-white border border-gray-300 rounded-lg text-sm text-right"
+                  >
                 </div>
-                <div class="flex items-center justify-between bg-gray-50 p-2 rounded-lg">
-                  <span class="text-sm text-gray-600">Philhealth:</span>
-                  <input type="text" v-model="Contribution.philhealth" readonly class="w-32 px-3 py-1 bg-white border border-gray-300 rounded-lg text-sm text-right">
+                
+                <!-- If no mandatory compensations -->
+                <div v-if="mandatoryCompensations.length === 0" class="text-center text-gray-500 py-4">
+                  No mandatory deductions configured
                 </div>
-              </div>
-              <div class="space-y-3">
-                <div class="flex items-center justify-between bg-gray-50 p-2 rounded-lg">
-                  <span class="text-sm text-gray-600">Pag-IBIG:</span>
-                  <input type="text" v-model="Contribution.pagibig" readonly class="w-32 px-3 py-1 bg-white border border-gray-300 rounded-lg text-sm text-right">
+                
+                <!-- Total Government Deductions -->
+                <div class="flex items-center justify-between bg-gradient-to-r from-yellow-100 to-yellow-200 p-3 rounded-lg border border-yellow-300 mt-4">
+                  <span class="text-sm font-semibold text-gray-700">Total Government Deductions:</span>
+                  <input 
+                    type="text" 
+                    v-model="mandatoryTotal" 
+                    readonly 
+                    class="w-36 px-3 py-1 bg-white border border-yellow-300 rounded-lg text-sm text-right font-medium"
+                  >
                 </div>
-                <div class="flex items-center justify-between bg-gray-50 p-2 rounded-lg">
-                  <span class="text-sm text-gray-600">Maxicare:</span>
-                  <input type="text" v-model="Contribution.maxicare" readonly class="w-32 px-3 py-1 bg-white border border-gray-300 rounded-lg text-sm text-right">
-                </div>
-              </div>
-              <div class="col-span-2 flex items-center justify-between bg-gradient-to-r from-yellow-100 to-yellow-200 p-3 rounded-lg border border-yellow-300">
-                <span class="text-sm font-semibold text-gray-700">Total Government Deductions:</span>
-                <input type="text" v-model="Contribution.total" readonly class="w-32 px-3 py-1 bg-white border border-yellow-300 rounded-lg text-sm text-right font-medium">
               </div>
             </div>
           </div>
 
           <!-- Total Income with prominent design -->
           <div class="flex justify-end">
-            <div class="w-80 bg-gradient-to-r from-green-600 to-green-700 p-4 rounded-xl shadow-lg">
+            <div class="w-96 bg-gradient-to-r from-green-600 to-green-700 p-4 rounded-xl shadow-lg flex flex-col  gap-x-1 gap-y-5">
               <div class="flex justify-between items-center">
                 <span class="text-white font-bold text-lg">TOTAL INCOME</span>
                 <div class="bg-white bg-opacity-20 px-4 py-2 rounded-lg">
-                  <input type="text" v-model="Stotal" readonly class="w-32 bg-transparent text-white font-bold text-lg text-right border-none focus:outline-none" placeholder="0.00">
+                  <input 
+                    type="text" 
+                    :value="totalIncome" 
+                    readonly 
+                    class="w-40 bg-transparent text-white font-bold text-lg text-right border-none focus:outline-none" 
+                    placeholder="0.00"
+                  >
                 </div>
+
+              </div>
+              <div class="flex justify-end">
+                <button 
+                  @click="submitPayroll"
+                  class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 text-white text-sm font-medium rounded-lg hover:from-red-700 hover:to-red-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 shadow-sm transition-all duration-200"
+                >
+                  <FontAwesomeIcon :icon="faCheckDouble" class="w-4 flex-shrink-0" />
+                  Complete Payroll
+                </button>
               </div>
             </div>
           </div>
+
+
+
         </div>
       </div>
     </div>
@@ -427,10 +577,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
 import Swal from 'sweetalert2'
 import moment from 'moment'
 import api from '@/Js/Services/axios'
+import CreatePayroll from './CreatePayroll.vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faCheckDouble } from '@fortawesome/free-solid-svg-icons'
 
 // Props
 const props = defineProps({
@@ -454,23 +607,47 @@ const Deduction = ref([])
 const Misc = ref([])
 const tdrop = ref([])
 const cdrop = ref([])
+const autoSaving = ref(false)
+const payrollData = ref(null)
+const selectAll = ref(false)
+const Dtotal = ref('0')
+const CDtotal = ref('0')
+const Stotal = ref('0')
+const compensationOptions = ref([])
+const mandatoryCompensations = ref([])
+const nonMandatoryCompensations = ref([])
 
-const Config = ref({ batch: '' })
-const Contribution = ref({
-  premium: '1,234.56',
-  philhealth: '850.00',
-  pagibig: '100.00',
-  maxicare: '500.00',
-  total: '2,684.56'
+// Computed property to check if payroll data exists
+const hasPayrollData = computed(() => {
+  return payrollData.value && payrollData.value.payroll 
 })
-const Dtotal = ref('12,345.67')
-const CDtotal = ref('1,234.56')
-const Stotal = ref('10,895.67')
-const draftMSG = ref('')
-const miscMSG = ref('')
+
+// Computed property for selected tasks
+const selectedTasks = computed(() => {
+  return Task.value.filter(task => task.selected && task.payrollId === 0)
+})
+
+// Computed totals
+const nonMandatoryTotal = computed(() => {
+  const total = nonMandatoryCompensations.value.reduce((sum, item) => {
+    return sum + (parseFloat(item.misc_amount) || 0)
+  }, 0)
+  return formatCurrency(total)
+})
+
+const mandatoryTotal = computed(() => {
+  const total = mandatoryCompensations.value.reduce((sum, item) => {
+    return sum + (parseFloat(item.amount) || 0)
+  }, 0)
+  return formatCurrency(total)
+})
 
 // Add cache for class options
 const classCache = ref(new Map())
+
+// Add debounce timer refs
+const saveTimeouts = ref(new Map())
+const autoSaveDelay = 1000 // 1 second delay
 
 // Months for dropdown
 const months = [
@@ -478,11 +655,21 @@ const months = [
   'July', 'August', 'September', 'October', 'November', 'December'
 ]
 
-// Watch for changes in task fields to calculate total
+const totalIncome = computed(() => {
+  const gross = parseFloat(Dtotal.value.replace(/,/g, '')) || 0
+  const nonMandatory = parseFloat(nonMandatoryTotal.value.replace(/,/g, '')) || 0
+  const govDeductions = parseFloat(mandatoryTotal.value.replace(/,/g, '')) || 0
+  
+  const total = gross + nonMandatory - govDeductions
+  return formatCurrency(total)
+})
+
+// Watch for changes in task fields to calculate total and auto-save
 watch(Task, (newTasks) => {
-  newTasks.forEach(task => {
-    if (task.hour && task.rate) {
-      const hours = parseFloat(task.hour) || 0
+  newTasks.forEach((task, index) => {
+    // Calculate total
+    if (task.hour || task.rate || task.tarima || task.deduction || task.netKgPerEmp) {
+      const hours = parseFloat(task.hour || task.netKgPerEmp) || 0
       const rate = parseFloat(task.rate) || 0
       const tarima = parseFloat(task.tarima) || 0
       const deduction = parseFloat(task.deduction) || 0
@@ -490,18 +677,240 @@ watch(Task, (newTasks) => {
       // Calculate total (you can adjust this formula as needed)
       task.total = (hours * rate) + tarima - deduction
     }
+    
+    // Auto-save if task is not draft and has an ID
+    if (!task.is_draft && task.id && !task.id.toString().startsWith('temp')) {
+      debouncedSaveTask(index, task)
+    }
   })
 }, { deep: true })
+
+// Watch selected tasks to update selectAll
+watch(selectedTasks, (newSelected) => {
+  const selectableTasks = Task.value.filter(task => task.payrollId === 0)
+  if (selectableTasks.length > 0) {
+    selectAll.value = newSelected.length === selectableTasks.length
+  } else {
+    selectAll.value = false
+  }
+}, { deep: true })
+
+// Debounced save function
+const debouncedSaveTask = (index, task) => {
+  // Clear existing timeout for this task
+  if (saveTimeouts.value.has(task.id)) {
+    clearTimeout(saveTimeouts.value.get(task.id))
+  }
+  
+  // Set new timeout
+  const timeout = setTimeout(() => {
+    autoSaveTask(index)
+  }, autoSaveDelay)
+  
+  saveTimeouts.value.set(task.id, timeout)
+}
+
+// Auto-save function
+const autoSaveTask = async (index) => {
+  const task = Task.value[index]
+  
+  // Don't auto-save if required fields are missing
+  if (!task.taskId || !task.posId) {
+    return
+  }
+  
+  autoSaving.value = true
+  
+  try {
+    const response = await api.post('/payroll/task/save', {
+      employee_id: selectedEmployee.value.employeeId,
+      task_data: task
+    })
+    
+    if (response.data && !response.data.error) {
+      console.log(`Task ${task.id} auto-saved successfully`)
+    }
+  } catch (error) {
+    console.error('Failed to auto-save task:', error)
+  } finally {
+    autoSaving.value = false
+  }
+}
+
+// Clear all save timeouts
+const clearAllSaveTimeouts = () => {
+  saveTimeouts.value.forEach((timeout) => {
+    clearTimeout(timeout)
+  })
+  saveTimeouts.value.clear()
+}
 
 // Methods
 const openModal = () => {
   selectedEmployee.value = props.employee
   showModal.value = true
-  fetchTasks().then(() => {
-    // After tasks are loaded, fetch class data for each task that has a taskId
-    fetchClassesForExistingTasks()
+  fetchPayrollData()
+  fetchTask()
+  fetchCompensationOptions()
+}
+
+// Fetch compensation options
+const fetchCompensationOptions = async () => {
+  try {
+    const response = await api.get('/compensations/non-mandatory')
+    if (response.data && !response.data.error) {
+      compensationOptions.value = response.data.compensations || []
+    }
+  } catch (error) {
+    console.error('Failed to fetch compensation options:', error)
+  }
+}
+
+// Fetch payroll data
+const fetchPayrollData = async () => {
+  if (!selectedEmployee.value) return
+  
+  try {
+    const response = await api.post('/payroll/get-by-employee', {
+      employee_id: selectedEmployee.value.id
+    })
+    
+    if (response.data && !response.data.error) {
+      payrollData.value = response.data
+      
+      // If there's payroll data, map the tasks to the Task array
+      if (hasPayrollData.value && response.data.tasks) {
+        Task.value = response.data.tasks.map(task => ({
+          id: task.id,
+          date: task.date ? moment(task.date).format('YYYY-MM-DD') : '',
+          day_type: mapDayType(task.dayType),
+          sp: task.workerCount?.toString() || '1',
+          taskType: task.taskType,
+          taskId: task.taskId,
+          rate: task.rate?.toString() || '',
+          hour: task.hour,
+          netKgPerEmp: task.netKgPerEmp,
+          unit: task.unit || 'kg',
+          tarima: task.tarima || 0,
+          originalNet: task.originalNet || 0,
+          deduction: task.deduction || 0,
+          total: task.total || 0,
+          remarks: task.remarks || '',
+          is_draft: false,
+          isDefault: 1,
+          payrollId: task.payrollId || 0,
+          selected: false,
+          classOptions: []
+        }))
+        
+        // Update totals
+        if (response.data.total) {
+          Dtotal.value = formatCurrency(response.data.total)
+        }
+        
+        // Fetch class options for each task
+        await fetchClassesForExistingTasks()
+      } else {
+        // Clear tasks if no payroll data
+        Task.value = []
+        Dtotal.value = '0.00'
+      }
+    }
+  } catch (error) {
+    console.error('Failed to fetch payroll data:', error)
+    await Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Failed to load payroll data',
+      timer: 2000,
+      showConfirmButton: false
+    })
+  } finally {
+    fetchCompensations()
+  }
+}
+
+const submitPayroll = async () => {
+
+  const result = await Swal.fire({
+    title: 'Submit Payroll?',
+    text: 'Are you sure you want to submit this payroll? This action cannot be undone.',
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#10b981',
+    cancelButtonColor: '#6b7280',
+    confirmButtonText: 'Yes, submit it',
+    cancelButtonText: 'Cancel'
   })
-  fetchCompensations()
+
+  if (!result.isConfirmed) {
+    return
+  }
+
+  try {
+    // Show loading indicator
+    Swal.fire({
+      title: 'Submitting payroll...',
+      text: 'Please wait',
+      allowOutsideClick: true,
+      didOpen: () => {
+        Swal.showLoading()
+      }
+    })
+
+    const response = await api.post('/payroll/submit', { 
+      payroll_id: payrollData.value.payroll.id
+    })
+
+    if (response.data && !response.data.error) {
+      Swal.close()
+      
+      // Show success message
+      await Swal.fire({
+        icon: 'success',
+        title: 'Success!',
+        text: response.data.message || 'Payroll submitted successfully',
+        timer: 1500,
+        showConfirmButton: false
+      })
+      
+      // Refresh payroll data
+      await fetchPayrollData()
+      
+      // Close the modal
+      closeModal()
+      
+    } else {
+      Swal.close()
+      await Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: response.data?.message || 'Failed to submit payroll',
+        timer: 1500,
+        showConfirmButton: false
+      })
+    }
+  } catch (error) {
+    console.error('Failed to submit payroll:', error)
+    Swal.close()
+    
+    let errorMessage = 'Failed to submit payroll'
+    if (error.response) {
+      errorMessage = error.response.data?.message || error.response.statusText || errorMessage
+    } else if (error.request) {
+      errorMessage = 'No response from server'
+    } else {
+      errorMessage = error.message || errorMessage
+    }
+    
+    await Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: errorMessage,
+      timer: 1500,
+      showConfirmButton: false
+    })
+  }
 }
 
 // Fetch classes for all existing tasks
@@ -513,7 +922,7 @@ const fetchClassesForExistingTasks = async () => {
   
   // Fetch class data for each task with its index
   for (const { task, index } of tasksWithIds) {
-    await fetchClass(task.taskId, index)
+    await fetchClass(task.taskType, index)
   }
 }
 
@@ -522,67 +931,11 @@ const closeModal = () => {
   selectedEmployee.value = null
   Task.value = []
   Deduction.value = []
-  classCache.value.clear() // Clear cache when modal closes
-}
-
-const fetchTasks = async () => {
-  if (!selectedEmployee.value) return
-  console.log(selectedEmployee.value);
-  
-  loading.value = true
-  try {
-    const response = await api.post('/payroll/compiled-task', {
-      employee_id: selectedEmployee.value.id,
-      position: selectedEmployee.value.position,
-      from_date: Search.value.from,
-      to_date: Search.value.to
-    })
-    
-    if (response.data && !response.data.error) {
-      // Map the API response to your Task structure
-      Task.value = response.data.tasks.map(task => ({
-        id: task.id,
-        attId: task.attId,
-        date: task.workDate,
-        day_type: mapDayType(task.dayType),
-        sp: task.soloPair?.toString() || '1',
-        class: task.class || '',
-        taskId: task.taskId || 0,
-        posId: task.posId || 0,
-        task: task.refNumber || '',
-        rate: task.rate?.toString() || '',
-        hour: task.hoursWorked || 0,
-        tarima: task.tarima || 0,
-        deduction: task.deduction || 0,
-        total: task.total || 0,
-        remarks: task.remarks || '',
-        is_draft: task.isDefault === 3, // If isDefault is 3, it's draft; if 1, it's saved
-        isDefault: task.isDefault || 1, // Store original value
-        reportStatus: task.reportStatus,
-        workStatus: task.workStatus,
-        payrollPeriod: task.payrollPeriod,
-        classOptions: [] // Initialize empty array for class options
-      }))
-      
-      // Update totals if needed
-      if (response.data.total) {
-        Dtotal.value = formatCurrency(response.data.total)
-      }
-      
-      console.log('Mapped tasks:', Task.value)
-    }
-  } catch (error) {
-    console.error('Failed to fetch tasks:', error)
-    await Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'Failed to load tasks',
-      timer: 2000,
-      showConfirmButton: false
-    })
-  } finally {
-    loading.value = false
-  }
+  payrollData.value = null
+  classCache.value.clear()
+  clearAllSaveTimeouts() // Clear all pending saves
+  mandatoryCompensations.value = []
+  nonMandatoryCompensations.value = []
 }
 
 // Helper function to map dayType numbers to strings
@@ -607,75 +960,79 @@ const formatCurrency = (value) => {
   }).format(value)
 }
 
+// Helper function to format date
+const formatDate = (date) => {
+  if (!date) return 'N/A'
+  return moment(date).format('MMM D, YYYY')
+}
+
 const fetchCompensations = async () => {
-  if (!selectedEmployee.value) return
+  if (!selectedEmployee.value || !payrollData.value?.payroll?.id) return
   
   try {
-    const response = await api.post('/payroll/compensations', {
-      employee_id: selectedEmployee.value.employeeId
+    const response = await api.post('/payroll/compensation-list', {
+      payroll_id: payrollData.value.payroll.id
     })
     
     if (response.data && !response.data.error) {
-      Deduction.value = response.data.compensations || []
+      // Separate mandatory and non-mandatory compensations
+      const allCompensations = response.data.compensations || []
+      
+      // For mandatory compensations, we need to fetch the compensation details
+      // This assumes you have a way to get compensation details including is_mandatory flag
+      // You might need to modify this based on your actual data structure
+      
+      // For now, we'll assume the response includes is_mandatory field
+      mandatoryCompensations.value = allCompensations.filter(c => c.isMandatory)
+      nonMandatoryCompensations.value = allCompensations.filter(c => !c.isMandatory).map(compensation => ({
+        payroll_id: compensation.payrollId,
+        misc_desc: compensation.compensationId,
+        misc_amount: compensation.amount,
+        misc_remarks: compensation.remarks,
+        is_draft: false,
+        id: compensation.id,
+        temp_id: 0
+      }))
+
+      console.log(allCompensations);
+      
+
+      // Update totals
+      CDtotal.value = response.data.total || '0.00'
     }
   } catch (error) {
     console.error('Failed to fetch compensations:', error)
   }
 }
 
-const checkTask = async () => {
-  if (!Search.value.from || !Search.value.to) {
-    await Swal.fire({
-      icon: 'warning',
-      title: 'Warning',
-      text: 'Please select from and to dates',
-      timer: 1500,
-      showConfirmButton: false
-    })
-    return
-  }
-  
-  await fetchTasks()
-  
-  await Swal.fire({
-    icon: 'success',
-    title: 'Search Complete',
-    text: `Found ${Task.value.length} tasks from ${moment(Search.value.from).format('MMM D, YYYY')} to ${moment(Search.value.to).format('MMM D, YYYY')}`,
-    timer: 2000,
-    showConfirmButton: false
-  })
-}
-
 const addRowTask = async () => {
   try {
     // Create a new task object with default values
+    const tempId = 'temp_' + Date.now()
+    
     const newTask = {
+      id: tempId,
       date: moment().format('YYYY-MM-DD'),
       day_type: 'regular',
       sp: '1',
       class: '',
+      taskType: '',
       taskId: '',
-      posId: '',
       rate: '',
       hour: 0,
+      netKgPerEmp: '',
+      unit: 'kg',
       tarima: 0,
       deduction: 0,
       total: 0,
       remarks: '',
-      is_draft: false
+      is_draft: true,
+      classOptions: []
     }
 
-    // Show loading indicator
-    // await Swal.fire({
-    //   title: 'Creating task...',
-    //   text: 'Please wait',
-    //   allowOutsideClick: false,
-    //   allowEscapeKey: false,
-    //   didOpen: () => {
-    //     Swal.showLoading();
-    //   },
-    // })
-    
+    // Add to local array immediately
+    Task.value.push(newTask)
+
     // Save to database
     const response = await api.post('/payroll/add-task', {
       employee_id: selectedEmployee.value.id,
@@ -683,19 +1040,9 @@ const addRowTask = async () => {
     })
 
     if (response.data && !response.data.error) {
-      Swal.close()
+      // Refresh tasks to get the newly created task with real ID
+      await fetchPayrollData()
       
-      // Refresh tasks to get the newly created task
-      await fetchTasks()
-      
-      // Fetch class data for the new task if it has a taskId
-      if (response.data.task_id) {
-        const newTaskIndex = Task.value.findIndex(t => t.id === response.data.task_id)
-        if (newTaskIndex !== -1 && Task.value[newTaskIndex].taskId) {
-          await fetchClass(Task.value[newTaskIndex].taskId, newTaskIndex)
-        }
-      }
-
       await Swal.fire({
         icon: 'success',
         title: 'Success!',
@@ -704,7 +1051,12 @@ const addRowTask = async () => {
         showConfirmButton: false
       })
     } else {
-      Swal.close()
+      // Remove the temporary task if save failed
+      const taskIndex = Task.value.findIndex(t => t.id === tempId)
+      if (taskIndex !== -1) {
+        Task.value.splice(taskIndex, 1)
+      }
+      
       await Swal.fire({
         icon: 'error',
         title: 'Error',
@@ -715,18 +1067,21 @@ const addRowTask = async () => {
     }
   } catch (error) {
     console.error('Failed to create task:', error)
-    Swal.close()
+    
+    // Remove the temporary task if save failed
+    if (tempId) {
+      const taskIndex = Task.value.findIndex(t => t.id === tempId)
+      if (taskIndex !== -1) {
+        Task.value.splice(taskIndex, 1)
+      }
+    }
     
     let errorMessage = 'Failed to create new task'
     if (error.response) {
-      // The request was made and the server responded with a status code
-      // that falls out of the range of 2xx
       errorMessage = error.response.data?.message || error.response.statusText || errorMessage
     } else if (error.request) {
-      // The request was made but no response was received
       errorMessage = 'No response from server'
     } else {
-      // Something happened in setting up the request that triggered an Error
       errorMessage = error.message || errorMessage
     }
     
@@ -741,7 +1096,7 @@ const addRowTask = async () => {
 }
 
 const weeklytask = async () => {
-  await fetchTasks()
+  await fetchPayrollData()
   await Swal.fire({
     icon: 'info',
     title: 'Reloaded',
@@ -771,13 +1126,14 @@ const fetchTask = async () => {
 }
 
 // Updated fetchClass to accept task index
-const fetchClass = async (taskId, taskIndex) => {
-  if (!taskId) return
+const fetchClass = async (taskIds, taskIndex) => {
+  if (!taskIds) return
+  console.log(taskIds);
   
   try {
     // Check cache first
-    if (classCache.value.has(taskId)) {
-      const cachedOptions = classCache.value.get(taskId)
+    if (classCache.value.has(taskIds)) {
+      const cachedOptions = classCache.value.get(taskIds)
       
       // Update the specific task's classOptions
       if (taskIndex !== undefined && Task.value[taskIndex]) {
@@ -788,15 +1144,13 @@ const fetchClass = async (taskId, taskIndex) => {
       return
     }
     
-    console.log('Fetching class for taskId:', taskId)
-    
     const response = await api.post('/payroll/position', {
-      task_id: taskId
+      task_id: taskIds
     })
     
     if (response.data && !response.data.error) {
       // Cache the result
-      classCache.value.set(taskId, response.data.position)
+      classCache.value.set(taskIds, response.data.position)
       
       // Update the specific task's classOptions
       if (taskIndex !== undefined && Task.value[taskIndex]) {
@@ -804,8 +1158,6 @@ const fetchClass = async (taskId, taskIndex) => {
       }
       // Update the shared cdrop for new tasks
       cdrop.value = response.data.position
-
-      console.log('Class options:', response.data.position)
     }
   } catch (error) {
     console.error('Failed to fetch class:', error)
@@ -822,8 +1174,14 @@ const fetchClass = async (taskId, taskIndex) => {
 const saveTask = async (index) => {
   const task = Task.value[index]
   
+  // Clear any pending auto-save for this task
+  if (saveTimeouts.value.has(task.id)) {
+    clearTimeout(saveTimeouts.value.get(task.id))
+    saveTimeouts.value.delete(task.id)
+  }
+  
   // Validate required fields
-  if (!task.taskId) {
+  if (!task.taskType) {
     await Swal.fire({
       icon: 'warning',
       title: 'Warning',
@@ -834,7 +1192,7 @@ const saveTask = async (index) => {
     return
   }
 
-  if (!task.posId) {
+  if (!task.taskId) {
     await Swal.fire({
       icon: 'warning',
       title: 'Warning',
@@ -903,7 +1261,13 @@ const confirmDelete = async (index) => {
   if (result.isConfirmed) {
     const task = Task.value[index]
     
-    if (!task.is_draft && task.id) {
+    // Clear any pending auto-save for this task
+    if (saveTimeouts.value.has(task.id)) {
+      clearTimeout(saveTimeouts.value.get(task.id))
+      saveTimeouts.value.delete(task.id)
+    }
+    
+    if (!task.is_draft && task.id && !task.id.toString().startsWith('temp')) {
       try {
         await api.post('/payroll/task/delete', {
           task_id: task.id
@@ -925,16 +1289,90 @@ const confirmDelete = async (index) => {
   }
 }
 
+// Toggle select all checkboxes
+const toggleSelectAll = () => {
+  Task.value.forEach(task => {
+    if (task.payrollId === 0) {
+      task.selected = selectAll.value
+    }
+  })
+}
+
+// Process selected tasks
+const processSelectedTasks = async () => {
+  if (selectedTasks.value.length === 0) {
+    await Swal.fire({
+      icon: 'warning',
+      title: 'Warning',
+      text: 'Please select at least one task to process',
+      timer: 1500,
+      showConfirmButton: false
+    })
+    return
+  }
+
+  const payrollId = payrollData.value.payroll[0]?.id
+  if (!payrollId) {
+    await Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'No payroll ID found',
+      timer: 1500,
+      showConfirmButton: false
+    })
+    return
+  }
+
+  const result = await Swal.fire({
+    title: 'Process Selected Tasks?',
+    text: `You are about to process ${selectedTasks.value.length} selected task(s). This action cannot be undone.`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#10b981',
+    cancelButtonColor: '#6b7280',
+    confirmButtonText: 'Yes, process them',
+    cancelButtonText: 'Cancel'
+  })
+
+  if (result.isConfirmed) {
+    try {
+      const taskIds = selectedTasks.value.map(task => task.id)
+      
+      const response = await api.post('/payroll/process-tasks', {
+        payroll_id: payrollId,
+        task_ids: taskIds
+      })
+
+      if (response.data && !response.data.error) {
+        await Swal.fire({
+          icon: 'success',
+          title: 'Success!',
+          text: response.data.message,
+          timer: 1500,
+          showConfirmButton: false
+        })
+        
+        // Refresh the data
+        await fetchPayrollData()
+      }
+    } catch (error) {
+      console.error('Failed to process tasks:', error.response)
+      await Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.response?.data?.message || 'Failed to process tasks',
+        showConfirmButton: true
+      })
+    }
+  }
+}
+
 const miscdraft = () => {
   const tempId = Date.now()
   
-  Deduction.value.push({
-    id: tempId,
-    misc_year: moment().format('YYYY'),
-    misc_month: moment().format('MMMM'),
-    misc_week: 'Batch 1',
-    misc_type: 'Compensation',
-    misc_desc: '',
+  nonMandatoryCompensations.value.push({
+    payroll_id: payrollData.value.payroll.id,
+    misc_desc: 0,
     misc_amount: 0,
     misc_remarks: '',
     is_draft: true,
@@ -943,14 +1381,25 @@ const miscdraft = () => {
 }
 
 const miscSave = async (index) => {
-  const item = Deduction.value[index]
+  const item = nonMandatoryCompensations.value[index]
   
   // Validate required fields
-  if (!item.misc_desc) {
+  if (!item.misc_desc || item.misc_desc === 0) {
     await Swal.fire({
       icon: 'warning',
       title: 'Warning',
-      text: 'Please enter a description',
+      text: 'Please select a compensation type',
+      timer: 1500,
+      showConfirmButton: false
+    })
+    return
+  }
+
+  if (!item.misc_amount) {
+    await Swal.fire({
+      icon: 'warning',
+      title: 'Warning',
+      text: 'Please enter a valid amount',
       timer: 1500,
       showConfirmButton: false
     })
@@ -958,29 +1407,22 @@ const miscSave = async (index) => {
   }
 
   try {
-    // Show loading
-    await Swal.fire({
-      title: 'Saving...',
-      text: 'Please wait',
-      allowOutsideClick: false,
-      didOpen: () => {
-        Swal.showLoading()
+    const response = await api.post('/payroll/compensation-add', {
+      compensation_data: {
+        ...item,
+        payroll_id: payrollData.value.payroll.id
       }
-    })
-
-    const response = await api.post('/payroll/compensation/save', {
-      employee_id: selectedEmployee.value.employeeId,
-      compensation_data: item
     })
     
     if (response.data && !response.data.error) {
-      Swal.close()
-      
       // Update the item
       item.is_draft = false
       if (item.temp_id) {
         delete item.temp_id
       }
+      
+      // Refresh compensations
+      await fetchCompensations()
       
       await Swal.fire({
         icon: 'success',
@@ -992,7 +1434,6 @@ const miscSave = async (index) => {
     }
   } catch (error) {
     console.error('Failed to save item:', error)
-    Swal.close()
     await Swal.fire({
       icon: 'error',
       title: 'Error',
@@ -1016,7 +1457,7 @@ const confirmMiscDelete = async (index) => {
   })
 
   if (result.isConfirmed) {
-    const item = Deduction.value[index]
+    const item = nonMandatoryCompensations.value[index]
     
     if (!item.is_draft && item.id) {
       try {
@@ -1028,7 +1469,7 @@ const confirmMiscDelete = async (index) => {
       }
     }
     
-    Deduction.value.splice(index, 1)
+    nonMandatoryCompensations.value.splice(index, 1)
     
     await Swal.fire({
       icon: 'success',
@@ -1040,8 +1481,26 @@ const confirmMiscDelete = async (index) => {
   }
 }
 
+const handlePayrollCreated = () => {
+  fetchPayrollData()
+}
+
+const handleModalClosed = () => {
+  // Handle modal closed if needed
+}
+
 // Initialize
 onMounted(() => {
-  fetchTask()
+  
+  
+  window.addEventListener('beforeunload', () => {
+    clearAllSaveTimeouts()
+  })
+})
+
+// Clean up on component unmount
+onUnmounted(() => {
+  clearAllSaveTimeouts()
+  window.removeEventListener('beforeunload', clearAllSaveTimeouts)
 })
 </script>

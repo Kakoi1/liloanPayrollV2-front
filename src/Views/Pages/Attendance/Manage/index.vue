@@ -74,7 +74,7 @@
                   <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Position
                   </th>
-                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Action
                   </th>
                 </tr>
@@ -91,9 +91,12 @@
                     {{ m.position }}
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm">
-                   <ManagePayroll
-                   :employee="m"
-                   />
+                    <div class="flex gap-3 justify-center">
+                      <ManagePayroll
+                      :employee="m"
+                      />
+                      <PayrollHistory :employeeId="m.id" />
+                   </div>
                   </td>
                 </tr>
                 <tr v-if="emptyResult">
@@ -138,6 +141,7 @@
 import { ref, reactive, onMounted } from 'vue'
 // import Pagination from '@/Components/Pagination.vue'
 // import PayrollModal from '@/Components/PayrollModal.vue'
+import PayrollHistory from './Actions/History.vue'
 import api from '@/Js/Services/axios'
 import ManagePayroll from './Actions/ManagePayroll.vue'
 

@@ -7,6 +7,14 @@ import Employees from '@/Views/Pages/Employees/index.vue'
 import EmployeeRegister from '@/Views/Pages/Employees/Add/EmployeeRegister.vue'
 import Attendance from '@/Views/Pages/Attendance/index.vue'
 import ManagePayroll from '@/Views/Pages/Attendance/Manage/index.vue'
+import Suppliers from '@/Views/Pages/supplier/index.vue'
+import PriceList from '@/Views/Pages/PriceList/index.vue'
+import Vouchers from '@/Views/Pages/Voucher/index.vue'
+import Rates from '@/Views/Pages/Rates/index.vue'
+import Deductions from '@/Views/Pages/Deductions/index.vue'
+import Productions from '@/Views/Pages/Productions/index.vue'
+import Contributions from '@/Views/Pages/Contributions/index.vue'
+import Compensation from '@/Views/Pages/Compensation/index.vue'
 // Check auth status function (from localStorage, token, or API)
 const isAuthenticated = () => {
   // Here, you can replace this with a proper API check
@@ -64,6 +72,54 @@ const routes = [
         name: 'manage-payroll',
         component: ManagePayroll,
         meta: { title: titleFormat('Manage-Payroll'), requiresAuth: true }
+      },
+      {
+        path: 'suppliers/',
+        name: 'suppliers',
+        component: Suppliers,
+        meta: { title: titleFormat('Suppliers'), requiresAuth: true }
+      },
+      {
+        path: 'prices/',
+        name: 'prices',
+        component: PriceList,
+        meta: { title: titleFormat('Price-List'), requiresAuth: true }
+      },
+      {
+        path: 'vouchers/',
+        name: 'vouchers',
+        component: Vouchers,
+        meta: { title: titleFormat('Vouchers'), requiresAuth: true }
+      },
+      {
+        path: 'rates/',
+        name: 'rates',
+        component: Rates,
+        meta: { title: titleFormat('Rates'), requiresAuth: true }
+      },
+      {
+        path: 'deduction/',
+        name: 'deduction',
+        component: Deductions,
+        meta: { title: titleFormat('Deductions'), requiresAuth: true }
+      },
+      {
+        path: 'production/',
+        name: 'production',
+        component: Productions,
+        meta: { title: titleFormat('Productions'), requiresAuth: true }
+      },
+      {
+        path: 'contribution/',
+        name: 'contribution',
+        component: Contributions,
+        meta: { title: titleFormat('Contributions'), requiresAuth: true }
+      },
+      {
+        path: 'compensation/',
+        name: 'compensation',
+        component: Compensation,
+        meta: { title: titleFormat('Compensation'), requiresAuth: true }
       }
     ]
   }

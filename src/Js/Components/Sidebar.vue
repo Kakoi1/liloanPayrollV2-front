@@ -144,7 +144,7 @@
                 <span>Payroll Management</span>
               </span>
             </RouterLink>
-            <RouterLink to="/rate" class="block py-2 px-2 text-sm rounded hover:bg-gray-800 hover:text-green-400 transition-colors">
+            <RouterLink to="/rates" class="block py-2 px-2 text-sm rounded hover:bg-gray-800 hover:text-green-400 transition-colors">
               <span class="flex items-center space-x-2">
                 <span class="w-1 h-1 bg-green-400 rounded-full"></span>
                 <span>Rates</span>
@@ -154,6 +154,12 @@
               <span class="flex items-center space-x-2">
                 <span class="w-1 h-1 bg-green-400 rounded-full"></span>
                 <span>Contribution</span>
+              </span>
+            </RouterLink>
+            <RouterLink to="/compensation" class="block py-2 px-2 text-sm rounded hover:bg-gray-800 hover:text-green-400 transition-colors">
+              <span class="flex items-center space-x-2">
+                <span class="w-1 h-1 bg-green-400 rounded-full"></span>
+                <span>Compensation/Deductions</span>
               </span>
             </RouterLink>
           </div>
@@ -189,19 +195,19 @@
           leave-to-class="opacity-0 max-h-0"
         >
           <div v-if="!isCollapsed && openMenu === 'voucher'" class="pl-10 mt-1 space-y-1 overflow-hidden">
-            <RouterLink to="/voucher" class="block py-2 px-2 text-sm rounded hover:bg-gray-800 hover:text-green-400 transition-colors">
+            <RouterLink to="/vouchers" class="block py-2 px-2 text-sm rounded hover:bg-gray-800 hover:text-green-400 transition-colors">
               <span class="flex items-center space-x-2">
                 <span class="w-1 h-1 bg-green-400 rounded-full"></span>
                 <span>Voucher</span>
               </span>
             </RouterLink>
-            <RouterLink to="/supplier" class="block py-2 px-2 text-sm rounded hover:bg-gray-800 hover:text-green-400 transition-colors">
+            <RouterLink to="/suppliers" class="block py-2 px-2 text-sm rounded hover:bg-gray-800 hover:text-green-400 transition-colors">
               <span class="flex items-center space-x-2">
                 <span class="w-1 h-1 bg-green-400 rounded-full"></span>
                 <span>Supplier</span>
               </span>
             </RouterLink>
-            <RouterLink to="/pricelist" class="block py-2 px-2 text-sm rounded hover:bg-gray-800 hover:text-green-400 transition-colors">
+            <RouterLink to="/prices" class="block py-2 px-2 text-sm rounded hover:bg-gray-800 hover:text-green-400 transition-colors">
               <span class="flex items-center space-x-2">
                 <span class="w-1 h-1 bg-green-400 rounded-full"></span>
                 <span>Pricelist</span>

@@ -55,27 +55,28 @@ const currentDay = new Date().getDate(); // Get the current day of the month
 // Dynamic holiday image logic
 const themeByMonth = computed(() => {
   const holidayImages = {
-    0: "/images/theme/christmas.gif", // Christmas (December)
-    1: "/images/theme/new_year.gif", // New Year (January)
+    0: "/images/theme/Santa Doro GIF.gif", // Christmas (December)
+    1: "/images/theme/Happy New Year Dance GIF.gif", // New Year (January)
     2: "/images/theme/easter.gif", // Easter (March, Easter theme)
-    4: "/images/theme/independence.gif", // Independence Day (June)
-    9: "/images/theme/halloween.gif", // Halloween (October)
+    4: "/images/theme/Dance Flag GIF.gif", // Independence Day (June)
+    9: "/images/theme/Csm Doro GIF.gif", // Halloween (October)
   };
 
   // Determine the holiday image based on the current month and holiday
   const isChristmas = currentMonth === 11; // December
   const isNewYear = currentMonth === 0; // January
+  const isValentines = currentMonth === 1; // January
   const isHalloween = currentMonth === 9 && currentDay === 31; // Halloween on October 31
 
   if (isChristmas) {
-    return { imageUrl: holidayImages[0], overlayClass: "bg-gray-800" }; // Christmas image
+    return { imageUrl: holidayImages[0], overlayClass: "bg-gray-800", holidayName: 'Merry Christmas!' }; // Christmas image
   } else if (isNewYear) {
-    return { imageUrl: holidayImages[1], overlayClass: "bg-gray-800" }; // New Year image
+    return { imageUrl: holidayImages[1], overlayClass: "bg-gray-800", holidayName: 'Happy New Year!' }; // New Year image
   } else if (isHalloween) {
-    return { imageUrl: holidayImages[9], overlayClass: "bg-gray-800" }; // Halloween image
+    return { imageUrl: holidayImages[9], overlayClass: "bg-gray-800", holidayName: 'Happy Halloween!' }; // Halloween image
   }
   // Default image if no holiday
-  return { imageUrl: "/images/logo/logo.png", overlayClass: "bg-gray-800" };
+  return { imageUrl: "/images/theme/Orange Doro GIF.gif", overlayClass: "bg-gray-800", holidayName: 'Hi!!' };
 });
 
 onMounted(() => {
@@ -119,12 +120,12 @@ const maxWidthClass = computed(() => {
           @click.prevent="close"
         >
           <!-- Holiday Image at the bottom right of the overlay -->
-          <div v-if="themeByMonth.imageUrl" class="absolute bottom-4 right-4">
+          <div v-if="themeByMonth.imageUrl" class="absolute bottom-4 right-4 ">
             <img
               :src="themeByMonth.imageUrl"
-              alt="Holiday Image"
-              class="mx-auto"
-              style="max-width: 100px; height: auto;"
+              :alt="themeByMonth.holidayName"
+              class="mx-auto rounded-full"
+              style="max-width: 70px; height: 70px;"
             />
           </div>
         </div>
