@@ -16,6 +16,7 @@ import Productions from '@/Views/Pages/Productions/index.vue'
 import Contributions from '@/Views/Pages/Contributions/index.vue'
 import Compensation from '@/Views/Pages/Compensation/index.vue'
 import Payables from '@/Views/Pages/Payables/index.vue'
+import Loading from '@/Views/Pages/Loading/index.vue'
 // Check auth status function (from localStorage, token, or API)
 const isAuthenticated = () => {
   // Here, you can replace this with a proper API check
@@ -127,6 +128,12 @@ const routes = [
         name: 'payables',
         component: Payables,
         meta: { title: titleFormat('Payables'), requiresAuth: true }
+      },
+      {
+        path: 'loading/',
+        name: 'loading',
+        component: Loading,
+        meta: { title: titleFormat('Loading'), requiresAuth: true }
       }
     ]
   }

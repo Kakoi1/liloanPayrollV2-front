@@ -2,23 +2,26 @@
   <div class="min-h-screen flex items-center justify-center bg-gray-100">
     <div class="w-full max-w-md bg-white shadow-xl rounded-2xl p-8">
       
-      <h2 class="text-3xl font-bold text-center text-gray-800 mb-6">
-        Welcome Back 👋
+      <h2 class="text-3xl font-bold text-center text-green-600 mb-6">
+        JanWilbur Trading
       </h2>
+      <h4 class="font-bold text-center mt-[-20px] text-gray-800 mb-6">
+       PMS
+      </h4>
 
       <form @submit.prevent="handleLogin" class="space-y-5">
         
         <!-- Email -->
         <div>
           <label class="block text-sm font-medium text-gray-600">
-            Email
+            Username
           </label>
           <input
             v-model="username"
             type="text"
             required
             class="mt-1 w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            placeholder="you@example.com"
+            placeholder="jhon doe"
           />
         </div>
 
@@ -37,7 +40,7 @@
         </div>
 
         <!-- Remember -->
-        <div class="flex items-center justify-between">
+        <!-- <div class="flex items-center justify-between">
           <label class="flex items-center text-sm text-gray-600">
             <input type="checkbox" class="mr-2 rounded">
             Remember me
@@ -45,7 +48,7 @@
           <a href="#" class="text-sm text-blue-600 hover:underline">
             Forgot password?
           </a>
-        </div>
+        </div> -->
 
         <!-- Button -->
         <button
@@ -57,12 +60,12 @@
 
       </form>
 
-      <p class="text-center text-sm text-gray-500 mt-6">
+      <!-- <p class="text-center text-sm text-gray-500 mt-6">
         Don’t have an account?
         <a href="#" class="text-blue-600 hover:underline">
           Sign up
         </a>
-      </p>
+      </p> -->
 
     </div>
   </div>
