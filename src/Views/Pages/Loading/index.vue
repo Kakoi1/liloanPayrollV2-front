@@ -79,6 +79,11 @@
 
                       <!-- Teams Table -->
                       <div class="overflow-x-auto">
+
+                         <div class="flex justify-end mb-4">
+                            <AddTeam @saved="fetchTeams" />
+                        </div>
+
                         <table class="w-full text-sm border-collapse">
                           <thead class="bg-gray-100">
                             <tr>
@@ -93,26 +98,34 @@
                             </tr>
                             <tr v-for="(team, index) in teams" :key="index" class="hover:bg-gray-50">
                               <td class="px-4 py-2">
-                                <span class="text-blue-600 font-medium cursor-pointer" @click="viewTeamDetails(team)">
+                                <span class="text-blue-600 font-medium cursor-pointer"">
                                   {{ team.name }}
                                 </span>
                               </td>
                               <td class="px-4 py-2">
-                                <span :class="getTeamStatusClass(team.status)" class="px-2 py-1 text-xs font-medium rounded-full">
-                                  {{ getTeamStatusText(team.status) }}
-                                </span>
+
+                                <template v-if="team.assignedItem.length === 0">
+                                  <span :class="getTeamStatusClass(team.status)"  class="px-2 py-1 text-xs font-medium rounded-full">
+                                    {{ getTeamStatusText(team.status) }}                               
+                                  </span>
+                                </template>
+
+                                <template v-else >
+                                  <p>Loading: </p>
+                                  <div v-for="item in team.assignedItem" class="leading-[30px]">
+                                    <span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                                      {{ item.itemName }}
+                                    </span>
+                                  </div>
+                                </template>
+                                
                               </td>
                               <td class="px-4 py-2">
                                 <div class="flex flex-col space-y-1">
-                                  <button 
-                                    @click="viewTeamMembers(team)" 
-                                    class="px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors flex items-center justify-center"
-                                  >
-                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
-                                    </svg>
-                                    Members
-                                  </button>
+                                  <EditTeam 
+                                    :team="team" 
+                                    @updated="fetchTeams"
+                                    />
                                   <button 
                                     v-if="team.status == 4"
                                     @click="markTeamAsWaiting(team)" 
@@ -132,7 +145,7 @@
                                     </svg>
                                     Loading History
                                   </button>
-                                  <button 
+                                  <!-- <button 
                                     @click="viewPassHistory(team)" 
                                     class="px-2 py-1 bg-gray-600 text-white text-xs rounded hover:bg-gray-700 transition-colors flex items-center justify-center"
                                   >
@@ -140,15 +153,16 @@
                                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
                                     </svg>
                                     Pass History
-                                  </button>
+                                  </button> -->
                                   <button 
                                     @click="toggleTeamStatus(team)" 
-                                    class="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700 transition-colors flex items-center justify-center"
+                                    class="px-2 py-1  text-white text-xs rounded  transition-colors flex items-center justify-center"
+                                    :class="team.status == 2 ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'"
                                   >
                                     <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
                                     </svg>
-                                    {{ team.status == 0 ? 'Activate' : 'Deactivate' }}
+                                    {{ team.status == 2 ? 'Activate' : 'Deactivate' }}
                                   </button>
                                 </div>
                               </td>
@@ -201,7 +215,7 @@
                               type="search" 
                               placeholder="Search..." 
                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
-                              v-model="search.text" 
+                              v-model="search.search" 
                               @keyup="filter"
                             >
                             <svg class="w-5 h-5 absolute right-3 top-2.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -217,11 +231,14 @@
                           >
                             <option value="">All Items</option>
                             <option v-for="item in itemOptions" :key="item.id" :value="item.id">
-                              {{ item.name }}
+                              {{ item.class }}
                             </option>
                           </select>
                         </div>
                       </div>
+                       <div class="flex justify-end mb-4">
+                            <AddLoading @saved="fetchOngoingLoadings" />
+                        </div>
 
                       <!-- Loading Table -->
                       <div class="overflow-x-auto">
@@ -245,31 +262,27 @@
                               <td colspan="10" class="px-4 py-8 text-center text-red-500">No data found...</td>
                             </tr>
                             <tr v-for="(loading, index) in loadings" :key="index" class="hover:bg-gray-50">
-                              <td class="px-4 py-2">{{ formatDate(loading.loading_date) }}</td>
-                              <td class="px-4 py-2">{{ loading.van_no }}</td>
-                              <td class="px-4 py-2">{{ loading.seal_no }}</td>
-                              <td class="px-4 py-2">{{ loading.item }}</td>
-                              <td class="px-4 py-2 text-right">{{ formatNumber(loading.container_weight) }}</td>
-                              <td class="px-4 py-2 text-right">{{ formatNumber(loading.gross_weight) }}</td>
-                              <td class="px-4 py-2 text-right font-medium">{{ formatNumber(calculateNetWeight(loading)) }}</td>
-                              <td class="px-4 py-2">{{ loading.team_name }}</td>
+                              <td class="px-4 py-2">{{ loading.loadingDate }}</td>
+                              <td class="px-4 py-2">{{ loading.vanNo }}</td>
+                              <td class="px-4 py-2">{{ loading.sealNo }}</td>
+                              <td class="px-4 py-2">{{ loading.itemName }}</td>
+                              <td class="px-4 py-2 text-right">{{ formatNumber(loading.containerWeight) }}</td>
+                              <td class="px-4 py-2 text-right">{{ formatNumber(loading.grossWeight) }}</td>
+                              <td class="px-4 py-2 text-right font-medium">{{ loading.netWeight}}</td>
+                              <td class="px-4 py-2">{{ loading.teamName }}</td>
                               <td class="px-4 py-2">
                                 <span :class="getLoadingStatusClass(loading.status)" class="px-2 py-1 text-xs font-medium rounded-full">
                                   {{ getLoadingStatusText(loading.status) }}
                                 </span>
                               </td>
                               <td class="px-4 py-2">
-                                <div v-if="loading.status != 3" class="flex space-x-1">
-                                  <button 
-                                    v-if="loading.status == 2"
-                                    @click="finishLoading(loading)" 
-                                    class="p-1.5 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
-                                    title="Finish"
-                                  >
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                    </svg>
-                                  </button>
+                                <div v-if="loading.status != 4" class="flex space-x-1">
+  
+                                  <FinishLoading 
+                                    v-if="loading.status == 3"
+                                    :loading="loading" 
+                                    @updated="fetchOngoingLoadings"
+                                  />
                                   <button 
                                     v-if="loading.status == 0"
                                     @click="acceptLoading(loading)" 
@@ -280,15 +293,17 @@
                                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                     </svg>
                                   </button>
-                                  <button 
-                                    @click="editLoading(loading)" 
-                                    class="p-1.5 bg-yellow-500 text-white rounded hover:bg-yellow-600 transition-colors"
-                                    title="Edit"
-                                  >
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                    </svg>
-                                  </button>
+                                  <EditLoading 
+                                    :loading="loading" 
+                                    @updated="fetchOngoingLoadings"
+                                    />
+
+                                  <AssignTeam 
+                                    v-if="loading.status == 0 || loading.status == 1"
+                                    :loading="loading" 
+                                    @updated="fetchOngoingLoadings"
+                                    />
+
                                   <button 
                                     v-if="loading.status == 0"
                                     @click="rejectLoading(loading)" 
@@ -345,6 +360,12 @@ import Swal from 'sweetalert2'
 import moment from 'moment'
 import api from '@/Js/Services/axios'
 import Pagination from '@/Js/Components/Paginate.vue'
+import AddTeam from './Actions/AddTeam.vue'
+import AddLoading from './Actions/add.vue'
+import EditTeam from './Actions/EditTeam.vue'
+import AssignTeam from './Actions/AssignTeam.vue'
+import EditLoading from './Actions/edit.vue'
+import FinishLoading from './Actions/FinishLoading.vue'
 
 // Props
 const props = defineProps({
@@ -364,7 +385,7 @@ const itemOptions = ref([])
 const filterItem = ref('')
 
 const search = ref({
-  text: '',
+  search: '',
   page_num: 1,
   items_perpage: 10
 })
@@ -378,16 +399,7 @@ const formatNumber = (value) => {
   return parseFloat(value).toFixed(2)
 }
 
-const formatDate = (date) => {
-  if (!date) return 'N/A'
-  return moment(date).format('YYYY-MM-DD')
-}
 
-const calculateNetWeight = (loading) => {
-  const gross = parseFloat(loading.gross_weight) || 0
-  const container = parseFloat(loading.container_weight) || 0
-  return gross - container
-}
 
 // Team Status Helpers
 const getTeamStatusClass = (status) => {
@@ -404,7 +416,7 @@ const getTeamStatusClass = (status) => {
 const getTeamStatusText = (status) => {
   switch(status) {
     case 0: return 'Inactive'
-    case 1: return 'Active'
+    case 1: return 'Waiting'
     case 2: return 'Loading'
     case 3: return 'Finished'
     case 4: return 'Waiting'
@@ -417,8 +429,9 @@ const getLoadingStatusClass = (status) => {
   switch(status) {
     case 0: return 'bg-yellow-100 text-yellow-800'
     case 1: return 'bg-blue-100 text-blue-800'
-    case 2: return 'bg-green-100 text-green-800'
-    case 3: return 'bg-gray-100 text-gray-800'
+    case 2: return 'bg-red-100 text-red-800'
+    case 3: return 'bg-orange-100 text-orange-800'
+    case 4: return 'bg-green-100 text-green-800'
     default: return 'bg-gray-100 text-gray-800'
   }
 }
@@ -426,9 +439,10 @@ const getLoadingStatusClass = (status) => {
 const getLoadingStatusText = (status) => {
   switch(status) {
     case 0: return 'Pending'
-    case 1: return 'Approved'
-    case 2: return 'In Progress'
-    case 3: return 'Completed'
+    case 1: return 'Waiting'
+    case 2: return 'Removed'
+    case 3: return 'Ongoing'
+    case 4: return 'Completed'
     default: return 'Unknown'
   }
 }
@@ -436,7 +450,7 @@ const getLoadingStatusText = (status) => {
 // Fetch Teams
 const fetchTeams = async () => {
   try {
-    const response = await api.post('/loading/teams', {
+    const response = await api.post('/teams/list', {
       status: 1 // Active
     })
     if (response.data && !response.data.error) {
@@ -449,8 +463,8 @@ const fetchTeams = async () => {
 
 const fetchDeactivatedTeams = async () => {
   try {
-    const response = await api.post('/loading/teams', {
-      status: 0 // Deactivated
+    const response = await api.post('/teams/list', {
+      status: 2 // Deactivated
     })
     if (response.data && !response.data.error) {
       teams.value = response.data.teams || []
@@ -465,13 +479,14 @@ const fetchOngoingLoadings = async () => {
   try {
     const formData = {
       ...search.value,
-      status: 'ongoing',
+      status: 1,
       item_id: filterItem.value
     }
     const response = await api.post('/loading/list', formData)
     if (response.data && !response.data.error) {
       loadings.value = response.data.loadings || []
       totalRows.value = response.data.totalrows || 0
+      fetchTeams();
     }
   } catch (error) {
     console.error('Failed to fetch ongoing loadings:', error)
@@ -482,7 +497,7 @@ const fetchFinishedLoadings = async () => {
   try {
     const formData = {
       ...search.value,
-      status: 'finished',
+      status: 4,
       item_id: filterItem.value
     }
     const response = await api.post('/loading/list', formData)
@@ -533,17 +548,6 @@ const handlePageNum = (page) => {
   }
 }
 
-// Team Actions (placeholders for now)
-const viewTeamDetails = (team) => {
-  console.log('View team details:', team)
-  // Will be implemented later
-}
-
-const viewTeamMembers = (team) => {
-  console.log('View team members:', team)
-  // Will be implemented later
-}
-
 const markTeamAsWaiting = (team) => {
   console.log('Mark team as waiting:', team)
   // Will be implemented later
@@ -554,31 +558,66 @@ const viewLoadingHistory = (team) => {
   // Will be implemented later
 }
 
-const viewPassHistory = (team) => {
-  console.log('View pass history:', team)
-  // Will be implemented later
+
+// Toggle Team Status (Activate/Deactivate)
+const toggleTeamStatus = async (team) => {
+  const isActive = team.status === 1
+  const action = isActive ? 'deactivate' : 'activate'
+  const confirmText = isActive ? 'deactivate' : 'activate'
+  
+  const result = await Swal.fire({
+    title: `${confirmText.charAt(0).toUpperCase() + confirmText.slice(1)} Team?`,
+    text: `Do you want to ${action} "${team.name}"?`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: isActive ? '#ef4444' : '#10b981',
+    cancelButtonColor: '#6b7280',
+    confirmButtonText: `Yes, ${action}`,
+    cancelButtonText: 'Cancel'
+  })
+
+  if (result.isConfirmed) {
+    try {
+      const response = await api.post('/teams/toggle-status', {
+        team_id: team.id,
+        status: isActive ? 0 : 1
+      })
+
+      if (response.data && !response.data.error) {
+        await Swal.fire({
+          icon: 'success',
+          title: 'Success!',
+          text: `Team ${action}d successfully`,
+          timer: 1500,
+          showConfirmButton: false
+        })
+        
+        // Refresh the teams list based on current tab
+        if (teamTab.value === 'active') {
+          fetchTeams()
+        } else {
+          fetchDeactivatedTeams()
+        }
+      }
+    } catch (error) {
+      console.error('Failed to toggle team status:', error)
+      await Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.response?.data?.message || 'Failed to update team status',
+        timer: 1500,
+        showConfirmButton: false
+      })
+    }
+  }
 }
 
-const toggleTeamStatus = (team) => {
-  console.log('Toggle team status:', team)
-  // Will be implemented later
-}
-
-// Loading Actions (placeholders for now)
-const finishLoading = (loading) => {
-  console.log('Finish loading:', loading)
-  // Will be implemented later
-}
 
 const acceptLoading = (loading) => {
   console.log('Accept loading:', loading)
   // Will be implemented later
 }
 
-const editLoading = (loading) => {
-  console.log('Edit loading:', loading)
-  // Will be implemented later
-}
 
 const rejectLoading = (loading) => {
   console.log('Reject loading:', loading)

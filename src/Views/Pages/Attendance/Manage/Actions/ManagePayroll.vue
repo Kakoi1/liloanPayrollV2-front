@@ -11,15 +11,6 @@
     Payroll Manager
   </button>
 
-  <!-- Auto-save indicator -->
-  <div v-if="autoSaving" class="fixed top-4 right-4 bg-blue-500 text-white px-3 py-2 rounded-lg shadow-lg z-50 flex items-center">
-    <svg class="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-    </svg>
-    Auto-saving...
-  </div>
-
   <!-- Modal -->
   <div v-if="showModal" class="fixed inset-0 z-50 overflow-y-auto w-full" @click.self="closeModal">
     <!-- Backdrop with blur effect -->
@@ -63,13 +54,6 @@
                 @payroll-created="handlePayrollCreated"
                 @closed="handleModalClosed"
               />
-
-            </div>
-            <div v-if="!hasPayrollData" colspan="14" class="px-3 py-8 text-center text-gray-500">
-                      <svg class="w-12 h-12 mx-auto text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                      </svg>
-                      <p class="text-sm">No tasks added yet. Click "New Task" to add one.</p>
             </div>
             <!-- Display payroll info if exists -->
             <div v-if="hasPayrollData" class="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
@@ -137,7 +121,7 @@
                 Daily Task Compilation
               </h4>
               <span class="text-xs text-white bg-white bg-opacity-20 px-2 py-1 rounded-full">
-                {{ Task.length }} Tasks
+                {{ Task.length }} Tasks ({{ regularTasksCount }} active)
               </span>
             </div>
             
@@ -183,7 +167,7 @@
                         type="checkbox" 
                         v-model="selectAll" 
                         @change="toggleSelectAll"
-                        :disabled="!hasPayrollData"
+                        :disabled="!hasPayrollData || regularTasksCount === 0"
                         class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                       >
                     </th>
@@ -209,86 +193,86 @@
                       <input 
                         type="checkbox" 
                         v-model="task.selected" 
-                        :disabled="!hasPayrollData || task.payrollId != 0"
+                        :disabled="!hasPayrollData || task.is_draft || task.payrollId != 0"
                         class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                       >
                     </td>
                     <td class="px-3 py-2">
-                        <span v-if="task.is_draft" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                            Draft
-                        </span>
-                        <span v-else class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            Saved
-                        </span>
+                      <span v-if="task.is_draft" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                        Draft
+                      </span>
+                      <span v-else class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        Saved
+                      </span>
                     </td>
                     <td class="px-3 py-2">
                       <input 
                         type="date" 
                         v-model="task.date" 
-                        :disabled="!task.is_draft || hasPayrollData"
+                        :disabled="!task.is_draft"
                         class="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
-                        :class="{ 'bg-gray-100 cursor-not-allowed': !task.is_draft || hasPayrollData }"
+                        :class="{ 'bg-gray-100 cursor-not-allowed': !task.is_draft}"
                       >
                     </td>
                     <td class="px-3 py-2">
                       <select 
                         v-model="task.day_type" 
-                        :disabled="!task.is_draft || hasPayrollData"
+                        :disabled="!task.is_draft"
                         class="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
-                        :class="{ 'bg-gray-100 cursor-not-allowed': !task.is_draft || hasPayrollData }"
+                        :class="{ 'bg-gray-100 cursor-not-allowed': !task.is_draft}"
                       >
-                        <option value="regular">Reg</option>
-                        <option value="special">Spec</option>
-                        <option value="holiday">Hol</option>
+                        <option value="1">Reg</option>
+                        <option value="2">Spec</option>
+                        <option value="3">Hol</option>
                       </select>
                     </td>
                     <td class="px-3 py-2">
-                        <select 
-                            v-model="task.sp" 
-                            :disabled="!task.is_draft || hasPayrollData"
-                            class="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
-                            :class="{ 'bg-gray-100 cursor-not-allowed': !task.is_draft || hasPayrollData }"
-                        >
-                            <option value="1">Solo</option>
-                            <option value="2">Pair</option>
-                        </select>
+                      <select 
+                        v-model="task.sp" 
+                        :disabled="!task.is_draft"
+                        class="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
+                        :class="{ 'bg-gray-100 cursor-not-allowed': !task.is_draft }"
+                      >
+                        <option value="1">Solo</option>
+                        <option value="2">Pair</option>
+                      </select>
                     </td>
                     <td class="px-3 py-2">
-                        <select 
-                          v-model="task.taskType" 
-                          @change="fetchClass(task.taskType, i)" 
-                          :disabled="!task.is_draft || hasPayrollData"
-                          :class="{ 'bg-gray-100 cursor-not-allowed': !task.is_draft || hasPayrollData }" 
-                          class="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
-                        >
-                            <option value="">--</option>
-                            <option v-for="cd in tdrop" :value="cd.id" :key="cd.id">{{ cd.task_name }}</option>
-                        </select>
+                      <select 
+                        v-model="task.taskType" 
+                        @change="fetchClass(task.taskType, i)" 
+                        :disabled="!task.is_draft"
+                        :class="{ 'bg-gray-100 cursor-not-allowed': !task.is_draft }" 
+                        class="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
+                      >
+                        <option value="">--</option>
+                        <option v-for="cd in tdrop" :value="cd.id" :key="cd.id">{{ cd.task_name }}</option>
+                      </select>
                     </td>
                     <td class="px-3 py-2">
-                        <select 
-                          v-model="task.taskId" 
-                          :disabled="!task.is_draft || hasPayrollData"
-                          :class="{ 'bg-gray-100 cursor-not-allowed': !task.is_draft || hasPayrollData }" 
-                          class="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
+                      <select 
+                        v-model="task.taskId" 
+                        @change="updateRateFromClass(task, i)"
+                        :disabled="!task.is_draft"
+                        :class="{ 'bg-gray-100 cursor-not-allowed': !task.is_draft }" 
+                        class="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
+                      >
+                        <option value="">--</option>
+                        <option 
+                          v-for="cd in task.classOptions || cdrop" 
+                          :value="cd.value" 
+                          :key="cd.value"
                         >
-                            <option value="">--</option>
-                            <!-- Use task.classOptions if available, otherwise fallback to shared cdrop -->
-                            <option 
-                            v-for="cd in task.classOptions || cdrop" 
-                            :value="cd.value" 
-                            :key="cd.value"
-                            >
-                            {{ cd.label }}
-                            </option>
-                        </select>
+                          {{ cd.label }}
+                        </option>
+                      </select>
                     </td>
                     <td class="px-3 py-2">
                       <input 
                         type="text" 
                         v-model="task.rate"  
                         class="w-full px-2 py-1 border border-gray-300 rounded text-sm"
-                        :class="{ 'bg-gray-100': !task.is_draft || hasPayrollData }"
+                        :class="{ 'bg-gray-100': !task.is_draft }"
                         readonly=""
                       >
                     </td>
@@ -296,31 +280,34 @@
                       <div class="flex items-center space-x-1">
                         <input 
                           type="number" 
-                          :title="'original ' + (task.unit == 3 ? 'kg: ' : 'hrs: ') + task.originalNet"
+                          :title="getUnitTitle(task)"
                           v-model="task.netKgPerEmp" 
+                          @input="updateTaskTotal(task)"
                           class="w-20 px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
-                          :class="{ 'bg-gray-100': !task.is_draft || hasPayrollData }"
-                          :readonly="!task.is_draft || hasPayrollData"
+                          :class="{ 'bg-gray-100': !task.is_draft }"
+                          :readonly="!task.is_draft"
                         >
-                        <span class="text-xs text-gray-500 whitespace-nowrap">{{ task.unit == 3 ? 'kg' : 'hrs' }}</span>
+                        <span class="text-xs text-gray-500 whitespace-nowrap">{{ getUnitLabel(task.unit) }}</span>
                       </div>
                     </td>
                     <td class="px-3 py-2">
                       <input 
                         type="number" 
                         v-model="task.tarima" 
+                        @input="updateTaskTotal(task)"
                         class="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
-                        :class="{ 'bg-gray-100': !task.is_draft || hasPayrollData }"
-                        :readonly="!task.is_draft || hasPayrollData"
+                        :class="{ 'bg-gray-100': !task.is_draft }"
+                        :readonly="!task.is_draft"
                       >
                     </td>
                     <td class="px-3 py-2">
                       <input 
                         type="number" 
                         v-model="task.deduction" 
+                        @input="updateTaskTotal(task)"
                         class="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
-                        :class="{ 'bg-gray-100': !task.is_draft || hasPayrollData }"
-                        :readonly="!task.is_draft || hasPayrollData"
+                        :class="{ 'bg-gray-100': !task.is_draft }"
+                        :readonly="!task.is_draft"
                       >
                     </td>
                     <td class="px-3 py-2">
@@ -336,29 +323,34 @@
                         type="text" 
                         v-model="task.remarks" 
                         class="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
-                        :class="{ 'bg-gray-100': !task.is_draft || hasPayrollData }"
-                        :readonly="!task.is_draft || hasPayrollData"
+                        :class="{ 'bg-gray-100': !task.is_draft }"
+                        :readonly="!task.is_draft"
                       >
                     </td>
                     <td class="px-3 py-2">
                       <div class="flex space-x-1">
+                        <!-- Save button - ONLY for draft tasks -->
                         <button 
-                          v-if="!hasPayrollData"
-                          @click="saveTask(i)" 
-                          class="p-1.5 bg-green-600 text-white rounded hover:bg-green-700 transition-colors duration-150" 
-                          title="Save"
-                          :disabled="!task.is_draft"
-                          :class="{ 'opacity-50 cursor-not-allowed': !task.is_draft }"
+                          v-if="task.is_draft"
+                          @click="saveDraftTask(i)" 
+                          class="p-1.5 bg-green-600 text-white rounded hover:bg-green-700 transition-colors duration-150 group relative" 
+                          title="Click to save (Choose between draft or convert)"
                         >
                           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                           </svg>
+                          <!-- Tooltip -->
+                          <span class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
+                            Save (Draft/Convert)
+                          </span>
                         </button>
+                        
+                        <!-- Delete button - ONLY for draft tasks -->
                         <button 
-                          v-if="!hasPayrollData"
+                          v-if="task.is_draft"
                           @click="confirmDelete(i)" 
                           class="p-1.5 bg-red-600 text-white rounded hover:bg-red-700 transition-colors duration-150" 
-                          title="Delete"
+                          title="Delete Draft"
                         >
                           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -382,7 +374,12 @@
             </div>
 
             <!-- Gross Income -->
-            <div class="bg-gray-50 px-4 py-3 border-t border-gray-200 flex justify-end">
+            <div class="bg-gray-50 px-4 py-3 border-t border-gray-200 flex justify-between items-center">
+              <div class="text-xs text-gray-500">
+                <span v-if="hasDraftTasks" class="text-yellow-600">
+                  ⚠️ Draft tasks are not included in total
+                </span>
+              </div>
               <div class="w-72 flex items-center justify-between bg-gradient-to-r from-yellow-100 to-yellow-200 px-4 py-2 rounded-lg border border-yellow-300">
                 <span class="text-sm font-semibold text-gray-700">Gross Income:</span>
                 <input type="text" v-model="Dtotal" readonly class="w-32 px-2 py-1 bg-white border border-yellow-300 rounded-lg text-sm text-right font-medium">
@@ -542,7 +539,7 @@
 
           <!-- Total Income with prominent design -->
           <div class="flex justify-end">
-            <div class="w-96 bg-gradient-to-r from-green-600 to-green-700 p-4 rounded-xl shadow-lg flex flex-col  gap-x-1 gap-y-5">
+            <div class="w-96 bg-gradient-to-r from-green-600 to-green-700 p-4 rounded-xl shadow-lg flex flex-col gap-x-1 gap-y-5">
               <div class="flex justify-between items-center">
                 <span class="text-white font-bold text-lg">TOTAL INCOME</span>
                 <div class="bg-white bg-opacity-20 px-4 py-2 rounded-lg">
@@ -554,7 +551,6 @@
                     placeholder="0.00"
                   >
                 </div>
-
               </div>
               <div class="flex justify-end">
                 <button 
@@ -567,9 +563,6 @@
               </div>
             </div>
           </div>
-
-
-
         </div>
       </div>
     </div>
@@ -597,34 +590,36 @@ const props = defineProps({
 const showModal = ref(false)
 const selectedEmployee = ref(null)
 const loading = ref(false)
-const Search = ref({ 
-  from: moment().subtract(7, 'days').format('YYYY-MM-DD'),
-  to: moment().format('YYYY-MM-DD')
-})
 const Task = ref([])
-const Daily = ref([[]])
-const Deduction = ref([])
-const Misc = ref([])
 const tdrop = ref([])
 const cdrop = ref([])
-const autoSaving = ref(false)
 const payrollData = ref(null)
 const selectAll = ref(false)
 const Dtotal = ref('0')
-const CDtotal = ref('0')
-const Stotal = ref('0')
 const compensationOptions = ref([])
 const mandatoryCompensations = ref([])
 const nonMandatoryCompensations = ref([])
+const draftMSG = ref('')
+const miscMSG = ref('')
 
 // Computed property to check if payroll data exists
 const hasPayrollData = computed(() => {
   return payrollData.value && payrollData.value.payroll 
 })
 
-// Computed property for selected tasks
+// Computed property for regular tasks count (non-draft)
+const regularTasksCount = computed(() => {
+  return Task.value.filter(task => !task.is_draft).length
+})
+
+// Computed property to check if there are draft tasks
+const hasDraftTasks = computed(() => {
+  return Task.value.some(task => task.is_draft)
+})
+
+// Computed property for selected tasks (only non-draft)
 const selectedTasks = computed(() => {
-  return Task.value.filter(task => task.selected && task.payrollId === 0)
+  return Task.value.filter(task => !task.is_draft && task.selected && task.payrollId === 0)
 })
 
 // Computed totals
@@ -645,16 +640,6 @@ const mandatoryTotal = computed(() => {
 // Add cache for class options
 const classCache = ref(new Map())
 
-// Add debounce timer refs
-const saveTimeouts = ref(new Map())
-const autoSaveDelay = 1000 // 1 second delay
-
-// Months for dropdown
-const months = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December'
-]
-
 const totalIncome = computed(() => {
   const gross = parseFloat(Dtotal.value.replace(/,/g, '')) || 0
   const nonMandatory = parseFloat(nonMandatoryTotal.value.replace(/,/g, '')) || 0
@@ -664,86 +649,92 @@ const totalIncome = computed(() => {
   return formatCurrency(total)
 })
 
-// Watch for changes in task fields to calculate total and auto-save
-watch(Task, (newTasks) => {
-  newTasks.forEach((task, index) => {
-    // Calculate total
-    if (task.hour || task.rate || task.tarima || task.deduction || task.netKgPerEmp) {
-      const hours = parseFloat(task.hour || task.netKgPerEmp) || 0
-      const rate = parseFloat(task.rate) || 0
-      const tarima = parseFloat(task.tarima) || 0
-      const deduction = parseFloat(task.deduction) || 0
-      
-      // Calculate total (you can adjust this formula as needed)
-      task.total = (hours * rate) + tarima - deduction
-    }
-    
-    // Auto-save if task is not draft and has an ID
-    if (!task.is_draft && task.id && !task.id.toString().startsWith('temp')) {
-      debouncedSaveTask(index, task)
+const getUnitLabel = (unit) => {
+  switch(parseInt(unit)) {
+    case 1:
+      return 'hrs'
+    case 3:
+      return 'kg'
+    case 4:
+      return 'container'
+    default:
+      return 'unit'
+  }
+}
+
+// Get unit title/tooltip text
+const getUnitTitle = (task) => {
+  const unit = parseInt(task.unit)
+  const originalNet = task.originalNet || 0
+  
+  switch(unit) {
+    case 1:
+      return `Original hours: ${originalNet}`
+    case 3:
+      return `Original kg: ${originalNet}`
+    case 4:
+      return `Original containers: ${originalNet}`
+    default:
+      return `Original: ${originalNet}`
+  }
+}
+
+// Update task total calculation
+const updateTaskTotal = (task) => {
+  let hours = parseFloat(task.netKgPerEmp) || 0
+  const rate = parseFloat(task.rate) || 0
+  const tarima = parseFloat(task.tarima) || 0
+  const multi = parseFloat(task.taskMulti) || 0
+  const deduction = parseFloat(task.deduction) || 0
+
+  if (task.unit == 1) {
+      hours = hours / 8
+  }
+
+  const totalMulti = parseFloat(tarima*multi)
+  
+  task.total = ((hours * rate) - (totalMulti + deduction)).toFixed(2)
+  
+  // Recalculate gross total
+  calculateGrossTotal()
+}
+
+// Calculate gross total from non-draft tasks
+const calculateGrossTotal = () => {
+  let totalFromRegularTasks = 0
+  Task.value.forEach((task) => {
+    if (!task.is_draft) {
+      totalFromRegularTasks += parseFloat(task.total) || 0
     }
   })
+  Dtotal.value = formatCurrency(totalFromRegularTasks)
+}
+
+// Update rate when class is selected
+const updateRateFromClass = (task, index) => {
+  const selectedClass = (task.classOptions || cdrop.value).find(opt => opt.value == task.taskId)
+  if (selectedClass && selectedClass.rate) {
+    task.rate = selectedClass.rate
+    task.taskMulti = selectedClass.multiplier
+    task.unit = selectedClass.measurement
+    updateTaskTotal(task)
+  }
+}
+
+// Watch for changes in task fields to update total
+watch(Task, () => {
+  calculateGrossTotal()
 }, { deep: true })
 
 // Watch selected tasks to update selectAll
 watch(selectedTasks, (newSelected) => {
-  const selectableTasks = Task.value.filter(task => task.payrollId === 0)
+  const selectableTasks = Task.value.filter(task => !task.is_draft && task.payrollId === 0)
   if (selectableTasks.length > 0) {
     selectAll.value = newSelected.length === selectableTasks.length
   } else {
     selectAll.value = false
   }
 }, { deep: true })
-
-// Debounced save function
-const debouncedSaveTask = (index, task) => {
-  // Clear existing timeout for this task
-  if (saveTimeouts.value.has(task.id)) {
-    clearTimeout(saveTimeouts.value.get(task.id))
-  }
-  
-  // Set new timeout
-  const timeout = setTimeout(() => {
-    autoSaveTask(index)
-  }, autoSaveDelay)
-  
-  saveTimeouts.value.set(task.id, timeout)
-}
-
-// Auto-save function
-const autoSaveTask = async (index) => {
-  const task = Task.value[index]
-  
-  // Don't auto-save if required fields are missing
-  if (!task.taskId || !task.posId) {
-    return
-  }
-  
-  autoSaving.value = true
-  
-  try {
-    const response = await api.post('/payroll/task/save', {
-      employee_id: selectedEmployee.value.employeeId,
-      task_data: task
-    })
-    
-    if (response.data && !response.data.error) {
-      console.log(`Task ${task.id} auto-saved successfully`)
-    }
-  } catch (error) {
-    console.error('Failed to auto-save task:', error)
-  } finally {
-    autoSaving.value = false
-  }
-}
-
-// Clear all save timeouts
-const clearAllSaveTimeouts = () => {
-  saveTimeouts.value.forEach((timeout) => {
-    clearTimeout(timeout)
-  })
-  saveTimeouts.value.clear()
-}
 
 // Methods
 const openModal = () => {
@@ -778,13 +769,13 @@ const fetchPayrollData = async () => {
     if (response.data && !response.data.error) {
       payrollData.value = response.data
       
-      // If there's payroll data, map the tasks to the Task array
-      if (hasPayrollData.value && response.data.tasks) {
-        Task.value = response.data.tasks.map(task => ({
+      if (hasPayrollData.value) {
+        // Process regular tasks (non-draft)
+        const regularTasks = (response.data.tasks || []).map(task => ({
           id: task.id,
           date: task.date ? moment(task.date).format('YYYY-MM-DD') : '',
-          day_type: mapDayType(task.dayType),
-          sp: task.workerCount?.toString() || '1',
+          day_type: task.dayType,
+          sp: task.workerCount == 1? 1 : 2,
           taskType: task.taskType,
           taskId: task.taskId,
           rate: task.rate?.toString() || '',
@@ -803,15 +794,43 @@ const fetchPayrollData = async () => {
           classOptions: []
         }))
         
-        // Update totals
-        if (response.data.total) {
-          Dtotal.value = formatCurrency(response.data.total)
-        }
+        // Process draft tasks
+        const draftTasks = (response.data.draft || []).map(draft => ({
+          id: draft.id,
+          date: draft.date ? moment(draft.date).format('YYYY-MM-DD') : '',
+          day_type: draft.dayType,
+          sp: draft.workerCount?.toString() || '1',
+          taskType: draft.taskType,
+          taskId: draft.taskId,
+          rate: draft.rate?.toString() || '',
+          hour: draft.hour,
+          netKgPerEmp: draft.netKgPerEmp,
+          unit: draft.unit || 'kg',
+          tarima: draft.tarima || 0,
+          originalNet: draft.originalNet || 0,
+          deduction: draft.deduction || 0,
+          total: draft.total || 0,
+          remarks: draft.remarks || '',
+          is_draft: true,
+          isDefault: 1,
+          payrollId: draft.payrollId || 0,
+          selected: false,
+          classOptions: [],
+          belongsToPayroll: true
+        }))
         
-        // Fetch class options for each task
+        Task.value = [...regularTasks, ...draftTasks]
+        
+        // Calculate total from regular tasks only
+        const totalFromRegularTasks = regularTasks.reduce((sum, task) => {
+          return sum + (parseFloat(task.total) || 0)
+        }, 0)
+        
+        Dtotal.value = formatCurrency(totalFromRegularTasks)
+        
+        // Fetch class options for all tasks
         await fetchClassesForExistingTasks()
       } else {
-        // Clear tasks if no payroll data
         Task.value = []
         Dtotal.value = '0.00'
       }
@@ -830,8 +849,232 @@ const fetchPayrollData = async () => {
   }
 }
 
-const submitPayroll = async () => {
+// Save draft task (manual save)
+// Save draft task with confirmation
+const saveDraftTask = async (index) => {
+  const task = Task.value[index]
+  
+  // Validate required fields
+  if (!task.taskType) {
+    await Swal.fire({
+      icon: 'warning',
+      title: 'Warning',
+      text: 'Please select a task',
+      timer: 1500,
+      showConfirmButton: false
+    })
+    return
+  }
 
+  if (!task.taskId) {
+    await Swal.fire({
+      icon: 'warning',
+      title: 'Warning',
+      text: 'Please select a class/position',
+      timer: 1500,
+      showConfirmButton: false
+    })
+    return
+  }
+
+  // Show confirmation dialog
+  const result = await Swal.fire({
+    title: 'Save Task',
+    text: 'How would you like to save this task?',
+    icon: 'question',
+    showCancelButton: true,
+    showDenyButton: true,
+    confirmButtonColor: '#10b981',
+    denyButtonColor: '#f59e0b',
+    cancelButtonColor: '#6b7280',
+    confirmButtonText: 'Save as Draft',
+    denyButtonText: 'Save & Convert',
+    cancelButtonText: 'Cancel'
+  })
+
+  // If user cancels, exit
+  if (result.isDismissed) return
+
+  // Determine save type
+  const saveAsDraft = result.isConfirmed // Save as Draft
+  const saveAndConvert = result.isDenied // Save and Convert to Regular
+
+  try {
+    Swal.fire({
+      title: saveAsDraft ? 'Saving as Draft...' : 'Saving and Converting...',
+      text: 'Please wait',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading()
+      }
+    })
+
+    const taskData = {
+      id: task.id,
+      date: task.date,
+      day_type: task.day_type,
+      sp: task.sp,
+      taskType: task.taskType,
+      taskId: task.taskId,
+      rate: task.rate,
+      hour: task.hour,
+      netKgPerEmp: task.netKgPerEmp,
+      unit: task.unit,
+      tarima: task.tarima,
+      originalNet: task.originalNet,
+      deduction: task.deduction,
+      total: task.total,
+      remarks: task.remarks,
+      is_draft: saveAsDraft ? true : false // If save and convert, set to false
+    }
+    
+    const payload = {
+      employee_id: selectedEmployee.value.id,
+      task_data: taskData,
+      task_id: task.id,
+      save_task: saveAsDraft ? 0 : 1 // 0 = save as draft, 1 = save and convert to regular
+    }
+    
+    if (hasPayrollData.value && payrollData.value?.payroll?.id) {
+      payload.payroll_id = payrollData.value.payroll.id
+    }
+
+    const response = await api.post('/payroll/task-save', payload)
+    
+    if (response.data && !response.data.error) {
+      Swal.close()
+      
+      if (response.data.task) {
+        task.id = response.data.task.id
+        task.is_draft = saveAsDraft ? true : false
+      }
+      
+      await Swal.fire({
+        icon: 'success',
+        title: saveAsDraft ? 'Draft Saved!' : 'Task Converted!',
+        text: saveAsDraft 
+          ? 'Task saved as draft. You can continue editing it.' 
+          : 'Task has been saved and converted to regular task.',
+        timer: 1500,
+        showConfirmButton: false
+      })
+      
+      await fetchPayrollData()
+    } else {
+      Swal.close()
+      await Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: response.data?.message || 'Failed to save task',
+        timer: 1500,
+        showConfirmButton: false
+      })
+    }
+  } catch (error) {
+    console.error('Failed to save task:', error)
+    Swal.close()
+    await Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: error.response?.data?.message || 'Failed to save task',
+      timer: 1500,
+      showConfirmButton: false
+    })
+  }
+}
+
+// Submit payroll function
+const submitPayroll = async () => {
+  if (hasDraftTasks.value) {
+    const result = await Swal.fire({
+      title: 'Draft Tasks Exist',
+      text: 'There are draft tasks that haven\'t been saved. Do you want to save them before submitting?',
+      icon: 'warning',
+      showCancelButton: true,
+      showDenyButton: true,
+      confirmButtonColor: '#10b981',
+      denyButtonColor: '#d33',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Save All Drafts',
+      denyButtonText: 'Submit Anyway',
+      cancelButtonText: 'Cancel'
+    })
+    
+    if (result.isConfirmed) {
+      await saveAllDraftTasks()
+      return
+    }
+    
+    if (result.isDenied) {
+      await proceedWithSubmit()
+    }
+  } else {
+    await proceedWithSubmit()
+  }
+}
+
+// Save all draft tasks
+const saveAllDraftTasks = async () => {
+  const draftTasks = Task.value.filter(task => task.is_draft)
+  
+  if (draftTasks.length === 0) return
+  
+  try {
+    Swal.fire({
+      title: 'Saving Drafts...',
+      text: `Saving ${draftTasks.length} draft task(s)`,
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading()
+      }
+    })
+    
+    for (const task of draftTasks) {
+      const taskData = {
+        id: task.id,
+        date: task.date,
+        day_type: task.day_type,
+        sp: task.sp,
+        taskType: task.taskType,
+        taskId: task.taskId,
+        rate: task.rate,
+        hour: task.hour,
+        netKgPerEmp: task.netKgPerEmp,
+        unit: task.unit,
+        tarima: task.tarima,
+        originalNet: task.originalNet,
+        deduction: task.deduction,
+        total: task.total,
+        remarks: task.remarks,
+        is_draft: false
+      }
+      
+      const payload = {
+        employee_id: selectedEmployee.value.employeeId,
+        task_data: taskData,
+        payroll_id: payrollData.value.payroll.id
+      }
+      
+      await api.post('/payroll/task/save', payload)
+    }
+    
+    Swal.close()
+    await fetchPayrollData()
+    await proceedWithSubmit()
+  } catch (error) {
+    console.error('Failed to save drafts:', error)
+    Swal.close()
+    await Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Failed to save draft tasks',
+      timer: 1500,
+      showConfirmButton: false
+    })
+  }
+}
+
+const proceedWithSubmit = async () => {
   const result = await Swal.fire({
     title: 'Submit Payroll?',
     text: 'Are you sure you want to submit this payroll? This action cannot be undone.',
@@ -843,12 +1086,9 @@ const submitPayroll = async () => {
     cancelButtonText: 'Cancel'
   })
 
-  if (!result.isConfirmed) {
-    return
-  }
+  if (!result.isConfirmed) return
 
   try {
-    // Show loading indicator
     Swal.fire({
       title: 'Submitting payroll...',
       text: 'Please wait',
@@ -865,7 +1105,6 @@ const submitPayroll = async () => {
     if (response.data && !response.data.error) {
       Swal.close()
       
-      // Show success message
       await Swal.fire({
         icon: 'success',
         title: 'Success!',
@@ -874,12 +1113,8 @@ const submitPayroll = async () => {
         showConfirmButton: false
       })
       
-      // Refresh payroll data
       await fetchPayrollData()
-      
-      // Close the modal
       closeModal()
-      
     } else {
       Swal.close()
       await Swal.fire({
@@ -915,12 +1150,10 @@ const submitPayroll = async () => {
 
 // Fetch classes for all existing tasks
 const fetchClassesForExistingTasks = async () => {
-  // Get all tasks with taskId
   const tasksWithIds = Task.value
     .map((task, index) => ({ task, index }))
-    .filter(item => item.task.taskId && item.task.taskId > 0)
+    .filter(item => item.task.taskType && item.task.taskType > 0)
   
-  // Fetch class data for each task with its index
   for (const { task, index } of tasksWithIds) {
     await fetchClass(task.taskType, index)
   }
@@ -930,26 +1163,10 @@ const closeModal = () => {
   showModal.value = false
   selectedEmployee.value = null
   Task.value = []
-  Deduction.value = []
   payrollData.value = null
   classCache.value.clear()
-  clearAllSaveTimeouts() // Clear all pending saves
   mandatoryCompensations.value = []
   nonMandatoryCompensations.value = []
-}
-
-// Helper function to map dayType numbers to strings
-const mapDayType = (dayType) => {
-  switch(parseInt(dayType)) {
-    case 1:
-      return 'regular'
-    case 2:
-      return 'special'
-    case 3:
-      return 'holiday'
-    default:
-      return 'regular'
-  }
 }
 
 // Helper function to format currency
@@ -975,14 +1192,8 @@ const fetchCompensations = async () => {
     })
     
     if (response.data && !response.data.error) {
-      // Separate mandatory and non-mandatory compensations
       const allCompensations = response.data.compensations || []
       
-      // For mandatory compensations, we need to fetch the compensation details
-      // This assumes you have a way to get compensation details including is_mandatory flag
-      // You might need to modify this based on your actual data structure
-      
-      // For now, we'll assume the response includes is_mandatory field
       mandatoryCompensations.value = allCompensations.filter(c => c.isMandatory)
       nonMandatoryCompensations.value = allCompensations.filter(c => !c.isMandatory).map(compensation => ({
         payroll_id: compensation.payrollId,
@@ -993,12 +1204,6 @@ const fetchCompensations = async () => {
         id: compensation.id,
         temp_id: 0
       }))
-
-      console.log(allCompensations);
-      
-
-      // Update totals
-      CDtotal.value = response.data.total || '0.00'
     }
   } catch (error) {
     console.error('Failed to fetch compensations:', error)
@@ -1007,7 +1212,6 @@ const fetchCompensations = async () => {
 
 const addRowTask = async () => {
   try {
-    // Create a new task object with default values
     const tempId = 'temp_' + Date.now()
     
     const newTask = {
@@ -1027,31 +1231,28 @@ const addRowTask = async () => {
       total: 0,
       remarks: '',
       is_draft: true,
+      payrollId: 0,
       classOptions: []
     }
 
-    // Add to local array immediately
     Task.value.push(newTask)
 
-    // Save to database
     const response = await api.post('/payroll/add-task', {
       employee_id: selectedEmployee.value.id,
       task_data: newTask
     })
 
     if (response.data && !response.data.error) {
-      // Refresh tasks to get the newly created task with real ID
       await fetchPayrollData()
       
       await Swal.fire({
         icon: 'success',
         title: 'Success!',
-        text: 'New task created successfully',
+        text: 'New draft task created',
         timer: 1500,
         showConfirmButton: false
       })
     } else {
-      // Remove the temporary task if save failed
       const taskIndex = Task.value.findIndex(t => t.id === tempId)
       if (taskIndex !== -1) {
         Task.value.splice(taskIndex, 1)
@@ -1068,27 +1269,10 @@ const addRowTask = async () => {
   } catch (error) {
     console.error('Failed to create task:', error)
     
-    // Remove the temporary task if save failed
-    if (tempId) {
-      const taskIndex = Task.value.findIndex(t => t.id === tempId)
-      if (taskIndex !== -1) {
-        Task.value.splice(taskIndex, 1)
-      }
-    }
-    
-    let errorMessage = 'Failed to create new task'
-    if (error.response) {
-      errorMessage = error.response.data?.message || error.response.statusText || errorMessage
-    } else if (error.request) {
-      errorMessage = 'No response from server'
-    } else {
-      errorMessage = error.message || errorMessage
-    }
-    
     await Swal.fire({
       icon: 'error',
       title: 'Error',
-      text: errorMessage,
+      text: 'Failed to create new task',
       timer: 1500,
       showConfirmButton: false
     })
@@ -1125,21 +1309,16 @@ const fetchTask = async () => {
   }
 }
 
-// Updated fetchClass to accept task index
 const fetchClass = async (taskIds, taskIndex) => {
   if (!taskIds) return
-  console.log(taskIds);
   
   try {
-    // Check cache first
     if (classCache.value.has(taskIds)) {
       const cachedOptions = classCache.value.get(taskIds)
       
-      // Update the specific task's classOptions
       if (taskIndex !== undefined && Task.value[taskIndex]) {
         Task.value[taskIndex].classOptions = cachedOptions
       }
-      // Also update the shared cdrop for new tasks
       cdrop.value = cachedOptions
       return
     }
@@ -1149,14 +1328,11 @@ const fetchClass = async (taskIds, taskIndex) => {
     })
     
     if (response.data && !response.data.error) {
-      // Cache the result
       classCache.value.set(taskIds, response.data.position)
       
-      // Update the specific task's classOptions
       if (taskIndex !== undefined && Task.value[taskIndex]) {
         Task.value[taskIndex].classOptions = response.data.position
       }
-      // Update the shared cdrop for new tasks
       cdrop.value = response.data.position
     }
   } catch (error) {
@@ -1171,85 +1347,10 @@ const fetchClass = async (taskIds, taskIndex) => {
   }
 }
 
-const saveTask = async (index) => {
-  const task = Task.value[index]
-  
-  // Clear any pending auto-save for this task
-  if (saveTimeouts.value.has(task.id)) {
-    clearTimeout(saveTimeouts.value.get(task.id))
-    saveTimeouts.value.delete(task.id)
-  }
-  
-  // Validate required fields
-  if (!task.taskType) {
-    await Swal.fire({
-      icon: 'warning',
-      title: 'Warning',
-      text: 'Please select a task',
-      timer: 1500,
-      showConfirmButton: false
-    })
-    return
-  }
-
-  if (!task.taskId) {
-    await Swal.fire({
-      icon: 'warning',
-      title: 'Warning',
-      text: 'Please select a class/position',
-      timer: 1500,
-      showConfirmButton: false
-    })
-    return
-  }
-
-  try {
-    // Show loading
-    await Swal.fire({
-      title: 'Saving...',
-      text: 'Please wait',
-      allowOutsideClick: false,
-      didOpen: () => {
-        Swal.showLoading()
-      }
-    })
-
-    const response = await api.post('/payroll/task/save', {
-      employee_id: selectedEmployee.value.employeeId,
-      task_data: task
-    })
-    
-    if (response.data && !response.data.error) {
-      Swal.close()
-      
-      // Mark as not draft
-      task.is_draft = false
-      
-      await Swal.fire({
-        icon: 'success',
-        title: 'Saved!',
-        text: 'Task saved successfully',
-        timer: 1500,
-        showConfirmButton: false
-      })
-    }
-  } catch (error) {
-    console.error('Failed to save task:', error)
-    Swal.close()
-    await Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'Failed to save task',
-      timer: 1500,
-      showConfirmButton: false
-    })
-  }
-}
-
 const confirmDelete = async (index) => {
   const result = await Swal.fire({
     title: 'Are you sure?',
-    text: 'Do you want to remove this task?',
+    text: 'Do you want to remove this draft task?',
     icon: 'warning',
     showCancelButton: true,
     confirmButtonColor: '#d33',
@@ -1261,13 +1362,7 @@ const confirmDelete = async (index) => {
   if (result.isConfirmed) {
     const task = Task.value[index]
     
-    // Clear any pending auto-save for this task
-    if (saveTimeouts.value.has(task.id)) {
-      clearTimeout(saveTimeouts.value.get(task.id))
-      saveTimeouts.value.delete(task.id)
-    }
-    
-    if (!task.is_draft && task.id && !task.id.toString().startsWith('temp')) {
+    if (task.id && !task.id.toString().startsWith('temp')) {
       try {
         await api.post('/payroll/task/delete', {
           task_id: task.id
@@ -1282,23 +1377,21 @@ const confirmDelete = async (index) => {
     await Swal.fire({
       icon: 'success',
       title: 'Removed!',
-      text: 'Task removed successfully',
+      text: 'Draft task removed successfully',
       timer: 1500,
       showConfirmButton: false
     })
   }
 }
 
-// Toggle select all checkboxes
 const toggleSelectAll = () => {
   Task.value.forEach(task => {
-    if (task.payrollId === 0) {
+    if (!task.is_draft && task.payrollId === 0) {
       task.selected = selectAll.value
     }
   })
 }
 
-// Process selected tasks
 const processSelectedTasks = async () => {
   if (selectedTasks.value.length === 0) {
     await Swal.fire({
@@ -1311,7 +1404,7 @@ const processSelectedTasks = async () => {
     return
   }
 
-  const payrollId = payrollData.value.payroll[0]?.id
+  const payrollId = payrollData.value.payroll.id
   if (!payrollId) {
     await Swal.fire({
       icon: 'error',
@@ -1352,7 +1445,6 @@ const processSelectedTasks = async () => {
           showConfirmButton: false
         })
         
-        // Refresh the data
         await fetchPayrollData()
       }
     } catch (error) {
@@ -1383,7 +1475,6 @@ const miscdraft = () => {
 const miscSave = async (index) => {
   const item = nonMandatoryCompensations.value[index]
   
-  // Validate required fields
   if (!item.misc_desc || item.misc_desc === 0) {
     await Swal.fire({
       icon: 'warning',
@@ -1415,13 +1506,11 @@ const miscSave = async (index) => {
     })
     
     if (response.data && !response.data.error) {
-      // Update the item
       item.is_draft = false
       if (item.temp_id) {
         delete item.temp_id
       }
       
-      // Refresh compensations
       await fetchCompensations()
       
       await Swal.fire({
@@ -1491,16 +1580,11 @@ const handleModalClosed = () => {
 
 // Initialize
 onMounted(() => {
-  
-  
-  window.addEventListener('beforeunload', () => {
-    clearAllSaveTimeouts()
-  })
+  // No auto-save to clean up
 })
 
 // Clean up on component unmount
 onUnmounted(() => {
-  clearAllSaveTimeouts()
-  window.removeEventListener('beforeunload', clearAllSaveTimeouts)
+  // Clean up
 })
 </script>

@@ -30,7 +30,7 @@ const selected = computed({
 <template>
   <select
     v-model="selected"
-    class="w-full border-gray-300 rounded-md  px-3 py-2 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+    class="w-full border-gray-700 rounded-md  px-3 py-2 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm"
   >
     <option value="0" disabled>
       {{ placeholder }}
