@@ -1,7 +1,7 @@
 <template>
   <aside
     class="bg-gray-900 text-white flex flex-col transition-all duration-300 ease-in-out relative h-screen sticky top-0"
-    :class="isCollapsed ? 'w-20' : 'w-64'"
+    :class="isCollapsed ? 'w-20' : 'w-[300px]'"
   >
     <!-- Collapse Toggle Button -->
     <button
@@ -385,7 +385,7 @@
       </div>
 
       <!-- System Management - SuperAdmin Only -->
-      <div v-if="user.position === 'SuperAdmin'" class="relative">
+      <div  class="relative">
         <button
           @click="!isCollapsed && toggle('system')"
           class="w-full flex items-center px-4 py-2.5 rounded-lg hover:bg-gray-800 transition-all duration-200"
