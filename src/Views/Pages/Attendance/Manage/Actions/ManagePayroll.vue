@@ -140,6 +140,17 @@
                   </svg>
                   Process Selected ({{ selectedTasks.length }})
                 </button>
+                <!-- Submit Selected Tasks Button -->
+                <!-- <button 
+                  v-if="hasPayrollData && selectedTasks.length > 0"
+                  @click="submitSelectedTasks" 
+                  class="px-3 py-1.5 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg text-xs hover:from-green-700 hover:to-green-800 focus:ring-2 focus:ring-green-500 transition-all duration-200 flex items-center"
+                >
+                  <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Submit Selected ({{ selectedTasks.length }})
+                </button> -->
               </div>
               <div class="flex gap-2 ml-auto">
                 <button v-if="hasPayrollData" @click="weeklytask" class="px-3 py-1.5 bg-gray-600 text-white rounded-lg text-xs hover:bg-gray-700 focus:ring-2 focus:ring-gray-500 transition-colors duration-200 flex items-center">
@@ -193,7 +204,7 @@
                       <input 
                         type="checkbox" 
                         v-model="task.selected" 
-                        :disabled="!hasPayrollData || task.is_draft || task.payrollId != 0"
+                        :disabled=" task.payrollId != 0"
                         class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                       >
                     </td>
@@ -619,7 +630,7 @@ const hasDraftTasks = computed(() => {
 
 // Computed property for selected tasks (only non-draft)
 const selectedTasks = computed(() => {
-  return Task.value.filter(task => !task.is_draft && task.selected && task.payrollId === 0)
+  return Task.value.filter(task =>  task.selected && task.payrollId === 0)
 })
 
 // Computed totals
@@ -982,6 +993,84 @@ const saveDraftTask = async (index) => {
     })
   }
 }
+
+// Submit selected tasks function
+// const submitSelectedTasks = async () => {
+//   if (selectedTasks.value.length === 0) {
+//     await Swal.fire({
+//       icon: 'warning',
+//       title: 'Warning',
+//       text: 'Please select at least one task to submit',
+//       timer: 1500,
+//       showConfirmButton: false
+//     })
+//     return
+//   }
+
+//   const result = await Swal.fire({
+//     title: 'Submit Selected Tasks?',
+//     text: `You are about to submit ${selectedTasks.value.length} selected task(s). This will finalize these tasks and they cannot be edited further.`,
+//     icon: 'question',
+//     showCancelButton: true,
+//     confirmButtonColor: '#10b981',
+//     cancelButtonColor: '#6b7280',
+//     confirmButtonText: 'Yes, submit them',
+//     cancelButtonText: 'Cancel'
+//   })
+
+//   if (result.isConfirmed) {
+//     try {
+//       Swal.fire({
+//         title: 'Submitting Tasks...',
+//         text: 'Please wait',
+//         allowOutsideClick: false,
+//         didOpen: () => {
+//           Swal.showLoading()
+//         }
+//       })
+
+//       const taskIds = selectedTasks.value.map(task => task.id)
+      
+//       const response = await api.post('/payroll/submit-tasks', {
+//         payroll_id: payrollData.value.payroll.id,
+//         task_ids: taskIds
+//       })
+
+//       if (response.data && !response.data.error) {
+//         Swal.close()
+//         await Swal.fire({
+//           icon: 'success',
+//           title: 'Success!',
+//           text: response.data.message || `${selectedTasks.value.length} task(s) submitted successfully`,
+//           timer: 1500,
+//           showConfirmButton: false
+//         })
+        
+//         // Refresh the data
+//         await fetchPayrollData()
+//       } else {
+//         Swal.close()
+//         await Swal.fire({
+//           icon: 'error',
+//           title: 'Error',
+//           text: response.data?.message || 'Failed to submit tasks',
+//           timer: 1500,
+//           showConfirmButton: false
+//         })
+//       }
+//     } catch (error) {
+//       console.error('Failed to submit tasks:', error)
+//       Swal.close()
+//       await Swal.fire({
+//         icon: 'error',
+//         title: 'Error',
+//         text: error.response?.data?.message || 'Failed to submit tasks',
+//         timer: 1500,
+//         showConfirmButton: false
+//       })
+//     }
+//   }
+// }
 
 // Submit payroll function
 const submitPayroll = async () => {
