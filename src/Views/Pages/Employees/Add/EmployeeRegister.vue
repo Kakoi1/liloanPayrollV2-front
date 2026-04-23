@@ -104,7 +104,9 @@
                                     <SelectComponent v-model="form.c_stat" :options="civilStatus" placeholder="Civil Status *" class="w-full" />
                                 </div>
                                 
+                                
                                 <div>
+                    
                     
                                     <SelectComponent v-model="form.house_arr" :options="housingArrangements" placeholder="Housing Arrangement" class="w-full" />
                                 </div>

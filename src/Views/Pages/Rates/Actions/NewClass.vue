@@ -143,7 +143,7 @@ const saveClass = async () => {
   }
 
   try {
-    const response = await api.post('/classifications/create', {
+    const response = await api.post('/rates/add-class', {
       name: newClass.value.name
     })
 
