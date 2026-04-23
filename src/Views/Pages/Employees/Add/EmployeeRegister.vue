@@ -50,8 +50,8 @@
                                     />
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Work Type *</label>
-                                    <SelectComponent v-model="form.e_work_stat" :options="workTypes" placeholder="Select Work Type" class="w-full" />
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Work Status *</label>
+                                    <SelectComponent v-model="form.e_work_stat" :options="workTypes" placeholder="Select Work Status" class="w-full" />
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Date Started *</label>
@@ -93,23 +93,33 @@
                                         <option value="2">Female</option>
                                     </select>
                                 </div>
-                                <div><input type="text" v-model="form.sss" placeholder="SSS No." class="w-full px-3 py-2 border rounded-md"></div>
+                                
                                 <div><input type="date" v-model="form.b_date" class="w-full px-3 py-2 border rounded-md" required></div>
-                                <div>
+                               
+                               
+                              <div class="md:col-span-2"><input type="text" v-model="form.birth_add" placeholder="Birthplace *" class="w-full px-3 py-2 border rounded-md" required></div>
+                                 <!-- <br/> 
+                                 <br> -->
+                                 <div>
                                     <SelectComponent v-model="form.c_stat" :options="civilStatus" placeholder="Civil Status *" class="w-full" />
                                 </div>
-                                <div><input type="text" v-model="form.sss_crn_no" placeholder="SSS CRN No." class="w-full px-3 py-2 border rounded-md"></div>
-                                <div class="md:col-span-2"><input type="text" v-model="form.birth_add" placeholder="Birthplace *" class="w-full px-3 py-2 border rounded-md" required></div>
-                                <div><input type="text" v-model="form.hdmf_no" placeholder="Pag-IBIG No." class="w-full px-3 py-2 border rounded-md"></div>
+                                
                                 <div>
+                    
                                     <SelectComponent v-model="form.house_arr" :options="housingArrangements" placeholder="Housing Arrangement" class="w-full" />
                                 </div>
                                 <div>
                                     <SelectComponent v-model="form.religion" :options="religions" placeholder="Religion" class="w-full" />
                                 </div>
+                               <div>  </div>
+                                <div><input type="text" v-model="form.sss_crn_no" placeholder="SSS CRN No." class="w-full px-3 py-2 border rounded-md"></div>
+                                <div><input type="text" v-model="form.sss" placeholder="SSS No." class="w-full px-3 py-2 border rounded-md"></div>
+                               
+                                <div><input type="text" v-model="form.hdmf_no" placeholder="Pag-IBIG No." class="w-full px-3 py-2 border rounded-md"></div>
+                                  <div><input type="text" v-model="form.philhealth" placeholder="Philhealth No." class="w-full px-3 py-2 border rounded-md"></div>
+                                <!-- <br/> -->
                                 <div><input type="text" v-model="form.tin_no" placeholder="TIN No." class="w-full px-3 py-2 border rounded-md"></div>
-                                <div><input type="text" v-model="form.philhealth" placeholder="Philhealth No." class="w-full px-3 py-2 border rounded-md"></div>
-                                <div><input type="text" v-model="form.prof_no" placeholder="License No." class="w-full px-3 py-2 border rounded-md"></div>
+                               
                             </div>
                         </div>
 

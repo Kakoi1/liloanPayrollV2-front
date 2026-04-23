@@ -189,16 +189,16 @@ const saveTask = async () => {
     return
   }
 
-  if (!task.value.class) {
-    await Swal.fire({
-      icon: 'warning',
-      title: 'Warning',
-      text: 'Please select a classification',
-      timer: 1500,
-      showConfirmButton: false
-    })
-    return
-  }
+//   if (!task.value.class) {
+//     await Swal.fire({
+//       icon: 'warning',
+//       title: 'Warning',
+//       text: 'Please select a classification',
+//       timer: 1500,
+//       showConfirmButton: false
+//     })
+//     return
+//   }
 
   if (!task.value.measurement) {
     await Swal.fire({

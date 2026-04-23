@@ -8,7 +8,7 @@ export default defineConfig({
   // base: '/warehouse/',
   server: {
     host: process.env.VITE_SYSTEM_DOMAIN || '0.0.0.0',
-    port: process.env.VITE_PORT || 8053,              
+    port: process.env.VITE_PORT || 8054,              
     https: false,                                     
   },
   plugins: [
