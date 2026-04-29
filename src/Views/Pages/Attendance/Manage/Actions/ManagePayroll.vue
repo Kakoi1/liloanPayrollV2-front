@@ -566,7 +566,7 @@
               <div class="flex justify-end">
                 <button 
                   @click="submitPayroll"
-                  class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 text-white text-sm font-medium rounded-lg hover:from-red-700 hover:to-red-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 shadow-sm transition-all duration-200"
+                  class="inline-flex items-center px-4 py-4 bg-gradient-to-r from-red-600 to-red-700 text-white text-lg font-medium rounded-lg hover:from-red-700 hover:to-red-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 shadow-sm transition-all duration-200"
                 >
                   <FontAwesomeIcon :icon="faCheckDouble" class="w-4 flex-shrink-0" />
                   Complete Payroll
