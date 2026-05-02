@@ -103,6 +103,22 @@
           </div>
         </div>
 
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Worker Rate</label>
+          <div class="relative">
+            <input 
+              v-model="pricelist.worker_rate" 
+              type="number" 
+              step="0.01"
+              min="0"
+              max="100"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="0.00"
+            >
+            <!-- <span class="absolute right-3 top-2 text-gray-500">%</span> -->
+          </div>
+        </div>
+
         <!-- Save Button -->
         <div class="flex justify-end mt-6">
           <button 
@@ -132,7 +148,8 @@ const pricelist = ref({
   bronze_price: '',
   silver_price: '',
   gold_price: '',
-  deduction: ''
+  deduction: '',
+  worker_rate: ''
 })
 
 const openModal = () => {
@@ -147,7 +164,8 @@ const resetForm = () => {
     bronze_price: '',
     silver_price: '',
     gold_price: '',
-    deduction: ''
+    deduction: '',
+    worker_rate: ""
   }
 }
 
