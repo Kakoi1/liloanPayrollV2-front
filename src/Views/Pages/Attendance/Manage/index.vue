@@ -47,7 +47,7 @@
             <div class="relative">
               <input
                 type="search"
-                v-model="search.text"
+                v-model="search.search"
                 @keyup="filter"
                 placeholder="Search employees..."
                 class="w-full px-4 py-2 pl-10 pr-4 text-gray-700 bg-white border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -116,13 +116,12 @@
 
           <!-- Pagination -->
           <div class="mt-6">
-            <!-- <Pagination
-              :current_page="currentPage"
-              :row_count_page="rowCountPage"
-              @page-update="pageUpdate"
-              :total_users="totalUsers"
-              :page_range="pageRange"
-            /> -->
+            <Pagination
+              :page_number="search.page_num"
+              :total_rows="totalUsers"
+              :itemsperpage="search.items_perpage"
+              @page_num="handlePageNum"
+            />
           </div>
         </div>
       </div>
@@ -139,14 +138,19 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-// import Pagination from '@/Components/Pagination.vue'
+import Pagination from '@/Js/Components/Paginate.vue'
 // import PayrollModal from '@/Components/PayrollModal.vue'
 import PayrollHistory from './Actions/History.vue'
 import api from '@/Js/Services/axios'
 import ManagePayroll from './Actions/ManagePayroll.vue'
+import { FormDx } from '@/Views/Utility/Helper'
 
 // State
-const search = ref({ text: '' })
+const search = ref({
+  search: '',
+  page_num: 1,
+  items_perpage: 10
+})
 const data = ref([])
 const emptyResult = ref(false)
 const currentPage = ref(1)
@@ -162,17 +166,14 @@ const itemsPerPage = ref(10)
 // Methods
 const filter = async () => {
   try {
-    const response = await api.post('/payroll/list', {
-        search: search.value.text,
-        page_num: pageNum.value,
-        items_perpage: itemsPerPage.value
-    })
+    const formData = FormDx(search.value)
+    const response = await api.post('/payroll/list', formData)
     
     if (response.data.error) {
       console.error(response.data.message)
     } else {
       data.value = response.data.listEmployee
-      totalUsers.value = response.data.total
+      totalUsers.value = response.data.totalrows
       emptyResult.value = data.value.length === 0
     }
   } catch (error) {
@@ -183,6 +184,11 @@ const filter = async () => {
 const pageUpdate = (page) => {
   currentPage.value = page
   filter()
+}
+
+const handlePageNum = (page_num) => {
+  search.value.page_num = page_num
+  fetchCompensations()
 }
 
 const maximizeCard = () => {
