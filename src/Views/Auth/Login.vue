@@ -76,6 +76,8 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/Js/Services/axios'
 import axios from 'axios';
+import { handleApiError } from '../Utility/Helper';
+import Swal from 'sweetalert2';
 const username = ref('')
 const password = ref('')
 const error = ref('')
@@ -86,6 +88,16 @@ const apiBaseUrl = import.meta.env.VITE_BASE_API_URL
 
 const handleLogin = async () => {
   try {
+
+    Swal.fire({
+      title: "Processing...",
+      text: "Checking credentials...",
+      didOpen: () => {
+        Swal.showLoading();
+      },
+      allowOutsideClick: false, // Disable click outside to dismiss
+    });
+    
     await axios.get(apiBaseUrl + 'sanctum/csrf-cookie') // CSRF cookie first
     
     const res = await api.post('/login', {
@@ -97,10 +109,13 @@ const handleLogin = async () => {
 
     localStorage.setItem('auth', 'true')
     localStorage.setItem('user', JSON.stringify(res.data.user)) // ✅ FIX
-
+    Swal.close();
     router.push({ name: 'dashboard' })
   } catch (err) {
+
     error.value = err.response?.data?.message || 'Login failed'
+    Swal.close();
+    handleApiError(err);
   }
 }
 
