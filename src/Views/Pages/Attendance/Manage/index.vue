@@ -188,7 +188,7 @@ const pageUpdate = (page) => {
 
 const handlePageNum = (page_num) => {
   search.value.page_num = page_num
-  fetchCompensations()
+  filter()
 }
 
 const maximizeCard = () => {
