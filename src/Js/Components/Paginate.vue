@@ -106,59 +106,56 @@ import {
   onMounted,
   onUnmounted,
 } from "vue";
-import { DEFAULT_BG } from "@/Views/Utility/Global";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-import { faAngleDoubleLeft, faAngleDoubleRight, faAngleLeft, faAngleRight } from "@fortawesome/free-solid-svg-icons";
+import {
+  faAngleDoubleLeft,
+  faAngleDoubleRight,
+  faAngleLeft,
+  faAngleRight,
+} from "@fortawesome/free-solid-svg-icons";
 
-// Define emits and props
+// Emits & Props
 const emits = defineEmits(["page_num"]);
 const props = defineProps({
-  page_number: {
-    type: Number,
-    default: 1,
-  },
-  total_rows: {
-    type: Number,
-    default: 0,
-  },
-  itemsperpage: {
-    type: Number,
-    default: 10,
-  },
-  paginationOnly: {
-    type: Boolean,
-    default: false,
-  }
+  page_number: { type: Number, default: 1 },
+  total_rows: { type: Number, default: 0 },
+  itemsperpage: { type: Number, default: 10 },
+  paginationOnly: { type: Boolean, default: false },
 });
 
+// LocalStorage key
 const currentPath = window.location.pathname;
 const storageKey = `lastPage_${currentPath}`;
 
-// Reactive state
-const totalPages = ref(0);
-const selectedPage = ref(props.page_number);
-const itemsPerPage = ref(props.itemsperpage);
-const quickJumpPage = ref(Number(localStorage.getItem(storageKey)) || props.page_number);
+// ✅ Reactive total pages (FIXED)
+const totalPages = computed(() => {
+  return Math.ceil(props.total_rows / props.itemsperpage) || 1;
+});
 
-// Function to calculate total pages
-const getTotalPageNumber = () => {
-  totalPages.value = Math.ceil(props.total_rows / itemsPerPage.value);
-};
+// Quick jump state
+const quickJumpPage = ref(
+  Number(localStorage.getItem(storageKey)) || props.page_number
+);
 
-// Function to handle pagination
+// Pagination actions
 const paginate = (isIncrement) => {
-  const increment = isIncrement ? props.page_number + 1 : props.page_number - 1;
-  emits("page_num", increment);
+  const next = isIncrement
+    ? props.page_number + 1
+    : props.page_number - 1;
+
+  emits("page_num", next);
 };
 
-// Function to handle direct page number selection
 const paginateToPage = (pageNum) => {
   emits("page_num", pageNum);
 };
 
-// Function to handle quick jump
+// Quick jump handler
 const handleQuickJump = () => {
-  if (quickJumpPage.value >= 1 && quickJumpPage.value <= totalPages.value) {
+  if (
+    quickJumpPage.value >= 1 &&
+    quickJumpPage.value <= totalPages.value
+  ) {
     localStorage.setItem(storageKey, quickJumpPage.value);
     paginateToPage(quickJumpPage.value);
   }
@@ -168,7 +165,7 @@ const handleQuickJump = () => {
 const pageInfo = (page_num, total_rows, items_per_page = 10) => {
   if (page_num < 1) page_num = 1;
 
-  const total_pages = Math.ceil(total_rows / items_per_page);
+  const total_pages = Math.ceil(total_rows / items_per_page) || 1;
   if (page_num > total_pages) page_num = total_pages;
 
   const start_index = (page_num - 1) * items_per_page + 1;
@@ -177,61 +174,56 @@ const pageInfo = (page_num, total_rows, items_per_page = 10) => {
   return `Page ${page_num} of ${total_pages}. Showing ${start_index}-${end_index} of ${total_rows} rows.`;
 };
 
+// Page number generator
 const page_number = (totalPages, currentPage) => {
   let pagesToShow = [];
 
   if (totalPages > 0) {
     if (totalPages == currentPage) {
-      if (currentPage - 2 > 0) pagesToShow.push(currentPage - 2); // Next page
+      if (currentPage - 2 > 0) pagesToShow.push(currentPage - 2);
     }
     if (currentPage > 1) {
       if (currentPage - 1 > 0) pagesToShow.push(currentPage - 1);
     }
-    if (currentPage > 0) pagesToShow.push(currentPage);
+    pagesToShow.push(currentPage);
+
     if (currentPage == 1 && totalPages < 3) {
-      if (currentPage + 1 <= totalPages) pagesToShow.push(currentPage + 1); // Next page
+      if (currentPage + 1 <= totalPages)
+        pagesToShow.push(currentPage + 1);
     }
+
     if (currentPage == 1 && totalPages >= 3) {
-      if (currentPage + 1 <= totalPages) pagesToShow.push(currentPage + 1); // Next page
-      if (currentPage + 2 <= totalPages) pagesToShow.push(currentPage + 2); // Next page
+      if (currentPage + 1 <= totalPages)
+        pagesToShow.push(currentPage + 1);
+      if (currentPage + 2 <= totalPages)
+        pagesToShow.push(currentPage + 2);
     }
+
     if (currentPage < totalPages && currentPage != 1) {
-      if (currentPage + 1 <= totalPages) pagesToShow.push(currentPage + 1); // Next page
+      if (currentPage + 1 <= totalPages)
+        pagesToShow.push(currentPage + 1);
     }
   }
+
   return pagesToShow;
 };
 
-// Compute visible page numbers
+// ✅ Reactive visible pages
 const visiblePageNumbers = computed(() => {
-  const currentPage = props.page_number;
-  const page = page_number(totalPages.value, currentPage);
-  return page;
+  return page_number(totalPages.value, props.page_number);
 });
 
-// Watch for changes in total_rows and itemsperpage
-watch(
-  () => props.total_rows,
-  () => getTotalPageNumber()
-);
-watch(
-  () => itemsPerPage.value,
-  () => getTotalPageNumber()
-);
-
-// Watch for changes in page_number
+// Sync quick jump with parent page
 watch(
   () => props.page_number,
-  (newValue) => {
-    quickJumpPage.value = newValue;
-    localStorage.setItem(storageKey, newValue);
+  (val) => {
+    quickJumpPage.value = val;
+    localStorage.setItem(storageKey, val);
   }
 );
 
-// Initialize total pages on mount
+// Init
 onMounted(() => {
-  getTotalPageNumber();
-  // Reset page if on different webpage
   if (window.location.pathname !== currentPath) {
     localStorage.removeItem(storageKey);
     paginateToPage(1);
