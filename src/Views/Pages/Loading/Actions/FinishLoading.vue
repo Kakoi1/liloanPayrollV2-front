@@ -330,7 +330,7 @@ const finishLoading = async () => {
 
   if (result.isConfirmed) {
     try {
-      const response = await api.post('/loading/finishs', {
+      const response = await api.post('/loading/finish', {
         loading_id: props.loading.id,
         team_id: selectedTeam.value,
         payroll_date: payrollDate.value
