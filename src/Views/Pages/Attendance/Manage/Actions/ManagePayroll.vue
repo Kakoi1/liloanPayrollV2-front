@@ -358,7 +358,7 @@
                         
                         <!-- Delete button - ONLY for draft tasks -->
                         <button 
-                          v-if="task.is_draft"
+                        
                           @click="confirmDelete(i)" 
                           class="p-1.5 bg-red-600 text-white rounded hover:bg-red-700 transition-colors duration-150" 
                           title="Delete Draft"
@@ -780,7 +780,7 @@ const fetchPayrollData = async () => {
     if (response.data && !response.data.error) {
       payrollData.value = response.data
       
-      if (hasPayrollData.value) {
+      // if (hasPayrollData.value) {
         // Process regular tasks (non-draft)
         const regularTasks = (response.data.tasks || []).map(task => ({
           id: task.id,
@@ -841,10 +841,10 @@ const fetchPayrollData = async () => {
         
         // Fetch class options for all tasks
         await fetchClassesForExistingTasks()
-      } else {
-        Task.value = []
-        Dtotal.value = '0.00'
-      }
+      // } else {
+      //   Task.value = []
+      //   Dtotal.value = '0.00'
+      // }
     }
   } catch (error) {
     console.error('Failed to fetch payroll data:', error)

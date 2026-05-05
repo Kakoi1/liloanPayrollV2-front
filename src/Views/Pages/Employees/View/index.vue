@@ -44,6 +44,10 @@
                             <p class="w-full px-3 py-2 bg-gray-50 border rounded-md text-gray-800">{{ selectedWorkTypeLabel || '—' }}</p>
                         </div>
                         <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Rate</label>
+                            <p class="w-full px-3 py-2 bg-gray-50 border rounded-md text-gray-800">{{ form.e_rate || '0' }}</p>
+                        </div>
+                        <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Date Started</label>
                             <p class="w-full px-3 py-2 bg-gray-50 border rounded-md text-gray-800">{{ form.e_start_date || '—' }}</p>
                         </div>
@@ -327,7 +331,8 @@ const form = ref({
     bank_account: '', f_first: '', f_mid: '', f_last: '', f_birthday: '',
     f_occ: '', f_add: '', m_first: '', m_mid: '', m_last: '',
     m_birthday: '', m_occ: '', m_add: '', contact_name: '',
-    contact_relation: '', contact_no: '', contact_add: ''
+    contact_relation: '', contact_no: '', contact_add: '',
+    e_rate: 0, 
 });
 
 // Label mappings for display
@@ -421,6 +426,7 @@ const viewEmployee = async () => {
             form.value.e_work_stat = employeeData.workTypeId || 0;
             form.value.e_start_date = employeeData.dateStarted || '';
             form.value.e_perma_add = employeeData.address || '';
+            form.value.e_rate = employeeData.rate || 0;
             form.value.tel_no = employeeData.telephoneNo || '';
             form.value.mobile_no = employeeData.mobileNo || '';
             form.value.prov_add = employeeData.provinceAddress || '';

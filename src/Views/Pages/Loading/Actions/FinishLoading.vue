@@ -72,7 +72,7 @@
         </div>
 
         <!-- Payroll Date Field -->
-        <div>
+        <!-- <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Payroll Date:</label>
           <input 
             type="date" 
@@ -82,7 +82,7 @@
             :max="maxPayrollDate"
           />
           <p class="text-xs text-gray-500 mt-1">Select the date this loading will be included in payroll</p>
-        </div>
+        </div> -->
 
         <!-- Team Selection -->
         <!-- <div>
@@ -187,7 +187,7 @@ const showModal = ref(false)
 const selectedTeam = ref(null)
 const selectedTeamDetails = ref(null)
 const teamOptions = ref([])
-const payrollDate = ref('')
+const payrollDate = ref(new Date().toISOString().split('T')[0])
 
 // Computed
 const minPayrollDate = computed(() => {
@@ -330,7 +330,7 @@ const finishLoading = async () => {
 
   if (result.isConfirmed) {
     try {
-      const response = await api.post('/loading/finish', {
+      const response = await api.post('/loading/finishs', {
         loading_id: props.loading.id,
         team_id: selectedTeam.value,
         payroll_date: payrollDate.value

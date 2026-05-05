@@ -56,6 +56,10 @@
                             </select>
                         </div>
                         <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Rate *</label>
+                            <input type="number" step="0.01" v-model="form.e_rate" class="w-full px-3 py-2 border rounded-md" placeholder="Enter Rate" required>
+                        </div>
+                        <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Date Started *</label>
                             <input type="date" v-model="form.e_start_date" class="w-full px-3 py-2 border rounded-md" required>
                         </div>
@@ -269,6 +273,7 @@ const form = ref({
     e_last: '',
     e_position: 0,
     e_work_stat: 0,
+    e_rate: '',
     e_start_date: '',
     e_perma_add: '',
     tel_no: '',
@@ -352,6 +357,7 @@ const editEmployee = async () => {
                 e_last: employeeData.lastName || '',
                 e_position: employeeData.posId || 0,
                 e_work_stat: employeeData.workTypeId || 0,
+                e_rate: employeeData.rate || '',
                 e_start_date: employeeData.dateStarted || '',
                 e_perma_add: employeeData.address || '',
                 tel_no: employeeData.telephoneNo || '',
@@ -425,7 +431,7 @@ const editEmployee = async () => {
 
 const updateEmployee = async () => {
     // Validation
-    if (!form.value.e_first || !form.value.e_last || !form.value.e_position || !form.value.e_work_stat) {
+    if (!form.value.e_first || !form.value.e_last || !form.value.e_position || !form.value.e_work_stat || !form.value.e_rate) {
         Swal.fire({
             icon: 'error',
             title: 'Validation Error',
@@ -455,6 +461,7 @@ const updateEmployee = async () => {
             e_last: form.value.e_last,
             e_position: form.value.e_position,
             e_work_stat: form.value.e_work_stat,
+            e_rate: form.value.e_rate,
             e_start_date: form.value.e_start_date,
             e_perma_add: form.value.e_perma_add,
             tel_no: form.value.tel_no,
@@ -547,6 +554,7 @@ const handleEditClose = () => {
         e_last: '',
         e_position: 0,
         e_work_stat: 0,
+        e_rate: '',
         e_start_date: '',
         e_perma_add: '',
         tel_no: '',
