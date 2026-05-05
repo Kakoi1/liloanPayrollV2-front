@@ -54,6 +54,10 @@
                                     <SelectComponent v-model="form.e_work_stat" :options="workTypes" placeholder="Select Work Type" class="w-full" />
                                 </div>
                                 <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Rate *</label>
+                                    <input type="number" step="0.01" v-model="form.e_rate" class="w-full px-3 py-2 border rounded-md" placeholder="Enter Rate. For Daily Only" required>
+                                </div>
+                                <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Date Started *</label>
                                     <input type="date" v-model="form.e_start_date" class="w-full px-3 py-2 border rounded-md" required>
                                 </div>
@@ -230,6 +234,7 @@ const form = ref({
     e_last: '',
     e_position: 0,
     e_work_stat: 0,
+    e_rate: '',
     e_start_date: new Date().toISOString().split('T')[0],
     e_perma_add: '',
     tel_no: '',
@@ -360,6 +365,7 @@ const resetForm = () => {
         e_last: '',
         e_position: 0,
         e_work_stat: 0,
+        e_rate: '',
         e_start_date: new Date().toISOString().split('T')[0],
         e_perma_add: '',
         tel_no: '',
@@ -405,7 +411,7 @@ const resetForm = () => {
 
 const newEmployee = async () => {
     // Basic validation
-    if (!form.value.e_first || !form.value.e_last || !form.value.e_position || !form.value.e_work_stat) {
+    if (!form.value.e_first || !form.value.e_last || !form.value.e_position || !form.value.e_work_stat || !form.value.e_rate) {
         Swal.fire({
             icon: 'warning',
             title: 'Validation Error',

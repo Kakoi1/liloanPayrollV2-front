@@ -110,13 +110,24 @@
                           @keyup.enter="filter"
                         >
                       </div>
-                      <div v-if="searchVoucher.all == 4" class="w-64">
-                        <input 
-                          type="date" 
-                          v-model="searchVoucher.range" 
-                          placeholder="Select Range" 
-                          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        >
+                      <!-- Date Range Picker - Only show for All tab -->
+                      <div v-if="searchVoucher.all == 4" class="flex gap-3">
+                        <div>
+                          <input 
+                            type="date" 
+                            v-model="searchVoucher.date_from" 
+                            placeholder="From Date" 
+                            class="w-48 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          >
+                        </div>
+                        <div>
+                          <input 
+                            type="date" 
+                            v-model="searchVoucher.date_to" 
+                            placeholder="To Date" 
+                            class="w-48 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          >
+                        </div>
                       </div>
                       <div>
                         <button 
@@ -277,7 +288,8 @@ const deductionOptions = ref([])
 
 const searchVoucher = ref({
   search: '',
-  range: '',
+  date_from: '',
+  date_to: '',
   all: 1,
   page_num: 1,
   items_perpage: 10
@@ -329,6 +341,11 @@ const getStatusLabel = (status) => {
 const list = (tab) => {
   searchVoucher.value.all = tab
   searchVoucher.value.page_num = 1
+  // Clear date range when switching tabs
+  if (tab !== 4) {
+    searchVoucher.value.date_from = ''
+    searchVoucher.value.date_to = ''
+  }
   fetchVouchers()
 }
 
@@ -338,14 +355,24 @@ const handlePageNum = (page_num) => {
 }
 
 const filter = async () => {
+  // Validate date range
+  if (searchVoucher.value.date_from && searchVoucher.value.date_to) {
+    if (new Date(searchVoucher.value.date_from) > new Date(searchVoucher.value.date_to)) {
+      await Swal.fire({
+        icon: 'warning',
+        title: 'Invalid Date Range',
+        text: 'From date cannot be greater than To date',
+        timer: 1500,
+        showConfirmButton: false
+      })
+      return
+    }
+  }
   searchVoucher.value.page_num = 1
   await fetchVouchers()
 }
 
 // Fetch Functions
-
-
-
 
 const fetchTasks = async () => {
   loading.value.tasks = true
