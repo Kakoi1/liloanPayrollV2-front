@@ -36,8 +36,12 @@
                             <input type="text" v-model="form.e_last" class="w-full px-3 py-2 border rounded-md" required>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Position *</label>
-                            <select v-model="form.e_position" class="w-full px-3 py-2 border rounded-md" required>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Position:  <span class="text-red-500 ml-1 text-md">{{form.task_name || '—'}} </span></label>
+                            <select 
+                                v-model="form.e_position" 
+                                @change="updateTaskName"
+                                class="w-full px-3 py-2 border rounded-md" 
+                                required>
                                 <option value="0">Select Position</option>
                                 <option v-for="pos in props.positions" :key="pos.value" :value="pos.value">
                                     {{ pos.label }}
@@ -236,7 +240,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, watch } from "vue";
 import Swal from "sweetalert2";
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import api from '@/Js/Services/axios'
@@ -276,6 +280,7 @@ const form = ref({
     e_rate: '',
     e_start_date: '',
     e_perma_add: '',
+    task_name: '',
     tel_no: '',
     mobile_no: '',
     prov_add: '',
@@ -360,6 +365,7 @@ const editEmployee = async () => {
                 e_rate: employeeData.rate || '',
                 e_start_date: employeeData.dateStarted || '',
                 e_perma_add: employeeData.address || '',
+                task_name: employeeData.task_name || '',
                 tel_no: employeeData.telephoneNo || '',
                 mobile_no: employeeData.mobileNo || '',
                 prov_add: employeeData.provinceAddress || '',
@@ -429,6 +435,18 @@ const editEmployee = async () => {
     }
 };
 
+watch(() => form.value.e_position, (newPos) => {
+    if (newPos && newPos !== "0") {
+        const found = props.positions.find(pos => pos.value == newPos);
+        form.value.task_name = found ? found.task_name : '';
+    } else {
+        form.value.task_name = '';
+    }
+});
+const updateTaskName = () => {
+    const found = props.positions.find(pos => pos.value == form.value.e_position);
+    form.value.task_name = found ? found.task_name : '';
+};
 const updateEmployee = async () => {
     // Validation
     if (!form.value.e_first || !form.value.e_last || !form.value.e_position || !form.value.e_work_stat || !form.value.e_rate) {
@@ -553,6 +571,7 @@ const handleEditClose = () => {
         e_middle: '',
         e_last: '',
         e_position: 0,
+        task_name: '',
         e_work_stat: 0,
         e_rate: '',
         e_start_date: '',
