@@ -40,9 +40,10 @@
                                     <input type="text" v-model="form.e_last" class="w-full px-3 py-2 border rounded-md" required>
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Position *</label>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Position <span class="text-red-500 ml-1 text-md">{{form.task_name || '—'}} </span></label>
                                     <SelectComponent 
                                         v-model="form.e_position" 
+                                        @change="updateTaskName"
                                         :options="positionOptions" 
                                         placeholder="Select Position" 
                                         class="w-full" 
@@ -216,7 +217,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faSave, faTrash, faPlus } from '@fortawesome/free-solid-svg-icons'
 import SelectComponent from '@/Js/Components/SelectComponent.vue'
@@ -236,6 +237,7 @@ const form = ref({
     e_middle: '',
     e_last: '',
     e_position: 0,
+    task_name: '',
     e_work_stat: 0,
     e_rate: '',
     e_start_date: new Date().toISOString().split('T')[0],
@@ -360,6 +362,22 @@ const addRowSpouse = () => {
 const removeRowSpouse = (index) => {
     if (Spo.value.length > 1) Spo.value.splice(index, 1)
 }
+
+const updateTaskName = () => {
+    const selectedPos = form.value.e_position
+    if (!selectedPos || selectedPos == 0) {
+        form.value.task_name = ''
+        return
+    }
+
+    const found = positions.value.find(pos => Number(pos.value) === Number(selectedPos))
+    form.value.task_name = found ? (found.task_name || '') : ''
+}
+
+// Watch for changes (recommended with SelectComponent)
+watch(() => form.value.e_position, () => {
+    updateTaskName()
+})
 
 const resetForm = () => {
     form.value = {

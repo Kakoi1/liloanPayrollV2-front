@@ -70,7 +70,9 @@ const fetchData = async () => {
             full_name: emp.fullName,
             position: emp.position,
             start_date: emp.dateStarted,
-            work_status: emp.workStatus
+            work_status: emp.workStatus,
+            task_name: emp.task_name,
+            rate: emp.rate,
         }))
         totalRows.value = response.data.totalrows
     } catch (error) {
@@ -262,8 +264,10 @@ onMounted(() => {
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID #</th>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Position</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Class</th>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Hired</th>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rate</th>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
                                 </tr>
                             </thead>
@@ -279,6 +283,7 @@ onMounted(() => {
                                     <td class="px-4 py-3 text-sm text-gray-900">{{ e.employee_id }}</td>
                                     <td class="px-4 py-3 text-sm text-gray-900">{{ e.full_name }}</td>
                                     <td class="px-4 py-3 text-sm text-gray-900">{{ e.position }}</td>
+                                    <td class="px-4 py-3 text-sm text-gray-900">{{ e.task_name }}</td>
                                     <td class="px-4 py-3 text-sm text-gray-900">{{ e.start_date }}</td>
                                     <td class="px-4 py-3">
                                         <span
@@ -292,6 +297,7 @@ onMounted(() => {
                                             {{ e.work_status }}
                                         </span>
                                     </td>
+                                    <td class="px-4 py-3 text-sm text-gray-900">{{ e.rate }}</td>
                                     <td class="px-4 py-3">
                                         <div class="flex space-x-2">
                                             <Edit

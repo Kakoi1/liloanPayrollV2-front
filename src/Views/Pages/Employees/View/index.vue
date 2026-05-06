@@ -36,8 +36,9 @@
                             <p class="w-full px-3 py-2 bg-gray-50 border rounded-md text-gray-800">{{ form.e_last || '—' }}</p>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Position</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Position: <span class="text-red-500 ml-1 text-md">{{form.task_name || '—'}} </span></label>
                             <p class="w-full px-3 py-2 bg-gray-50 border rounded-md text-gray-800">{{ selectedPositionLabel || '—' }}</p>
+                            
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Work Type</label>
@@ -323,7 +324,7 @@ const Spo = ref([]);
 // Form setup
 const form = ref({
     e_id: '', e_first: '', e_middle: '', e_last: '', e_position: 0,
-    e_work_stat: 0, e_start_date: '', e_perma_add: '', tel_no: '',
+    e_work_stat: 0, e_start_date: '', e_perma_add: '', task_name: '',tel_no: '',
     mobile_no: '', prov_add: '', n_name: '', height: '', weight: '',
     blood_type: 0, gender: 0, sss: '', b_date: '', c_stat: 0,
     sss_crn_no: '', birth_add: '', hdmf_no: '', house_arr: 0,
@@ -427,6 +428,7 @@ const viewEmployee = async () => {
             form.value.e_start_date = employeeData.dateStarted || '';
             form.value.e_perma_add = employeeData.address || '';
             form.value.e_rate = employeeData.rate || 0;
+            form.value.task_name = employeeData.task_name || 0;
             form.value.tel_no = employeeData.telephoneNo || '';
             form.value.mobile_no = employeeData.mobileNo || '';
             form.value.prov_add = employeeData.provinceAddress || '';
