@@ -153,13 +153,13 @@
                 </button> -->
               </div>
               <div class="flex gap-2 ml-auto">
-                <button v-if="hasPayrollData" @click="weeklytask" class="px-3 py-1.5 bg-gray-600 text-white rounded-lg text-xs hover:bg-gray-700 focus:ring-2 focus:ring-gray-500 transition-colors duration-200 flex items-center">
+                <button  @click="weeklytask" class="px-3 py-1.5 bg-gray-600 text-white rounded-lg text-xs hover:bg-gray-700 focus:ring-2 focus:ring-gray-500 transition-colors duration-200 flex items-center">
                   <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
                   Reload
                 </button>
-                <button v-if="hasPayrollData" @click="addRowTask" class="px-3 py-1.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg text-xs hover:from-blue-700 hover:to-blue-800 focus:ring-2 focus:ring-blue-500 transition-all duration-200 flex items-center">
+                <button  @click="addRowTask" class="px-3 py-1.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg text-xs hover:from-blue-700 hover:to-blue-800 focus:ring-2 focus:ring-blue-500 transition-all duration-200 flex items-center">
                   <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                   </svg>
@@ -684,7 +684,7 @@ const getUnitTitle = (task) => {
     case 3:
       return `Original kg: ${originalNet}`
     case 4:
-      return `Original containers: ${originalNet}`
+      return `Original containers: ${1}`
     default:
       return `Original: ${originalNet}`
   }
@@ -791,7 +791,7 @@ const fetchPayrollData = async () => {
           taskId: task.taskId,
           rate: task.rate?.toString() || '',
           hour: task.hour,
-          netKgPerEmp: task.netKgPerEmp,
+          netKgPerEmp: task.unit == 4 ? 1 : task.netKgPerEmp,
           unit: task.unit || 'kg',
           tarima: task.tarima || 0,
           originalNet: task.originalNet || 0,
@@ -1453,7 +1453,7 @@ const confirmDelete = async (index) => {
     
     if (task.id && !task.id.toString().startsWith('temp')) {
       try {
-        await api.post('/payroll/task/delete', {
+        await api.post('/payroll/task-delete', {
           task_id: task.id
         })
       } catch (error) {
@@ -1466,7 +1466,7 @@ const confirmDelete = async (index) => {
     await Swal.fire({
       icon: 'success',
       title: 'Removed!',
-      text: 'Draft task removed successfully',
+      text: 'task removed successfully',
       timer: 1500,
       showConfirmButton: false
     })
