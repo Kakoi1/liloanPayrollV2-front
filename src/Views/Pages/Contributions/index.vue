@@ -307,7 +307,7 @@ import { ref, onMounted } from 'vue'
 import Swal from 'sweetalert2'
 import api from '@/Js/Services/axios'
 import Pagination from '@/Js/Components/Paginate.vue'
-import { FormDx, useDebounce } from '@/Views/Utility/Helper'
+import { FormDx, handleApiError, useDebounce } from '@/Views/Utility/Helper'
 // import Add from './Actions/add.vue'
 
 // State
@@ -361,6 +361,7 @@ const fetchDeductions = useDebounce( async () => {
     }
   } catch (error) {
     console.error('Failed to fetch deductions:', error)
+    handleApiError(error);
   }
 }, 500)
 
@@ -393,13 +394,7 @@ const fetchContributions = useDebounce( async () => {
     }
   } catch (error) {
     console.error('Failed to fetch contributions:', error)
-    await Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'Failed to load contributions',
-      timer: 1500,
-      showConfirmButton: false
-    })
+    handleApiError(error);
   }
 }, 500)
 

@@ -143,7 +143,7 @@ import Pagination from '@/Js/Components/Paginate.vue'
 import PayrollHistory from './Actions/History.vue'
 import api from '@/Js/Services/axios'
 import ManagePayroll from './Actions/ManagePayroll.vue'
-import { FormDx } from '@/Views/Utility/Helper'
+import { FormDx, handleApiError } from '@/Views/Utility/Helper'
 
 // State
 const search = ref({
@@ -178,6 +178,7 @@ const filter = async () => {
     }
   } catch (error) {
     console.error('Failed to search:', error)
+    handleApiError(error)
   }
 }
 

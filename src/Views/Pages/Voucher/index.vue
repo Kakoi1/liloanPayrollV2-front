@@ -259,7 +259,7 @@ import Swal from 'sweetalert2'
 import api from '@/Js/Services/axios'
 import Paginate from '@/Js/Components/Paginate.vue'
 import Add from './Actions/add.vue'
-import { FormDx } from '@/Views/Utility/Helper'
+import { FormDx, handleApiError } from '@/Views/Utility/Helper'
 import View from './Actions/view.vue'
 import Undo from './Actions/Undo.vue'
 import Pay from './Actions/Pay.vue'
@@ -436,13 +436,7 @@ const fetchVouchers = async () => {
     }
   } catch (error) {
     console.error('Failed to fetch vouchers:', error)
-    await Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'Failed to load vouchers',
-      timer: 1500,
-      showConfirmButton: false
-    })
+    handleApiError(error)
   }
 }
 
