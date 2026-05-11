@@ -171,7 +171,7 @@ import Swal from 'sweetalert2'
 import api from '@/Js/Services/axios'
 import Pagination from '@/Js/Components/Paginate.vue'
 import AddCompensation from './Actions/add.vue'
-import { FormDx } from '@/Views/Utility/Helper'
+import { FormDx, handleApiError } from '@/Views/Utility/Helper'
 
 // State
 const data = ref([])
@@ -213,13 +213,7 @@ const fetchCompensations = async () => {
     }
   } catch (error) {
     console.error('Failed to fetch compensations:', error)
-    await Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'Failed to load compensations',
-      timer: 1500,
-      showConfirmButton: false
-    })
+    handleApiError(error)
   }
 }
 

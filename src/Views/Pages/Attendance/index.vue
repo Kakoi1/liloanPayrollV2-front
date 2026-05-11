@@ -5,6 +5,7 @@ import { faExpand, faMinus, faBullhorn, faArrowRight, faTimes, faArrowCircleRigh
 import EmployeeCard from './Actions/EmployeeCard.vue'
 import Swal from 'sweetalert2'
 import api from '@/Js/Services/axios'
+import { handleApiError } from '@/Views/Utility/Helper'
 
 // State
 const date = ref(new Date().toISOString().split('T')[0])
@@ -75,20 +76,21 @@ const fetchAttendance = async () => {
     
   } catch (error) {
     console.error('Failed to load attendance:', error)
-    if (error.response?.status === 404) {
-      clearData()
-      Swal.fire({
-        icon: 'info',
-        title: 'No Data',
-        text: 'No attendance data found for this date'
-      })
-    } else {
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'Error loading attendance data'
-      })
-    }
+    // if (error.response?.status === 404) {
+    //   clearData()
+    //   Swal.fire({
+    //     icon: 'info',
+    //     title: 'No Data',
+    //     text: 'No attendance data found for this date'
+    //   })
+    // } else {
+    //   Swal.fire({
+    //     icon: 'error',
+    //     title: 'Error',
+    //     text: 'Error loading attendance data'
+    //   })
+    // }
+    handleApiError(error)
   } finally {
     loading.value = false
   }

@@ -16,7 +16,7 @@
       :show="showModal" 
       @close="closeModal"
       title="Input Van Information"
-      color="bg-gradient-to-r from-green-600 to-green-700"
+      color="bg-gradient-to-r from-green-600-to-green-700"
       maxWidth="lg"
       :closeable="true"
     >
@@ -57,42 +57,45 @@
         <!-- Item -->
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Item:</label>
-            <SelectComponent v-model="loadingForm.item" :options="itemOptions" placeholder="Select Work Type" class="w-full border-gray-700" />
+          <SelectComponent v-model="loadingForm.item" :options="itemOptions" placeholder="Select Work Type" class="w-full border-gray-700" />
         </div>
 
         <!-- Container Weight -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Container Weight:</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Container Weight (kg):</label>
           <input 
             type="number" 
             step="any" 
             v-model="loadingForm.container_weight" 
+            @input="calculateNetWeight"
             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
             placeholder="Input Container Weight"
           />
         </div>
 
-        <!-- Gross Weight (hidden but kept for data) -->
-        <div class="hidden">
-          <label class="block text-sm font-medium text-gray-700 mb-1">Gross Weight:</label>
+        <!-- Gross Weight -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Gross Weight (kg):</label>
           <input 
             type="number" 
             step="any" 
             v-model="loadingForm.gross_weight" 
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg"
+            @input="calculateNetWeight"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
             placeholder="Input Gross Weight"
           />
         </div>
 
         <!-- Net Weight (calculated) -->
         <div>
-          <!-- <label class="block text-sm font-medium text-gray-700 mb-1">Net Weight:</label> -->
+          <label class="block text-sm font-medium text-gray-700 mb-1">Net Weight (kg):</label>
           <input 
-            type="hidden" 
+            type="text" 
             :value="calculatedNetWeight" 
             readonly
-            class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-700"
+            class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-700 font-semibold"
           />
+          <p class="text-xs text-gray-500 mt-1">Net Weight = Gross Weight - Container Weight</p>
         </div>
 
         <!-- Action Buttons -->
@@ -136,7 +139,7 @@ const loadingForm = ref({
   seal_no: '',
   item: '',
   container_weight: '',
-  gross_weight: 0,
+  gross_weight: '',
   net_weight: 0
 })
 
@@ -146,7 +149,8 @@ const itemOptions = ref([])
 const calculatedNetWeight = computed(() => {
   const gross = parseFloat(loadingForm.value.gross_weight) || 0
   const container = parseFloat(loadingForm.value.container_weight) || 0
-  return (gross - container).toFixed(2)
+  const net = gross - container
+  return net.toFixed(2)
 })
 
 // Methods
@@ -163,9 +167,15 @@ const resetForm = () => {
     seal_no: '',
     item: '',
     container_weight: '',
-    gross_weight: 0,
+    gross_weight: '',
     net_weight: 0
   }
+}
+
+const calculateNetWeight = () => {
+  const gross = parseFloat(loadingForm.value.gross_weight) || 0
+  const container = parseFloat(loadingForm.value.container_weight) || 0
+  loadingForm.value.net_weight = gross - container
 }
 
 const fetchItems = async () => {
@@ -239,9 +249,21 @@ const saveLoading = async () => {
     return
   }
 
-  try {
-    // Prepare data for API
+  if (!loadingForm.value.gross_weight) {
+    await Swal.fire({
+      icon: 'warning',
+      title: 'Warning',
+      text: 'Please enter gross weight',
+      timer: 1500,
+      showConfirmButton: false
+    })
+    return
+  }
 
+  // Calculate net weight before saving
+  calculateNetWeight()
+
+  try {
     Swal.fire({
       title: 'Processing...',
       text: 'Please wait',
@@ -252,14 +274,19 @@ const saveLoading = async () => {
     })
 
     const payload = {
-      ...loadingForm.value,
-      net_weight: 0
+      loading_date: loadingForm.value.loading_date,
+      van_no: loadingForm.value.van_no,
+      seal_no: loadingForm.value.seal_no,
+      item: loadingForm.value.item,
+      container_weight: loadingForm.value.container_weight,
+      gross_weight: loadingForm.value.gross_weight,
+      net_weight: loadingForm.value.net_weight
     }
 
     const response = await api.post('/loading/add', payload)
 
     if (response.data && !response.data.error) {
-        Swal.close()
+      Swal.close()
 
       await Swal.fire({
         icon: 'success',
@@ -271,6 +298,15 @@ const saveLoading = async () => {
       
       emit('saved')
       closeModal()
+    } else {
+      Swal.close()
+      await Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: response.data?.message || 'Failed to create loading schedule',
+        timer: 1500,
+        showConfirmButton: false
+      })
     }
   } catch (error) {
     console.error('Failed to save loading:', error)
@@ -278,7 +314,7 @@ const saveLoading = async () => {
     await Swal.fire({
       icon: 'error',
       title: 'Error',
-      text: 'Failed to create loading schedule',
+      text: error.response?.data?.message || 'Failed to create loading schedule',
       timer: 1500,
       showConfirmButton: false
     })
