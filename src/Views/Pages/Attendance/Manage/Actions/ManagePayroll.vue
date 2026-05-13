@@ -1051,7 +1051,7 @@ const miscSave = async (index) => {
     return
   }
   try {
-    const response = await api.post('/payroll/compensation-add', { compensation_data: { ...item, payroll_id: payrollData.value.payroll.id } })
+    const response = await api.post('/payroll/compensation-add', { compensation_data: { ...item, payroll_id: payrollData.value.payroll.id, emp_id: selectedEmployee.value.id } })
     if (response.data && !response.data.error) {
       item.is_draft = false
       if (item.temp_id) delete item.temp_id
