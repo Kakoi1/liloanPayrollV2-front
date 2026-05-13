@@ -596,6 +596,7 @@ const mandatoryCompensations = ref([])
 const nonMandatoryCompensations = ref([])
 const draftMSG = ref('')
 const miscMSG = ref('')
+const income = ref(0)
 const classCache = ref(new Map())
 
 // Task arrays
@@ -623,6 +624,7 @@ const totalIncome = computed(() => {
   const nonMandatory = parseFloat(nonMandatoryTotal.value.replace(/,/g, '')) || 0
   const govDeductions = parseFloat(mandatoryTotal.value.replace(/,/g, '')) || 0
   const total = gross + nonMandatory - govDeductions
+  income.value = total
   return formatCurrency(total)
 })
 
@@ -663,6 +665,8 @@ const updateTaskTotal = (task) => {
   const deduction = parseFloat(task.deduction) || 0
   if (task.unit == 1) hours = hours / 8
   const totalMulti = parseFloat(tarima * multi)
+  // console.log(totalMulti);
+  
   task.total = ((hours * rate) - (totalMulti + deduction)).toFixed(2)
   calculateGrossTotal()
 }
@@ -741,7 +745,8 @@ const fetchPayrollData = async () => {
   } catch (error) {
     console.error('Failed to fetch payroll data:', error)
     await Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to load payroll data', timer: 2000, showConfirmButton: false })
-  } finally { fetchCompensations() }
+  } finally { fetchCompensations(); console.log('yawa');
+   }
 }
 
 const fetchClassesForAllTasks = async () => {
@@ -784,9 +789,9 @@ const fetchClassForTask = async (task, index, type) => {
 }
 
 const fetchCompensations = async () => {
-  if (!selectedEmployee.value || !payrollData.value?.payroll?.id) return
+  // if (!selectedEmployee.value || !payrollData.value?.payroll?.id) return
   try {
-    const response = await api.post('/payroll/compensation-list', { payroll_id: payrollData.value.payroll.id })
+    const response = await api.post('/payroll/compensation-list', { emp_id: selectedEmployee.value.id })
     if (response.data && !response.data.error) {
       const allCompensations = response.data.compensations || []
       mandatoryCompensations.value = allCompensations.filter(c => c.isMandatory)
@@ -857,7 +862,7 @@ const updateTask = async (task, index, type) => {
       task_data: taskData,
       task_id: task.id,
       update_task: 1,
-      save_task: 0
+      save_task: 1
     }
     if (hasPayrollData.value && payrollData.value?.payroll?.id) payload.payroll_id = payrollData.value.payroll.id
     
@@ -1010,8 +1015,11 @@ const proceedWithSubmit = async () => {
   const result = await Swal.fire({ title: 'Submit Payroll?', text: 'Are you sure you want to submit this payroll?', icon: 'question', showCancelButton: true, confirmButtonText: 'Yes, submit it' })
   if (!result.isConfirmed) return
   try {
+
+    // const income = totalIncome();
+
     Swal.fire({ title: 'Submitting payroll...', allowOutsideClick: true, didOpen: () => Swal.showLoading() })
-    const response = await api.post('/payroll/submit', { payroll_id: payrollData.value.payroll.id })
+    const response = await api.post('/payroll/submit', { payroll_id: payrollData.value.payroll.id, total_income: income.value, emp_id: selectedEmployee.value.id })
     if (response.data && !response.data.error) {
       Swal.close()
       await Swal.fire({ icon: 'success', title: 'Success!', text: 'Payroll submitted successfully', timer: 1500, showConfirmButton: false })
@@ -1043,7 +1051,7 @@ const miscSave = async (index) => {
     return
   }
   try {
-    const response = await api.post('/payroll/compensation-add', { compensation_data: { ...item, payroll_id: payrollData.value.payroll.id } })
+    const response = await api.post('/payroll/compensation-add', { compensation_data: { ...item, payroll_id: payrollData.value.payroll.id, emp_id: selectedEmployee.value.id } })
     if (response.data && !response.data.error) {
       item.is_draft = false
       if (item.temp_id) delete item.temp_id
