@@ -44,19 +44,28 @@
                 </svg>
                 PAYROLL PERIOD
               </h4>
-              <CreatePayroll
-                v-if="!hasPayrollData"
-                :employee="selectedEmployee"
-                @payroll-created="handlePayrollCreated"
-                @closed="handleModalClosed"
-              />
-              <div 
-              v-else
-              class="flex justify-end">
-                <button @click="submitPayroll" class="inline-flex items-center px-4 py-4 bg-gradient-to-r from-red-600 to-red-700 text-white text-lg font-medium rounded-lg hover:from-red-700 hover:to-red-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 shadow-sm transition-all duration-200">
-                  <FontAwesomeIcon :icon="faCheckDouble" class="w-4 flex-shrink-0" />
+              <div class="flex gap-2">
+                <select 
+                  v-model="selectedPayrollPeriod" 
+                  @change="fetchPayrollData"
+                  class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option v-for="period in payrollPeriods" :key="period.id" :value="period.id">
+                    {{ period.datePeriod }}
+                  </option>
+                </select>
+                <!-- <CreatePayroll
+                  v-if="!hasPayrollData"
+                  :employee="selectedEmployee"
+                  @payroll-created="handlePayrollCreated"
+                  @closed="handleModalClosed"
+                /> -->
+                <div class="flex justify-end mb-4">
+                <button @click="submitPayroll" class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 text-white text-sm font-medium rounded-lg hover:from-red-700 hover:to-red-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 shadow-sm transition-all duration-200">
+                  <FontAwesomeIcon :icon="faCheckDouble" class="w-4 mr-2" />
                   Complete Payroll
                 </button>
+          </div>
               </div>
             </div>
             <div v-if="hasPayrollData" class="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
@@ -69,6 +78,14 @@
                 {{ formatDate(payrollData.payroll?.dateOfPayroll) }}
               </p>
             </div>
+          </div>
+
+          <!-- Complete Payroll Button -->
+          <div v-if="hasPayrollData" class="flex justify-end mb-4">
+            <button @click="submitPayroll" class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 text-white text-sm font-medium rounded-lg hover:from-red-700 hover:to-red-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 shadow-sm transition-all duration-200">
+              <FontAwesomeIcon :icon="faCheckDouble" class="w-4 mr-2" />
+              Complete Payroll
+            </button>
           </div>
 
           <!-- Employee Info Cards -->
@@ -132,16 +149,6 @@
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200 flex flex-wrap justify-between items-center gap-2">
               <div class="flex items-center space-x-4">
                 <span v-if="draftMSG" class="text-xs text-red-600 bg-red-50 px-2 py-1 rounded">{{ draftMSG }}</span>
-                <!-- <button 
-                  v-if="hasPayrollData && selectedCheckableTasks.length > 0"
-                  @click="processSelectedTasks" 
-                  class="px-3 py-1.5 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg text-xs hover:from-purple-700 hover:to-purple-800 focus:ring-2 focus:ring-purple-500 transition-all duration-200 flex items-center"
-                >
-                  <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                  </svg>
-                  Process Selected ({{ selectedCheckableTasks.length }})
-                </button> -->
               </div>
               <div class="flex gap-2 ml-auto">
                 <button @click="weeklytask" class="px-3 py-1.5 bg-gray-600 text-white rounded-lg text-xs hover:bg-gray-700 focus:ring-2 focus:ring-gray-500 transition-colors duration-200 flex items-center">
@@ -181,14 +188,13 @@
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
-                  <!-- Checked Tasks (Processed) - Editable -->
+                  <!-- Checked Tasks (Processed/Saved) -->
                   <tr v-for="(task, i) in checkedTasks" :key="task.id" class="bg-green-50 hover:bg-green-100">
                     <td class="px-3 py-2 text-center">
                       <input 
                         type="checkbox" 
-                        v-model="task.selected" 
-                        checked
-                        @change="toggleTaskSelection(task, i, 'unchecked')"
+                        v-model="task.isCaptured"
+                        @change="toggleTaskSelection(task, i, 'checked')"
                         class="w-4 h-4 text-green-600 rounded focus:ring-green-500"
                       >
                     </td>
@@ -260,86 +266,7 @@
                     </td>
                   </tr>
 
-                  <!-- Unchecked Tasks (Pending/Checkable) - Editable -->
-                  <tr v-for="(task, i) in uncheckedTasks" :key="task.id" class="bg-white hover:bg-gray-50">
-                  <td class="px-3 py-2 text-center">
-                    <input 
-                      type="checkbox" 
-                      v-model="task.selected" 
-                      @change="toggleTaskSelection(task, i, 'checked')"
-                      class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                    >
-                  </td>
-                    <td class="px-3 py-2">
-                      <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Pending</span>
-                    </td>
-                    <td class="px-3 py-2">
-                      <input type="date" v-model="task.date" class="w-full px-2 py-1 border border-gray-300 rounded text-sm">
-                    </td>
-                    <td class="px-3 py-2">
-                      <select v-model="task.dayType" class="w-full px-2 py-1 border border-gray-300 rounded text-sm">
-                        <option value="1">Reg</option>
-                        <option value="2">Spec</option>
-                        <option value="3">Hol</option>
-                      </select>
-                    </td>
-                    <td class="px-3 py-2">
-                      <select v-model="task.workerCount" class="w-full px-2 py-1 border border-gray-300 rounded text-sm">
-                        <option value="1">Solo</option>
-                        <option value="2">Pair</option>
-                      </select>
-                    </td>
-                    <td class="px-3 py-2">
-                      <select v-model="task.taskType" @change="fetchClassForTask(task, i, 'unchecked')" class="w-full px-2 py-1 border border-gray-300 rounded text-sm">
-                        <option value="">--</option>
-                        <option v-for="cd in tdrop" :value="cd.id" :key="cd.id">{{ cd.task_name }}</option>
-                      </select>
-                    </td>
-                    <td class="px-3 py-2">
-                      <select v-model="task.taskId" @change="updateRateFromClass(task, i)" class="w-full px-2 py-1 border border-gray-300 rounded text-sm">
-                        <option value="">--</option>
-                        <option v-for="cd in task.classOptions || cdrop" :value="cd.value" :key="cd.value">{{ cd.label }}</option>
-                      </select>
-                    </td>
-                    <td class="px-3 py-2">
-                      <input type="text" v-model="task.rate" readonly class="w-full px-2 py-1 border border-gray-300 rounded text-sm bg-gray-100">
-                    </td>
-                    <td class="px-3 py-2">
-                      <div class="flex items-center space-x-1">
-                        <input type="number" v-model="task.netKgPerEmp" @input="updateTaskTotal(task)" class="w-20 px-2 py-1 border border-gray-300 rounded text-sm">
-                        <span class="text-xs text-gray-500">{{ getUnitLabel(task.unit) }}</span>
-                      </div>
-                    </td>
-                    <td class="px-3 py-2">
-                      <input type="number" v-model="task.tarima" @input="updateTaskTotal(task)" class="w-full px-2 py-1 border border-gray-300 rounded text-sm">
-                    </td>
-                    <td class="px-3 py-2">
-                      <input type="number" v-model="task.deduction" @input="updateTaskTotal(task)" class="w-full px-2 py-1 border border-gray-300 rounded text-sm">
-                    </td>
-                    <td class="px-3 py-2">
-                      <input type="number" v-model="task.total" readonly class="w-full px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm">
-                    </td>
-                    <td class="px-3 py-2">
-                      <input type="text" v-model="task.remarks" class="w-full px-2 py-1 border border-gray-300 rounded text-sm">
-                    </td>
-                    <td class="px-3 py-2">
-                      <div class="flex space-x-1">
-                        <button @click="updateTask(task, i, 'unchecked')" class="p-1.5 bg-blue-600 text-white rounded hover:bg-blue-700" title="Update">
-                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                          </svg>
-                        </button>
-                        <button @click="deleteTask(task.id, i, 'unchecked')" class="p-1.5 bg-red-600 text-white rounded hover:bg-red-700" title="Delete">
-                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </button>
-                      </div>
-                    </td>
-                    </tr>
-
-
-                  <!-- Draft Tasks (Bottom) - Editable -->
+                  <!-- Draft Tasks -->
                   <tr v-for="(task, i) in draftTasks" :key="task.id" class="bg-yellow-50 hover:bg-yellow-100">
                     <td class="px-3 py-2 text-center">
                       <input type="checkbox" v-model="task.selected" :disabled="true" class="w-4 h-4 text-gray-400 rounded">
@@ -428,7 +355,7 @@
             <!-- Gross Income -->
             <div class="bg-gray-50 px-4 py-3 border-t border-gray-200 flex justify-between items-center">
               <div class="text-xs text-gray-500">
-                <span v-if="draftTasks.length > 0" class="text-yellow-600">⚠️ Draft and Pending tasks are not included in total</span>
+                <span v-if="draftTasks.length > 0" class="text-yellow-600">⚠️ Draft tasks are not included in total</span>
               </div>
               <div class="w-72 flex items-center justify-between bg-gradient-to-r from-yellow-100 to-yellow-200 px-4 py-2 rounded-lg border border-yellow-300">
                 <span class="text-sm font-semibold text-gray-700">Gross Income:</span>
@@ -437,7 +364,6 @@
             </div>
           </div>
 
-          <!-- Rest of the sections remain the same... -->
           <!-- Compensations Section -->
           <div class="mb-6 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-3 flex justify-between items-center">
@@ -562,7 +488,6 @@
                   <input type="text" :value="totalIncome" readonly class="w-40 bg-transparent text-white font-bold text-lg text-right border-none focus:outline-none" placeholder="0.00">
                 </div>
               </div>
-              
             </div>
           </div>
         </div>
@@ -572,7 +497,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, computed } from 'vue'
 import Swal from 'sweetalert2'
 import moment from 'moment'
 import api from '@/Js/Services/axios'
@@ -598,16 +523,16 @@ const draftMSG = ref('')
 const miscMSG = ref('')
 const income = ref(0)
 const classCache = ref(new Map())
+const payrollPeriods = ref([])
+const selectedPayrollPeriod = ref('')
 
 // Task arrays
 const checkedTasks = ref([])
-const uncheckedTasks = ref([])
 const draftTasks = ref([])
 
 // Computed
-const allTasks = computed(() => [...checkedTasks.value, ...uncheckedTasks.value, ...draftTasks.value])
+const allTasks = computed(() => [...checkedTasks.value, ...draftTasks.value])
 const hasPayrollData = computed(() => payrollData.value && payrollData.value.payroll)
-const selectedCheckableTasks = computed(() => uncheckedTasks.value.filter(task => task.selected))
 
 const nonMandatoryTotal = computed(() => {
   const total = nonMandatoryCompensations.value.reduce((sum, item) => sum + (parseFloat(item.misc_amount) || 0), 0)
@@ -642,19 +567,22 @@ const getUnitLabel = (unit) => {
   }
 }
 
-const getTaskName = (taskId) => {
-  const task = tdrop.value.find(t => t.id == taskId)
-  return task ? task.task_name : ''
-}
-
-const getClassName = (classId) => {
-  for (let task of [...checkedTasks.value, ...uncheckedTasks.value, ...draftTasks.value]) {
-    if (task.classOptions) {
-      const cls = task.classOptions.find(c => c.value == classId)
-      if (cls) return cls.label
+const fetchPayrollPeriods = async () => {
+  try {
+    const response = await api.post('/payroll/list-payroll', { 
+      employee_id: selectedEmployee.value?.id 
+    })
+    if (response.data && !response.data.error) {
+      payrollPeriods.value = response.data.payroll || []
+      
+      if (payrollPeriods.value.length > 0 && !selectedPayrollPeriod.value) {
+        selectedPayrollPeriod.value = payrollPeriods.value[0].id
+        await fetchPayrollData()
+      }
     }
+  } catch (error) {
+    console.error('Failed to fetch payroll periods:', error)
   }
-  return ''
 }
 
 const updateTaskTotal = (task) => {
@@ -665,15 +593,17 @@ const updateTaskTotal = (task) => {
   const deduction = parseFloat(task.deduction) || 0
   if (task.unit == 1) hours = hours / 8
   const totalMulti = parseFloat(tarima * multi)
-  // console.log(totalMulti);
-  
   task.total = ((hours * rate) - (totalMulti + deduction)).toFixed(2)
   calculateGrossTotal()
 }
 
 const calculateGrossTotal = () => {
   let total = 0
-  uncheckedTasks.value.forEach(task => { total += parseFloat(task.total) || 0 })
+  checkedTasks.value.forEach(task => { 
+    if (task.payrollId !== 0) {
+      total += parseFloat(task.total) || 0 
+    }
+  })
   Dtotal.value = formatCurrency(total)
 }
 
@@ -698,73 +628,70 @@ const fetchCompensationOptions = async () => {
 const fetchPayrollData = async () => {
   if (!selectedEmployee.value) return
   try {
-    const response = await api.post('/payroll/get-by-employee', { employee_id: selectedEmployee.value.id })
+    const response = await api.post('/payroll/get-by-employee', { 
+      employee_id: selectedEmployee.value.id, 
+      payroll_id: selectedPayrollPeriod.value
+    })
+    
     if (response.data && !response.data.error) {
       payrollData.value = response.data
       
       checkedTasks.value = (response.data.payrollChecked || []).map(task => ({
-        id: task.id, date: task.date ? moment(task.date).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD'),
-        dayType: task.dayType || 1, workerCount: task.workerCount || 1,
-        taskType: task.taskType || '', taskId: task.taskId || '',
-        rate: task.rate || '', netKgPerEmp: task.unit == 4 ? 1 : task.netKgPerEmp,
-        unit: task.unit || 'kg', tarima: task.tarima || 0,
-        deduction: task.deduction || 0, total: task.total || 0,
-        remarks: task.remarks || '', payrollId: task.payrollId,
+        id: task.id, 
+        date: task.date ? moment(task.date).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD'),
+        dayType: task.dayType || 1, 
+        workerCount: task.workerCount || 1,
+        taskType: task.taskType || '', 
+        taskId: task.taskId || '',
+        rate: task.rate || '', 
+        netKgPerEmp: task.unit == 4 ? 1 : task.netKgPerEmp,
+        unit: task.unit || 'kg', 
+        tarima: task.tarima || 0,
+        deduction: task.deduction || 0, 
+        total: task.total || 0,
+        remarks: task.remarks || '', 
+        isCaptured: task.isCapture !== 0,
+        payrollId: task.payrollId,
+        selected: false, 
         classOptions: []
       }))
       
-      uncheckedTasks.value = (response.data.payrollUnChecked || []).map(task => ({
-        id: task.id, date: task.date ? moment(task.date).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD'),
-        dayType: task.dayType || 1, workerCount: task.workerCount || 1,
-        taskType: task.taskType || '', taskId: task.taskId || '',
-        rate: task.rate || '', netKgPerEmp: task.unit == 4 ? 1 : task.netKgPerEmp,
-        unit: task.unit || 'kg', tarima: task.tarima || 0,
-        deduction: task.deduction || 0, total: task.total || 0,
-        remarks: task.remarks || '', payrollId: task.payrollId,
-        selected: false, classOptions: []
-      }))
-      
       draftTasks.value = (response.data.draft || []).map(draft => ({
-        id: draft.id, date: draft.date ? moment(draft.date).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD'),
-        dayType: draft.dayType || 1, workerCount: draft.workerCount || 1,
-        taskType: draft.taskType || '', taskId: draft.taskId || '',
-        rate: draft.rate || '', netKgPerEmp: draft.unit == 4 ? 1 : draft.netKgPerEmp,
-        unit: draft.unit || 'kg', tarima: draft.tarima || 0,
-        deduction: draft.deduction || 0, total: draft.total || 0,
-        remarks: draft.remarks || '', classOptions: []
+        id: draft.id, 
+        date: draft.date ? moment(draft.date).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD'),
+        dayType: draft.dayType || 1, 
+        workerCount: draft.workerCount || 1,
+        taskType: draft.taskType || '', 
+        taskId: draft.taskId || '',
+        rate: draft.rate || '', 
+        netKgPerEmp: draft.unit == 4 ? 1 : draft.netKgPerEmp,
+        unit: draft.unit || 'kg', 
+        tarima: draft.tarima || 0,
+        deduction: draft.deduction || 0, 
+        total: draft.total || 0,
+        remarks: draft.remarks || '', 
+        classOptions: []
       }))
       
-      Dtotal.value = formatCurrency(response.data.total)
-
-      console.log(Dtotal.value);
+      Dtotal.value = formatCurrency(response.data.total || 0)
       
-      
-      // Fetch classes for all tasks
       await fetchClassesForAllTasks()
     }
   } catch (error) {
     console.error('Failed to fetch payroll data:', error)
     await Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to load payroll data', timer: 2000, showConfirmButton: false })
-  } finally { fetchCompensations(); console.log('yawa');
-   }
+  } finally { 
+    fetchCompensations() 
+  }
 }
 
 const fetchClassesForAllTasks = async () => {
-  // Fetch for checked tasks
   for (let i = 0; i < checkedTasks.value.length; i++) {
     const task = checkedTasks.value[i]
     if (task.taskType && task.taskType > 0) {
       await fetchClassForTask(task, i, 'checked')
     }
   }
-  // Fetch for unchecked tasks
-  for (let i = 0; i < uncheckedTasks.value.length; i++) {
-    const task = uncheckedTasks.value[i]
-    if (task.taskType && task.taskType > 0) {
-      await fetchClassForTask(task, i, 'unchecked')
-    }
-  }
-  // Fetch for draft tasks
   for (let i = 0; i < draftTasks.value.length; i++) {
     const task = draftTasks.value[i]
     if (task.taskType && task.taskType > 0) {
@@ -785,23 +712,32 @@ const fetchClassForTask = async (task, index, type) => {
       classCache.value.set(task.taskType, response.data.position)
       task.classOptions = response.data.position
     }
-  } catch (error) { console.error('Failed to fetch class:', error) }
+  } catch (error) { 
+    console.error('Failed to fetch class:', error) 
+  }
 }
 
 const fetchCompensations = async () => {
-  // if (!selectedEmployee.value || !payrollData.value?.payroll?.id) return
   try {
-    const response = await api.post('/payroll/compensation-list', { emp_id: selectedEmployee.value.id })
+    const response = await api.post('/payroll/compensation-list', { 
+      emp_id: selectedEmployee.value?.id,
+      payroll_id: selectedPayrollPeriod.value
+    })
     if (response.data && !response.data.error) {
       const allCompensations = response.data.compensations || []
       mandatoryCompensations.value = allCompensations.filter(c => c.isMandatory)
       nonMandatoryCompensations.value = allCompensations.filter(c => !c.isMandatory).map(compensation => ({
-        payroll_id: compensation.payrollId, misc_desc: compensation.compensationId,
-        misc_amount: compensation.amount, misc_remarks: compensation.remarks,
-        is_draft: false, id: compensation.id
+        payroll_id: compensation.payrollId, 
+        misc_desc: compensation.compensationId,
+        misc_amount: compensation.amount, 
+        misc_remarks: compensation.remarks,
+        is_draft: false, 
+        id: compensation.id
       }))
     }
-  } catch (error) { console.error('Failed to fetch compensations:', error) }
+  } catch (error) { 
+    console.error('Failed to fetch compensations:', error) 
+  }
 }
 
 const fetchTask = async () => {
@@ -818,14 +754,28 @@ const fetchTask = async () => {
 const addRowTask = async () => {
   const tempId = 'temp_' + Date.now()
   const newTask = {
-    id: tempId, date: moment().format('YYYY-MM-DD'), dayType: 1, workerCount: 1,
-    taskType: '', taskId: '', rate: '', netKgPerEmp: '', unit: 'kg',
-    tarima: 0, deduction: 0, total: 0, remarks: '', classOptions: []
+    id: tempId, 
+    date: moment().format('YYYY-MM-DD'), 
+    dayType: 1, 
+    workerCount: 1,
+    taskType: '', 
+    taskId: '', 
+    rate: '', 
+    netKgPerEmp: '', 
+    unit: 'kg',
+    tarima: 0, 
+    deduction: 0, 
+    total: 0, 
+    remarks: '', 
+    classOptions: []
   }
   draftTasks.value.push(newTask)
   
   try {
-    const response = await api.post('/payroll/add-task', { employee_id: selectedEmployee.value.id, task_data: newTask })
+    const response = await api.post('/payroll/add-task', { 
+      employee_id: selectedEmployee.value.id, 
+      task_data: newTask 
+    })
     if (response.data && !response.data.error) {
       await fetchPayrollData()
       await Swal.fire({ icon: 'success', title: 'Success!', text: 'New draft task created', timer: 1500, showConfirmButton: false })
@@ -851,14 +801,24 @@ const updateTask = async (task, index, type) => {
     Swal.fire({ title: 'Updating Task...', allowOutsideClick: false, didOpen: () => Swal.showLoading() })
     
     const taskData = {
-      id: task.id, date: task.date, day_type: task.dayType, sp: task.workerCount,
-      taskType: task.taskType, taskId: task.taskId, rate: task.rate,
-      netKgPerEmp: task.netKgPerEmp, unit: task.unit, tarima: task.tarima,
-      deduction: task.deduction, total: task.total, remarks: task.remarks
+      id: task.id, 
+      date: task.date, 
+      day_type: task.dayType, 
+      sp: task.workerCount,
+      taskType: task.taskType, 
+      taskId: task.taskId, 
+      rate: task.rate,
+      netKgPerEmp: task.netKgPerEmp, 
+      unit: task.unit, 
+      tarima: task.tarima,
+      deduction: task.deduction, 
+      total: task.total, 
+      remarks: task.remarks
     }
     
     const payload = {
       employee_id: selectedEmployee.value.id,
+      payroll_id: selectedPayrollPeriod.value,
       task_data: taskData,
       task_id: task.id,
       update_task: 1,
@@ -890,28 +850,49 @@ const saveDraftTask = async (index) => {
   }
 
   const result = await Swal.fire({
-    title: 'Save Task', text: 'How would you like to save this task?', icon: 'question',
-    showCancelButton: true, showDenyButton: true,
-    confirmButtonColor: '#10b981', denyButtonColor: '#f59e0b',
-    confirmButtonText: 'Save as Draft', denyButtonText: 'Save & Convert'
+    title: 'Save Task', 
+    text: 'How would you like to save this task?', 
+    icon: 'question',
+    showCancelButton: true, 
+    showDenyButton: true,
+    confirmButtonColor: '#10b981', 
+    denyButtonColor: '#f59e0b',
+    confirmButtonText: 'Save as Draft', 
+    denyButtonText: 'Save & Convert'
   })
   
   if (result.isDismissed) return
   const saveAsDraft = result.isConfirmed
   
   try {
-    Swal.fire({ title: saveAsDraft ? 'Saving as Draft...' : 'Saving and Converting...', allowOutsideClick: false, didOpen: () => Swal.showLoading() })
+    Swal.fire({ 
+      title: saveAsDraft ? 'Saving as Draft...' : 'Saving and Converting...', 
+      allowOutsideClick: false, 
+      didOpen: () => Swal.showLoading() 
+    })
     
     const taskData = {
-      id: task.id, date: task.date, day_type: task.dayType, sp: task.workerCount,
-      taskType: task.taskType, taskId: task.taskId, rate: task.rate,
-      netKgPerEmp: task.netKgPerEmp, unit: task.unit, tarima: task.tarima,
-      deduction: task.deduction, total: task.total, remarks: task.remarks,
+      id: task.id, 
+      date: task.date, 
+      day_type: task.dayType, 
+      sp: task.workerCount,
+      taskType: task.taskType, 
+      taskId: task.taskId, 
+      rate: task.rate,
+      netKgPerEmp: task.netKgPerEmp, 
+      unit: task.unit, 
+      tarima: task.tarima,
+      deduction: task.deduction, 
+      total: task.total, 
+      remarks: task.remarks,
       is_draft: saveAsDraft
     }
     
     const payload = {
-      employee_id: selectedEmployee.value.id, task_data: taskData, task_id: task.id,
+      employee_id: selectedEmployee.value.id, 
+      payroll_id: selectedPayrollPeriod.value,
+      task_data: taskData, 
+      task_id: task.id,
       save_task: saveAsDraft ? 0 : 1
     }
     if (hasPayrollData.value && payrollData.value?.payroll?.id) payload.payroll_id = payrollData.value.payroll.id
@@ -919,7 +900,12 @@ const saveDraftTask = async (index) => {
     const response = await api.post('/payroll/task-save', payload)
     if (response.data && !response.data.error) {
       Swal.close()
-      await Swal.fire({ icon: 'success', title: saveAsDraft ? 'Draft Saved!' : 'Task Converted!', timer: 1500, showConfirmButton: false })
+      await Swal.fire({ 
+        icon: 'success', 
+        title: saveAsDraft ? 'Draft Saved!' : 'Task Converted!', 
+        timer: 1500, 
+        showConfirmButton: false 
+      })
       await fetchPayrollData()
     }
   } catch (error) {
@@ -929,7 +915,14 @@ const saveDraftTask = async (index) => {
 }
 
 const deleteTask = async (taskId, index, type) => {
-  const result = await Swal.fire({ title: 'Are you sure?', text: 'Do you want to remove this task?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Yes, remove it!' })
+  const result = await Swal.fire({ 
+    title: 'Are you sure?', 
+    text: 'Do you want to remove this task?', 
+    icon: 'warning', 
+    showCancelButton: true, 
+    confirmButtonColor: '#d33', 
+    confirmButtonText: 'Yes, remove it!' 
+  })
   if (result.isConfirmed) {
     try {
       if (taskId && !taskId.toString().startsWith('temp')) {
@@ -937,7 +930,6 @@ const deleteTask = async (taskId, index, type) => {
       }
       
       if (type === 'checked') checkedTasks.value.splice(index, 1)
-      else if (type === 'unchecked') uncheckedTasks.value.splice(index, 1)
       else if (type === 'draft') draftTasks.value.splice(index, 1)
       
       await fetchPayrollData()
@@ -945,31 +937,6 @@ const deleteTask = async (taskId, index, type) => {
     } catch (error) {
       console.error('Failed to delete task:', error)
       await Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to delete task', timer: 1500, showConfirmButton: false })
-    }
-  }
-}
-
-const processSelectedTasks = async () => {
-  if (selectedCheckableTasks.value.length === 0) {
-    await Swal.fire({ icon: 'warning', title: 'Warning', text: 'Please select at least one task to process', timer: 1500, showConfirmButton: false })
-    return
-  }
-
-  const result = await Swal.fire({
-    title: 'Process Selected Tasks?', text: `You are about to process ${selectedCheckableTasks.value.length} selected task(s).`, icon: 'warning',
-    showCancelButton: true, confirmButtonColor: '#10b981', confirmButtonText: 'Yes, process them'
-  })
-
-  if (result.isConfirmed) {
-    try {
-      const taskIds = selectedCheckableTasks.value.map(task => task.id)
-      const response = await api.post('/payroll/process-tasks', { payroll_id: payrollData.value.payroll.id, task_ids: taskIds })
-      if (response.data && !response.data.error) {
-        await Swal.fire({ icon: 'success', title: 'Success!', text: response.data.message, timer: 1500, showConfirmButton: false })
-        await fetchPayrollData()
-      }
-    } catch (error) {
-      await Swal.fire({ icon: 'error', title: 'Error', text: error.response?.data?.message || 'Failed to process tasks' })
     }
   }
 }
@@ -982,9 +949,13 @@ const weeklytask = async () => {
 const submitPayroll = async () => {
   if (draftTasks.value.length > 0) {
     const result = await Swal.fire({
-      title: 'Draft Tasks Exist', text: 'There are draft tasks that haven\'t been saved. Do you want to save them before submitting?',
-      icon: 'warning', showCancelButton: true, showDenyButton: true,
-      confirmButtonText: 'Save All Drafts', denyButtonText: 'Submit Anyway'
+      title: 'Draft Tasks Exist', 
+      text: 'There are draft tasks that haven\'t been saved. Do you want to save them before submitting?',
+      icon: 'warning', 
+      showCancelButton: true, 
+      showDenyButton: true,
+      confirmButtonText: 'Save All Drafts', 
+      denyButtonText: 'Submit Anyway'
     })
     if (result.isConfirmed) await saveAllDraftTasks()
     if (result.isDenied) await proceedWithSubmit()
@@ -996,10 +967,34 @@ const submitPayroll = async () => {
 const saveAllDraftTasks = async () => {
   if (draftTasks.value.length === 0) return
   try {
-    Swal.fire({ title: 'Saving Drafts...', text: `Saving ${draftTasks.value.length} draft task(s)`, allowOutsideClick: false, didOpen: () => Swal.showLoading() })
+    Swal.fire({ 
+      title: 'Saving Drafts...', 
+      text: `Saving ${draftTasks.value.length} draft task(s)`, 
+      allowOutsideClick: false, 
+      didOpen: () => Swal.showLoading() 
+    })
     for (const task of draftTasks.value) {
-      const taskData = { id: task.id, date: task.date, day_type: task.dayType, sp: task.workerCount, taskType: task.taskType, taskId: task.taskId, rate: task.rate, netKgPerEmp: task.netKgPerEmp, unit: task.unit, tarima: task.tarima, deduction: task.deduction, total: task.total, remarks: task.remarks, is_draft: false }
-      const payload = { employee_id: selectedEmployee.value.id, task_data: taskData, payroll_id: payrollData.value.payroll.id }
+      const taskData = { 
+        id: task.id, 
+        date: task.date, 
+        day_type: task.dayType, 
+        sp: task.workerCount, 
+        taskType: task.taskType, 
+        taskId: task.taskId, 
+        rate: task.rate, 
+        netKgPerEmp: task.netKgPerEmp, 
+        unit: task.unit, 
+        tarima: task.tarima, 
+        deduction: task.deduction, 
+        total: task.total, 
+        remarks: task.remarks, 
+        is_draft: false 
+      }
+      const payload = { 
+        employee_id: selectedEmployee.value.id, 
+        task_data: taskData, 
+        payroll_id: payrollData.value.payroll.id 
+      }
       await api.post('/payroll/task/save', payload)
     }
     Swal.close()
@@ -1012,14 +1007,25 @@ const saveAllDraftTasks = async () => {
 }
 
 const proceedWithSubmit = async () => {
-  const result = await Swal.fire({ title: 'Submit Payroll?', text: 'Are you sure you want to submit this payroll?', icon: 'question', showCancelButton: true, confirmButtonText: 'Yes, submit it' })
+  const result = await Swal.fire({ 
+    title: 'Submit Payroll?', 
+    text: 'Are you sure you want to submit this payroll?', 
+    icon: 'question', 
+    showCancelButton: true, 
+    confirmButtonText: 'Yes, submit it' 
+  })
   if (!result.isConfirmed) return
   try {
-
-    // const income = totalIncome();
-
     Swal.fire({ title: 'Submitting payroll...', allowOutsideClick: true, didOpen: () => Swal.showLoading() })
-    const response = await api.post('/payroll/submit', { payroll_id: payrollData.value.payroll.id, total_income: income.value, emp_id: selectedEmployee.value.id })
+    const taskIds = checkedTasks.value.map(task => task.id)
+    // console.log(taskIds);
+    
+    const response = await api.post('/payroll/submit', { 
+      payroll_ids: taskIds,
+      payroll_id: selectedPayrollPeriod.value, 
+      total_income: income.value, 
+      emp_id: selectedEmployee.value.id 
+    })
     if (response.data && !response.data.error) {
       Swal.close()
       await Swal.fire({ icon: 'success', title: 'Success!', text: 'Payroll submitted successfully', timer: 1500, showConfirmButton: false })
@@ -1027,6 +1033,8 @@ const proceedWithSubmit = async () => {
       closeModal()
     }
   } catch (error) {
+    console.log(error);
+    
     Swal.close()
     await Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to submit payroll', timer: 1500, showConfirmButton: false })
   }
@@ -1035,8 +1043,12 @@ const proceedWithSubmit = async () => {
 // Compensation Operations
 const miscdraft = () => {
   nonMandatoryCompensations.value.push({
-    payroll_id: payrollData.value.payroll.id, misc_desc: 0, misc_amount: 0,
-    misc_remarks: '', is_draft: true, temp_id: Date.now()
+    payroll_id: payrollData.value.payroll.id, 
+    misc_desc: 0, 
+    misc_amount: 0,
+    misc_remarks: '', 
+    is_draft: true, 
+    temp_id: Date.now()
   })
 }
 
@@ -1051,7 +1063,13 @@ const miscSave = async (index) => {
     return
   }
   try {
-    const response = await api.post('/payroll/compensation-add', { compensation_data: { ...item, payroll_id: payrollData.value.payroll.id, emp_id: selectedEmployee.value.id } })
+    const response = await api.post('/payroll/compensation-add', { 
+      compensation_data: { 
+        ...item, 
+        payroll_id: payrollData.value.payroll.id, 
+        emp_id: selectedEmployee.value.id 
+      } 
+    })
     if (response.data && !response.data.error) {
       item.is_draft = false
       if (item.temp_id) delete item.temp_id
@@ -1064,11 +1082,21 @@ const miscSave = async (index) => {
 }
 
 const confirmMiscDelete = async (index) => {
-  const result = await Swal.fire({ title: 'Are you sure?', text: 'Do you want to remove this item?', icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes, remove it!' })
+  const result = await Swal.fire({ 
+    title: 'Are you sure?', 
+    text: 'Do you want to remove this item?', 
+    icon: 'warning', 
+    showCancelButton: true, 
+    confirmButtonText: 'Yes, remove it!' 
+  })
   if (result.isConfirmed) {
     const item = nonMandatoryCompensations.value[index]
     if (!item.is_draft && item.id) {
-      try { await api.post('/payroll/compensation/delete', { compensation_id: item.id }) } catch (error) { console.error('Failed to delete item:', error) }
+      try { 
+        await api.post('/payroll/compensation/delete', { compensation_id: item.id }) 
+      } catch (error) { 
+        console.error('Failed to delete item:', error) 
+      }
     }
     nonMandatoryCompensations.value.splice(index, 1)
     await Swal.fire({ icon: 'success', title: 'Removed!', text: 'Item removed successfully', timer: 1500, showConfirmButton: false })
@@ -1076,18 +1104,22 @@ const confirmMiscDelete = async (index) => {
 }
 
 const toggleTaskSelection = async (task, index, type) => {
+  // Store the original state
+  const originalState = task.isCaptured
+  // Toggle the local state immediately for UI responsiveness
+  task.isCaptured = !task.isCaptured
+  
   try {
-    console.log(task);
-    
     Swal.fire({
-      title: task.selected ?  'Add to Payroll?' : 'Remove from Payroll?',
-      text: task.selected 
-        ? 'This will add the task to the current payroll.' :  'This will remove the task from the current payroll.',
+      title: task.isCaptured ? 'Remove from Payroll?' : 'Add to Payroll?',
+      text: task.isCaptured 
+        ? 'This will remove the task from the current payroll.'
+        : 'This will add the task to the current payroll.',
       icon: 'question',
       showCancelButton: true,
       confirmButtonColor: '#10b981',
       cancelButtonColor: '#6b7280',
-      confirmButtonText: task.selected ? 'Yes, add it' : 'Yes, remove it' ,
+      confirmButtonText: task.isCaptured ? 'Yes, remove it' : 'Yes, add it',
       cancelButtonText: 'Cancel'
     }).then(async (result) => {
       if (result.isConfirmed) {
@@ -1096,9 +1128,9 @@ const toggleTaskSelection = async (task, index, type) => {
             title: 'Processing...',
             allowOutsideClick: false,
             didOpen: () => Swal.showLoading()
-          })
+          })          
 
-          const newPayrollId = task.selected ?  payrollData.value.payroll.id : 0
+          const newPayrollId = task.isCaptured ? selectedPayrollPeriod.value : 0
           
           const response = await api.post('/payroll/process-tasks', {
             task_id: task.id,
@@ -1111,16 +1143,14 @@ const toggleTaskSelection = async (task, index, type) => {
             await Swal.fire({
               icon: 'success',
               title: 'Success!',
-              text: task.selected ?  'Task added to payroll' : 'Task removed from payroll',
+              text: task.isCaptured ? 'Task removed from payroll' : 'Task added to payroll',
               timer: 1500,
               showConfirmButton: false
             })
-            
-            // Refresh the data
             await fetchPayrollData()
           } else {
-            // Revert checkbox state on error
-            task.selected = !task.selected
+            // Revert on error
+            task.isCaptured = originalState
             Swal.close()
             await Swal.fire({
               icon: 'error',
@@ -1131,9 +1161,11 @@ const toggleTaskSelection = async (task, index, type) => {
             })
           }
         } catch (error) {
-          // Revert checkbox state on error
-          task.selected = !task.selected
+          // Revert on error
+          task.isCaptured = originalState
           Swal.close()
+          console.log(error);
+          
           await Swal.fire({
             icon: 'error',
             title: 'Error',
@@ -1143,21 +1175,24 @@ const toggleTaskSelection = async (task, index, type) => {
           })
         }
       } else {
-        // Revert checkbox state if cancelled
-        task.selected = !task.selected
+        // Revert if cancelled
+        console.log(originalState);
+        
+        task.isCaptured = originalState
       }
     })
   } catch (error) {
     console.error('Error toggling task:', error)
-    // Revert checkbox state on error
-    task.selected = !task.selected
+    task.isCaptured = originalState
   }
 }
 
 // Modal Operations
-const openModal = () => {
+const openModal = async () => {
   selectedEmployee.value = props.employee
   showModal.value = true
+
+  await fetchPayrollPeriods()
   fetchPayrollData()
   fetchTask()
   fetchCompensationOptions()
@@ -1167,14 +1202,16 @@ const closeModal = () => {
   showModal.value = false
   selectedEmployee.value = null
   checkedTasks.value = []
-  uncheckedTasks.value = []
   draftTasks.value = []
   payrollData.value = null
   classCache.value.clear()
   mandatoryCompensations.value = []
   nonMandatoryCompensations.value = []
+  selectedPayrollPeriod.value = ''
 }
 
-const handlePayrollCreated = () => fetchPayrollData()
+const handlePayrollCreated = () => {
+  fetchPayrollPeriods()
+}
 const handleModalClosed = () => {}
 </script>

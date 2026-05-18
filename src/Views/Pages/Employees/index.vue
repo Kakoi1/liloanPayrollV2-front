@@ -8,6 +8,7 @@ import View from "./View/index.vue"
 import Paginator from '@/Js/Components/Paginate.vue'
 import api from '@/Js/Services/axios'
 import Swal from 'sweetalert2'
+import { handleApiError } from '@/Views/Utility/Helper';
 
 // State
 const data = ref([])
@@ -125,6 +126,45 @@ const downloadAll = () => {
     window.location.href = '/masterlist/ex'
 }
 
+const getStatus = (status) => {
+  switch(status) {
+    case 1:
+      return 'Active'
+    case 2:
+      return 'EOC'
+    case 3:
+      return 'Terminated'
+    case 4:
+      return 'Resigned'
+    case 5:
+      return 'Retired'
+    case 6:
+      return 'AWOL/AWOP'
+    default:
+      return 'Undefined'
+  }
+}
+
+const getStatusClass = (status) => {
+  switch(status) {
+    case 1:
+      return 'bg-green-100 text-green-800'
+    case 2:
+      return 'bg-yellow-100 text-yellow-800'
+    case 3:
+      return 'bg-red-100 text-red-800'
+    case 4:
+      return 'bg-blue-100 text-blue-800'
+    case 5:
+      return 'bg-orange-100 text-orange-800'
+    case 6:
+      return 'bg-purple-100 text-purple-800'
+    
+    default:
+      return 'bg-gray-100 text-gray-800'
+  }
+}
+
 // Fetch positions function
 const fetchPositions = async () => {
     try {
@@ -145,11 +185,7 @@ const fetchPositions = async () => {
 
     } catch (error) {
         console.error('Error fetching positions:', error)
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'Failed to load positions'
-        })
+        handleApiError(error);
     }
 }
 
@@ -288,13 +324,9 @@ onMounted(() => {
                                     <td class="px-4 py-3">
                                         <span
                                             class="px-2 py-1 text-xs font-medium rounded-full"
-                                            :class="{
-                                                'bg-green-100 text-green-800': e.work_status === 'Active',
-                                                'bg-yellow-100 text-yellow-800': e.work_status === 'Probationary',
-                                                'bg-red-100 text-red-800': e.work_status === 'Inactive'
-                                            }"
+                                            :class="getStatusClass(e.workStatus)"
                                         >
-                                            {{ e.work_status }}
+                                            {{ getStatus(e.workStatus)}}
                                         </span>
                                     </td>
                                     <td class="px-4 py-3 text-sm text-gray-900">{{ e.rate }}</td>
