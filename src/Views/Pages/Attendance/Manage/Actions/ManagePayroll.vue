@@ -381,7 +381,7 @@
             <div class="bg-gray-50 px-4 py-3 border-b border-gray-200 flex flex-wrap justify-between items-center gap-2">
               <span v-if="miscMSG" class="text-xs text-red-600 bg-red-50 px-2 py-1 rounded">{{ miscMSG }}</span>
               <div class="flex gap-2 ml-auto">
-                <button v-if="hasPayrollData" @click="miscdraft" class="px-3 py-1.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg text-sm hover:from-blue-700 hover:to-blue-800 focus:ring-2 focus:ring-blue-500 transition-all duration-200 flex items-center">
+                <button @click="miscdraft" class="px-3 py-1.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg text-sm hover:from-blue-700 hover:to-blue-800 focus:ring-2 focus:ring-blue-500 transition-all duration-200 flex items-center">
                   <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                   </svg>
@@ -416,12 +416,12 @@
                     </td>
                     <td class="px-3 py-2">
                       <div class="flex space-x-1">
-                        <button v-if="hasPayrollData && ded.is_draft" @click="miscSave(i)" class="p-1.5 bg-green-600 text-white rounded hover:bg-green-700 transition-colors duration-150" title="Save">
+                        <button v-if=" ded.is_draft" @click="miscSave(i)" class="p-1.5 bg-green-600 text-white rounded hover:bg-green-700 transition-colors duration-150" title="Save">
                           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                           </svg>
                         </button>
-                        <button v-if="hasPayrollData" @click="confirmMiscDelete(i)" class="p-1.5 bg-red-600 text-white rounded hover:bg-red-700 transition-colors duration-150" title="Delete">
+                        <button @click="confirmMiscDelete(i)" class="p-1.5 bg-red-600 text-white rounded hover:bg-red-700 transition-colors duration-150" title="Delete">
                           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                           </svg>
@@ -1043,7 +1043,7 @@ const proceedWithSubmit = async () => {
 // Compensation Operations
 const miscdraft = () => {
   nonMandatoryCompensations.value.push({
-    payroll_id: payrollData.value.payroll.id, 
+    payroll_id: selectedPayrollPeriod.value, 
     misc_desc: 0, 
     misc_amount: 0,
     misc_remarks: '', 
@@ -1066,7 +1066,7 @@ const miscSave = async (index) => {
     const response = await api.post('/payroll/compensation-add', { 
       compensation_data: { 
         ...item, 
-        payroll_id: payrollData.value.payroll.id, 
+        payroll_id: selectedPayrollPeriod.value, 
         emp_id: selectedEmployee.value.id 
       } 
     })
@@ -1078,6 +1078,8 @@ const miscSave = async (index) => {
     }
   } catch (error) {
     await Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to save item', timer: 1500, showConfirmButton: false })
+    console.log(error);
+    
   }
 }
 
@@ -1093,7 +1095,7 @@ const confirmMiscDelete = async (index) => {
     const item = nonMandatoryCompensations.value[index]
     if (!item.is_draft && item.id) {
       try { 
-        await api.post('/payroll/compensation/delete', { compensation_id: item.id }) 
+        await api.post('/payroll/compensation-delete', { compensation_id: item.id }) 
       } catch (error) { 
         console.error('Failed to delete item:', error) 
       }
