@@ -163,6 +163,7 @@ import Swal from 'sweetalert2'
 import moment from 'moment'
 import api from '@/Js/Services/axios'
 import AddProductionTask from './Actions/add.vue'
+import { handleApiError } from '@/Views/Utility/Helper'
 
 // State
 const productions = ref([])
@@ -225,13 +226,7 @@ const list = async () => {
     }
   } catch (error) {
     console.error('Failed to fetch production data:', error)
-    await Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'Failed to load production data',
-      timer: 1500,
-      showConfirmButton: false
-    })
+    handleApiError(error);
   }
 }
 

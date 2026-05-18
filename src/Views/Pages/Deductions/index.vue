@@ -148,7 +148,7 @@ import Paginate from '@/Js/Components/Paginate.vue'
 import AddDeduction from './Actions/add.vue'
 import ViewDeduction from './Actions/view.vue'
 import EditDeduction from './Actions/edit.vue'
-import { FormDx } from '@/Views/Utility/Helper'
+import { FormDx, handleApiError } from '@/Views/Utility/Helper'
 
 // State
 const data = ref([])
@@ -189,13 +189,7 @@ const fetchDeductions = async () => {
     }
   } catch (error) {
     console.error('Failed to fetch deductions:', error)
-    await Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'Failed to load deductions',
-      timer: 1500,
-      showConfirmButton: false
-    })
+    handleApiError(error);
   }
 }
 

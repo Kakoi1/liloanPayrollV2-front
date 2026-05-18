@@ -239,7 +239,7 @@
                           :class="{ 'text-purple-600': item.rateDeduction > 0 }"
                         />
                         <div v-if="item.originalRate > 0" class="text-xs text-gray-500">
-                          Original: ₱{{ item.originalRate.toFixed(2) }}
+                          Original: ₱{{ item.originalRate }}
                         </div>
                       </div>
                     </td>
@@ -834,10 +834,13 @@ const markForPayment = async () => {
 
 const saveVoucher = async (status) => {
   try {
+    console.log(voucherItems);
+    
     const itemsToUpdate = voucherItems.value
       .filter(item => !item.isNew)
       .map(item => ({
         id: item.id,
+         item_id: item.itemId,
         gross_weight: item.grossWeight,
         item_price: item.itemPrice,
         net_weight: item.netWeight,

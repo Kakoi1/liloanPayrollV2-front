@@ -141,7 +141,7 @@ import api from '@/Js/Services/axios'
 import Paginate from '@/Js/Components/Paginate.vue'
 import AddPricelistModal from './Actions/add.vue'
 import EditPricelistModal from './Actions/edit.vue'
-import { FormDx } from '@/Views/Utility/Helper'
+import { FormDx, handleApiError } from '@/Views/Utility/Helper'
 
 // State
 const data = ref([])
@@ -191,13 +191,7 @@ const fetchPricelist = async () => {
     }
   } catch (error) {
     console.error('Failed to fetch pricelist:', error)
-    await Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'Failed to load pricelist',
-      timer: 1500,
-      showConfirmButton: false
-    })
+    handleApiError(error);
   }
 }
 

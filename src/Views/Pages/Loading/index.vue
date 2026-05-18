@@ -366,6 +366,7 @@ import EditTeam from './Actions/EditTeam.vue'
 import AssignTeam from './Actions/AssignTeam.vue'
 import EditLoading from './Actions/edit.vue'
 import FinishLoading from './Actions/FinishLoading.vue'
+import { handleApiError } from '@/Views/Utility/Helper'
 
 // Props
 const props = defineProps({
@@ -490,6 +491,7 @@ const fetchOngoingLoadings = async () => {
     }
   } catch (error) {
     console.error('Failed to fetch ongoing loadings:', error)
+    handleApiError(error);
   }
 }
 

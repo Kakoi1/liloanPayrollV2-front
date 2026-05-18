@@ -215,7 +215,7 @@ import SearchDropdown from '@/Js/Components/SearchDropdown.vue'
 import { onMounted } from 'vue'
 import Swal from 'sweetalert2'
 import api from '@/Js/Services/axios'
-import { FormDx } from '@/Views/Utility/Helper'
+import { FormDx, handleApiError } from '@/Views/Utility/Helper'
 import Paginate from '@/Js/Components/Paginate.vue'
 import EditUser from './Actions/edit.vue'
 
@@ -395,13 +395,7 @@ const fetchUsers = async () => {
     }
   } catch (error) {
     console.error('Failed to fetch users:', error)
-    await Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'Failed to load users list',
-      timer: 1500,
-      showConfirmButton: false
-    })
+    handleApiError(error)
   } finally {
     loading.value = false
   }

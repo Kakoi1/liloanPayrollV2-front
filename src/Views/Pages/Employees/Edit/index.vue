@@ -24,6 +24,17 @@
                     <h4 class="text-lg font-medium text-gray-900 border-l-4 border-orange-600 pl-4 mb-4">Basic Information</h4>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1" for="exampleInputEmail1">Work Status : </label>
+                                <select class="w-full px-3 py-2 border rounded-md" v-model="form.e_stat">
+                                    <option value="1">Active</option>
+                                    <option value="2">EOC</option>
+                                    <option value="3">Terminated</option>
+                                    <option value="4">Resigned</option>
+                                    <option value="5">Retired</option>
+                                    <option value="6">AWOP/AWOL</option>
+                            </select>
+                        </div>
+                        <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
                             <input type="text" v-model="form.e_first" class="w-full px-3 py-2 border rounded-md" required>
                         </div>
@@ -272,6 +283,7 @@ const Spo = ref([]);
 // Form state
 const form = ref({
     e_id: '',
+    e_stat: 0,
     e_first: '',
     e_middle: '',
     e_last: '',
@@ -357,6 +369,7 @@ const editEmployee = async () => {
             // Map the API response to form fields
             form.value = {
                 e_id: employeeData.id || '',
+                e_stat:  employeeData.workStatus || 0,
                 e_first: employeeData.firstName || '',
                 e_middle: employeeData.middleName || '',
                 e_last: employeeData.lastName || '',
@@ -475,6 +488,7 @@ const updateEmployee = async () => {
         const formData = {
             id: form.value.e_id,
             e_first: form.value.e_first,
+            e_stat: form.value.e_stat,
             e_middle: form.value.e_middle,
             e_last: form.value.e_last,
             e_position: form.value.e_position,
@@ -567,6 +581,7 @@ const handleEditClose = () => {
     // Reset form
     form.value = {
         e_id: '',
+        e_stat: 0,
         e_first: '',
         e_middle: '',
         e_last: '',

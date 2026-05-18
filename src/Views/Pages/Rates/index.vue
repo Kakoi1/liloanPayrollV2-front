@@ -194,7 +194,7 @@
 import { ref, onMounted } from 'vue'
 import Swal from 'sweetalert2'
 import api from '@/Js/Services/axios'
-import { FormDx } from '@/Views/Utility/Helper'
+import { FormDx, handleApiError } from '@/Views/Utility/Helper'
 import Paginate from '@/Js/Components/Paginate.vue'
 import NewClass from './Actions/NewClass.vue'
 import NewTask from './Actions/NewTask.vue'
@@ -254,13 +254,7 @@ const fetchRates = async () => {
     }
   } catch (error) {
     console.error('Failed to fetch rates:', error)
-    await Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'Failed to load rates',
-      timer: 1500,
-      showConfirmButton: false
-    })
+   handleApiError(error)
   }
 }
 
