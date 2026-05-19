@@ -50,10 +50,15 @@
                   @change="fetchPayrollData"
                   class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
+                
+                <option value="0">
+                    -- ALL --
+                  </option>
                   <option v-for="period in payrollPeriods" :key="period.id" :value="period.id">
                     {{ period.datePeriod }}
                   </option>
                 </select>
+                <!-- {{ selectedPayrollPeriod }} -->
                 <!-- <CreatePayroll
                   v-if="!hasPayrollData"
                   :employee="selectedEmployee"
@@ -524,7 +529,7 @@ const miscMSG = ref('')
 const income = ref(0)
 const classCache = ref(new Map())
 const payrollPeriods = ref([])
-const selectedPayrollPeriod = ref('')
+const selectedPayrollPeriod = ref(0)
 
 // Task arrays
 const checkedTasks = ref([])
@@ -572,11 +577,19 @@ const fetchPayrollPeriods = async () => {
     const response = await api.post('/payroll/list-payroll', { 
       employee_id: selectedEmployee.value?.id 
     })
+
     if (response.data && !response.data.error) {
-      payrollPeriods.value = response.data.payroll || []
-      
-      if (payrollPeriods.value.length > 0 && !selectedPayrollPeriod.value) {
-        selectedPayrollPeriod.value = payrollPeriods.value[0].id
+      payrollPeriods.value = Object.values(response.data.payroll || {})
+
+      const currentId = response.data.currentParollPeriodId ?? 0
+
+      selectedPayrollPeriod.value = payrollPeriods.value.find(
+        p => p.id === currentId
+      )
+        ? currentId
+        : 0
+
+      if (selectedPayrollPeriod.value) {
         await fetchPayrollData()
       }
     }
@@ -630,7 +643,7 @@ const fetchPayrollData = async () => {
   try {
     const response = await api.post('/payroll/get-by-employee', { 
       employee_id: selectedEmployee.value.id, 
-      payroll_id: selectedPayrollPeriod.value
+      payroll_id: selectedPayrollPeriod.value ?? 0
     })
     
     if (response.data && !response.data.error) {
