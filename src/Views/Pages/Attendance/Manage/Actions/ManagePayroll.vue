@@ -576,7 +576,7 @@ const fetchPayrollPeriods = async () => {
       payrollPeriods.value = response.data.payroll || []
       
       if (payrollPeriods.value.length > 0 && !selectedPayrollPeriod.value) {
-        selectedPayrollPeriod.value = payrollPeriods.value[0].id
+        selectedPayrollPeriod.value = response.data.currentParollPeriodId
         await fetchPayrollData()
       }
     }
