@@ -18,6 +18,7 @@ import Compensation from '@/Views/Pages/Compensation/index.vue'
 import Payables from '@/Views/Pages/Payables/index.vue'
 import Loading from '@/Views/Pages/Loading/index.vue'
 import User from '@/Views/Pages/Users/index.vue'
+import CashAdvance from '@/Views/Pages/CashAdvance/index.vue'
 // Check auth status function (from localStorage, token, or API)
 const isAuthenticated = () => {
   // Here, you can replace this with a proper API check
@@ -141,6 +142,12 @@ const routes = [
         name: 'user',
         component: User,
         meta: { title: titleFormat('User'), requiresAuth: true }
+      },
+      {
+        path: 'cash-advance/',
+        name: 'cash-advance',
+        component: CashAdvance,
+        meta: { title: titleFormat('Cash Advance'), requiresAuth: true }
       },
     ]
   }
