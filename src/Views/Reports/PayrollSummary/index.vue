@@ -46,7 +46,7 @@
                     {{ period.datePeriod }}
                   </option>
                 </select>
-                <div class="flex justify-end gap-2">
+                <div class="flex justify-end gap-2 ">
                   <a
                     target="_blank"
                     v-if="selectedPayrollPeriod"
