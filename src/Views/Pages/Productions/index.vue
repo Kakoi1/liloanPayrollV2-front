@@ -94,7 +94,7 @@
                     </button>
                   </div>
                   <!-- Add Production Task Button -->
-                  <AddProductionTask @saved="list" />
+                  <AddProductionTask @saved="list" @deleted="list" />
                 </div>
 
                 <!-- Production Data -->

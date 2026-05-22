@@ -110,7 +110,6 @@
           <thead class="bg-gray-50">
             <tr>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Supplier</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Supplier Code</th>
               <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Amount</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Request Date</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Release Date</th>
@@ -125,7 +124,6 @@
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="font-medium text-gray-900">{{ item.supplier_name }}</div>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-gray-600">{{ item.supplier_code }}</td>
               <td class="px-6 py-4 whitespace-nowrap text-right font-semibold">{{ formatCurrency(item.amount) }}</td>
               <td class="px-6 py-4 whitespace-nowrap">{{ formatDate(item.request_date) }}</td>
               <td class="px-6 py-4 whitespace-nowrap">{{ formatDate(item.release_date) || '-' }}</td>
@@ -180,7 +178,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import Swal from 'sweetalert2'
 // import ViewCashAdvance from './Actions/ViewCashAdvance.vue'
-// import AddCashAdvance from './Actions/AddCashAdvance.vue'
+import AddCashAdvance from './Actions/add.vue'
 
 // Refs for modals
 const viewModalRef = ref(null)

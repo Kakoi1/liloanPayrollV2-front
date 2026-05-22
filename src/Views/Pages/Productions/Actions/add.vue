@@ -363,6 +363,8 @@ const removeTask = async (record) => {
           timer: 1500,
           showConfirmButton: false
         })
+        emit('deleted')
+        closeModal()
       }
     } catch (error) {
       console.error('Failed to delete production task:', error)
