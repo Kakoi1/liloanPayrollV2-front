@@ -312,10 +312,11 @@ const handleKeyDown = (event) => {
 
 const selectItem = (item) => {
   const labelName = labelFormatter(item);
-  searchQuery.value = labelName;
+  searchQuery.value = '';
   filteredItems.value = [];
   selectedIndex.value = -1;
   isFocused.value = false;
+
 
   emit("item-selected", item);
 };
