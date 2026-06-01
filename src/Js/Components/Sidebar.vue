@@ -479,45 +479,34 @@
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Group</label>
             <select v-model="printData.group" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500">
-              <option value="regular">Regular</option>
-              <option value="pakyaw">Pakyaw</option>
-              <option value="both">Both</option>
+              <option value="0">Both</option>
+              <option value="1">Regular</option>
+              <option value="37">Pakyaw</option>
             </select>
           </div>
 
-          <div v-if="printData.group !== 'regular'">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Batch</label>
-            <select v-model="printData.batch" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500">
-              <option value="Batch 0">Batch 0</option>
-              <option value="Batch 1">Batch 1</option>
-              <option value="Batch 2">Batch 2</option>
-            </select>
-          </div>
+          <div class="mb-4">
+                <select 
+                  v-model="printData.period" 
+                  class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-auto"
+                >
+                  <option value="0">-- Select Payroll Period --</option>
+                  <option v-for="period in payrollPeriods" :key="period.id" :value="period.id">
+                    {{ period.datePeriod }}
+                  </option>
+                </select>
+      
+              </div>
 
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Month</label>
-            <input type="month" v-model="printData.month" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500">
-          </div>
 
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">From</label>
-              <input type="date" v-model="printData.from" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500">
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">To</label>
-              <input type="date" v-model="printData.to" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500">
-            </div>
-          </div>
-
-          <div>
+          <!-- <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Type</label>
             <select v-model="printData.type" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500">
               <option value="payslip">Payslip</option>
               <option value="summary">Summary</option>
               <option value="detailed">Detailed</option>
             </select>
-          </div>
+          </div> -->
 
           <div class="flex items-center">
             <input type="checkbox" v-model="printData.contribution" id="contribution" class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded">
@@ -652,6 +641,7 @@ import {
   faChevronLeft,
   faChevronRight
 } from '@fortawesome/free-solid-svg-icons'
+import { handleApiError } from '@/Views/Utility/Helper'
 const user_data = JSON.parse(localStorage.getItem('user'))
 
 const router = useRouter()
@@ -664,6 +654,7 @@ const printModal = ref(false)
 const reqModal = ref(false)
 const msgModal = ref('')
 const logoutModal = ref(false)
+const payrollPeriods = ref([])
 const user = ref({
   fname: '',
   username: '',
@@ -672,13 +663,9 @@ const user = ref({
 
 // Form data
 const printData = ref({
-  group: 'regular',
-  batch: 'Batch 0',
-  month: '',
-  from: '',
-  to: '',
-  type: 'payslip',
-  contribution: true
+  group: 0,
+  period: 0,
+  fetchPayrollPeriods: true
 })
 
 const requestData = ref({
@@ -708,6 +695,20 @@ const toggleCollapse = () => {
   }
 }
 
+const fetchPayrollPeriods = async () => {
+  try {
+    const response = await api.get('/payroll/get-periods')
+    if (response.data && !response.data.error) {
+      payrollPeriods.value = response.data.periods || []
+      selectedPayrollPeriod.value = payrollPeriods.value.length > 0 ? payrollPeriods.value[0].id : 0
+      fetchPayrollData();
+    }
+  } catch (error) {
+    handleApiError(error)
+    console.error('Failed to fetch payroll periods:', error)
+  }
+}
+
 const toggle = (menu) => {
   openMenu.value = openMenu.value === menu ? null : menu
 }
@@ -718,6 +719,7 @@ const isActive = (path) => {
 
 const openPrintModal = () => {
   printModal.value = true
+  fetchPayrollPeriods()
   openMenu.value = null
 }
 
@@ -725,22 +727,43 @@ const closePrintModal = () => {
   printModal.value = false
   // Reset form
   printData.value = {
-    group: 'regular',
-    batch: 'Batch 0',
-    month: '',
-    from: '',
-    to: '',
-    type: 'payslip',
-    contribution: true
+    group: 0,
+    period: 0,
+    fetchPayrollPeriods: true
   }
 }
 
-const printPayslip = () => {
-  // Implement print logic
-  console.log('Printing payslip:', printData.value)
-  // You can emit an event or call an API here
-  closePrintModal()
-}
+const printPayslip = async () => {
+  if (!printData.value.period || printData.value.period === 0) {
+    alert('Please select a payroll period');
+    return;
+  }
+
+  try {
+    const response = await api.post('/reports/payslip-print', {
+      groupId: printData.value.group,
+      payroll_period_id: printData.value.period,
+      includeContribution: printData.value.contribution ?? false
+    }, {
+      responseType: 'blob'
+    });
+    
+    // Create download link
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `payslip_${printData.value.period}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+    
+    closePrintModal();
+  } catch (error) {
+    handleApiError(error)
+    console.error(error);
+  }
+};
 
 const openRequestModal = () => {
   reqModal.value = true

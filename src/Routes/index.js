@@ -20,6 +20,7 @@ import Loading from '@/Views/Pages/Loading/index.vue'
 import User from '@/Views/Pages/Users/index.vue'
 import CashAdvance from '@/Views/Pages/CashAdvance/index.vue'
 import PayrollSummary from '@/Views/Reports/PayrollSummary/index.vue'
+import PakyawTask from '@/Views/Reports/PakyawTask/index.vue'
 // Check auth status function (from localStorage, token, or API)
 const isAuthenticated = () => {
   // Here, you can replace this with a proper API check
@@ -155,6 +156,12 @@ const routes = [
         name: 'payroll-summary',
         component: PayrollSummary,
         meta: { title: titleFormat('Payroll Summary'), requiresAuth: true }
+      },
+      {
+        path: 'pakyaw_task/',
+        name: 'pakyaw-task',
+        component: PakyawTask,
+        meta: { title: titleFormat('Pakyaw Task'), requiresAuth: true }
       },
     ]
   }

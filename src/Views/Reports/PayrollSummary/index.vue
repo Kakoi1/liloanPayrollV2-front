@@ -117,7 +117,18 @@
                         {{ formatValue(row[header]) }}
                       </td>
                     </tr>
-                    
+
+                    <tr>
+                      <td 
+                        v-for="header in payroll.headers" 
+                        :key="header"
+                        class="px-4 py-2 border text-white bg-red-500 whitespace-nowrap"
+                        :class="getCellClass(payroll.totals[header])"
+                      >
+                        {{ formatValue(payroll.totals[header]) }}
+                      </td>
+                    </tr>
+
                     <!-- No Data Message -->
                     <tr v-if="payroll.data.length === 0">
                       <td 
@@ -150,7 +161,8 @@ const payrollPeriods = ref([])
 const payroll = ref({
   headers: [],
   data: [],
-  group_headers: []
+  group_headers: [],
+  totals: []
 })
 const loading = ref(false)
 
@@ -208,6 +220,7 @@ const fetchPayrollData = async () => {
     payroll.value.headers = response.data?.headers || []
     payroll.value.data = response.data?.data || []
     payroll.value.group_headers = response.data?.group_headers || []
+    payroll.value.totals = response.data?.totals || []
   } catch (error) {
     handleApiError(error)
     console.error('Failed to fetch payroll summary:', error)
