@@ -150,6 +150,7 @@
 import { ref, onMounted } from 'vue';
 import api from '@/Js/Services/axios';
 import { VUE_APP_API_URL } from '@/Views/Utility/Global';
+import { handleApiError } from '@/Views/Utility/Helper'
 
 // State
 const loading = ref(false);
@@ -177,7 +178,7 @@ const fetchEmployees = async () => {
       employee_data.value = response.data.employee || [];
     }
   } catch (error) {
-    handeleApiError(error);
+    handleApiError(error);
     console.error('Error fetching employees:', error);
   }
 };
@@ -190,7 +191,7 @@ const fetchTasks = async () => {
       task_data.value = response.data.task || [];
     }
   } catch (error) {
-    handeleApiError(error);
+    handleApiError(error);
     console.error('Error fetching tasks:', error);
   }
 };
@@ -206,7 +207,7 @@ const fetchData = async () => {
       data.value = [];
     }
   } catch (error) {
-    handeleApiError(error);
+    handleApiError(error);
     console.error('Error:', error);
   } finally {
     loading.value = false;
@@ -244,7 +245,7 @@ const excel = async () => {
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
   } catch (error) {
-    handeleApiError(error);
+    handleApiError(error);
     console.error('Error:', error);
   }
 };

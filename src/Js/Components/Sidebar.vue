@@ -513,7 +513,38 @@
             <label for="contribution" class="ml-2 block text-sm text-gray-700">Include Contribution</label>
           </div>
         </div>
+       <div
+            v-if="loader"
+            class="absolute inset-0 flex items-center justify-center bg-black/30 z-50"
+        >
+            <div class="flex flex-col items-center">
+                <svg
+                    class="w-20 h-20 animate-spin text-blue-600"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                >
+                    <circle
+                        class="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        stroke-width="4"
+                    ></circle>
 
+                    <path
+                        class="opacity-100"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                    ></path>
+                </svg>
+
+                <span class="mt-3 text-white font-semibold text-lg">
+                    Loading...
+                </span>
+            </div>
+        </div>
         <div class="bg-gray-50 px-6 py-3 flex justify-end space-x-3">
           <button @click="closePrintModal" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition-colors">
             Cancel
@@ -653,6 +684,7 @@ const openMenu = ref(null)
 const printModal = ref(false)
 const reqModal = ref(false)
 const msgModal = ref('')
+const loader = ref(false)
 const logoutModal = ref(false)
 const payrollPeriods = ref([])
 const user = ref({
@@ -734,8 +766,10 @@ const closePrintModal = () => {
 }
 
 const printPayslip = async () => {
+  loader.value = true
   if (!printData.value.period || printData.value.period === 0) {
     alert('Please select a payroll period');
+    loader.value = false
     return;
   }
 
@@ -762,6 +796,8 @@ const printPayslip = async () => {
   } catch (error) {
     handleApiError(error)
     console.error(error);
+  } finally {
+    loader.value = false
   }
 };
 

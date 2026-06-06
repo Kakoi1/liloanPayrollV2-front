@@ -193,7 +193,13 @@
                 </thead>
                 <tbody class="divide-y divide-gray-200">
                   <!-- Checked Tasks (Processed/Saved) -->
-                  <tr v-for="(task, i) in checkedTasks" :key="task.id" class="bg-green-50 hover:bg-green-100">
+                  <tr v-for="(task, i) in checkedTasks" :key="task.id"
+                  :class="[
+                     task.forApproval == 1
+                    ? 'bg-red-200 hover:bg-red-100'
+                    : 'bg-green-50 hover:bg-green-100'
+                  ]"
+                  >
                     <td class="px-3 py-2 text-center">
                       <input 
                         type="checkbox" 
@@ -203,7 +209,8 @@
                       >
                     </td>
                     <td class="px-3 py-2">
-                      <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Saved</span>
+                      <span v-if="!task.forApproval" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Saved</span>
+                      <span v-else class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">For Approval</span>
                     </td>
                     <td class="px-3 py-2">
                       <input type="date" v-model="task.date" class="w-full px-2 py-1 border border-gray-300 rounded text-sm">
@@ -265,6 +272,14 @@
                           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                           </svg>
+                        </button>
+                        <button
+                          v-if="task.forApproval == 1 && boss == 1"
+                          @click="approveTask(task.id)"
+                                  class="p-1.5 bg-green-600 text-white rounded hover:bg-green-700"
+                                  title="Approve"
+                        >
+                              <i class="fa-regular fa-thumbs-up"></i>
                         </button>
                       </div>
                     </td>
@@ -339,6 +354,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                           </svg>
                         </button>
+                        
                       </div>
                     </td>
                   </tr>
@@ -508,6 +524,7 @@ import api from '@/Js/Services/axios'
 import CreatePayroll from './CreatePayroll.vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faCheckDouble } from '@fortawesome/free-solid-svg-icons'
+import { handleApiError } from '@/Views/Utility/Helper.js'
 
 const props = defineProps({
   employee: { type: Object, default: null }
@@ -529,6 +546,7 @@ const income = ref(0)
 const classCache = ref(new Map())
 const payrollPeriods = ref([])
 const selectedPayrollPeriod = ref(0)
+const boss = ref(0)
 
 // Task arrays
 const checkedTasks = ref([])
@@ -612,7 +630,7 @@ const updateTaskTotal = (task) => {
 const calculateGrossTotal = () => {
   let total = 0
   checkedTasks.value.forEach(task => { 
-    if (task.payrollId !== 0) {
+    if (task.forApproval !== 1) {
       total += parseFloat(task.total) || 0 
     }
   })
@@ -647,11 +665,13 @@ const fetchPayrollData = async () => {
     
     if (response.data && !response.data.error) {
       payrollData.value = response.data
+      boss.value = response.data.boss
       
       checkedTasks.value = (response.data.payrollChecked || []).map(task => ({
         id: task.id, 
         date: task.date ? moment(task.date).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD'),
         dayType: task.dayType || 1, 
+        forApproval: task.forApproval || 0,
         workerCount: task.workerCount || 1,
         taskType: task.taskType || '', 
         taskId: task.taskId || '',
@@ -703,12 +723,20 @@ const fetchClassesForAllTasks = async () => {
     if (task.taskType && task.taskType > 0) {
       await fetchClassForTask(task, i, 'checked')
     }
+     if (task.taskId) {
+        updateRateFromClass(task, i)
+        
+      }
   }
   for (let i = 0; i < draftTasks.value.length; i++) {
     const task = draftTasks.value[i]
     if (task.taskType && task.taskType > 0) {
       await fetchClassForTask(task, i, 'draft')
     }
+     if (task.taskId) {
+        updateRateFromClass(task, i)
+        
+      }
   }
 }
 
@@ -975,6 +1003,27 @@ const submitPayroll = async () => {
     await proceedWithSubmit()
   }
 }
+
+
+  const approveTask = async (taskId) => {
+    try {
+      const response = await api.post(`/payroll/task-approve`, { task_id: taskId });
+
+      if (!response.data.error) {
+        // const task = this.checkedTasks.find(t => t.id === taskId);
+        fetchPayrollData();
+        Swal.fire({
+          icon: 'success',
+          title: 'Approved',
+          text: 'Task approved successfully.'
+        });
+      }
+    } catch (error) {
+      console.error(error);
+      handleApiError(error);
+    }
+  }
+
 
 const saveAllDraftTasks = async () => {
   if (draftTasks.value.length === 0) return
