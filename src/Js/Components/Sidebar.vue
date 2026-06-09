@@ -216,7 +216,7 @@
             <RouterLink to="/prices" class="block py-2 px-2 text-sm rounded hover:bg-gray-800 hover:text-green-400 transition-colors">
               <span class="flex items-center space-x-2">
                 <span class="w-1 h-1 bg-green-400 rounded-full"></span>
-                <span>Pricelist</span>
+                <span>Item List</span>
               </span>
             </RouterLink>
             <RouterLink to="/deduction" class="block py-2 px-2 text-sm rounded hover:bg-gray-800 hover:text-green-400 transition-colors">
@@ -231,7 +231,7 @@
                 <span>Payables Report</span>
               </span>
             </RouterLink>
-            <RouterLink to="/daily_task_report" class="block py-2 px-2 text-sm rounded hover:bg-gray-800 hover:text-green-400 transition-colors">
+            <RouterLink to="/daily_inventory" class="block py-2 px-2 text-sm rounded hover:bg-gray-800 hover:text-green-400 transition-colors">
               <span class="flex items-center space-x-2">
                 <span class="w-1 h-1 bg-green-400 rounded-full"></span>
                 <span>Daily Item Inventory</span>

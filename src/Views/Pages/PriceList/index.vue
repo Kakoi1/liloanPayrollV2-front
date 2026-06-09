@@ -5,7 +5,7 @@
       <div class="container-fluid px-6 py-4">
         <div class="flex flex-wrap items-center justify-between mb-2">
           <div class="sm:col-span-6">
-            <h1 class="text-2xl font-bold text-gray-800 m-0">PRICELIST</h1>
+            <h1 class="text-2xl font-bold text-gray-800 m-0">Item List</h1>
           </div>
           <div class="sm:col-span-6">
             <ol class="flex space-x-2 text-sm">

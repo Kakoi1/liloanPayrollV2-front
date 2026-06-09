@@ -21,6 +21,7 @@ import User from '@/Views/Pages/Users/index.vue'
 import CashAdvance from '@/Views/Pages/CashAdvance/index.vue'
 import PayrollSummary from '@/Views/Reports/PayrollSummary/index.vue'
 import PakyawTask from '@/Views/Reports/PakyawTask/index.vue'
+import Inventory from '@/Views/Pages/Inventory/index.vue'
 // Check auth status function (from localStorage, token, or API)
 const isAuthenticated = () => {
   // Here, you can replace this with a proper API check
@@ -162,6 +163,12 @@ const routes = [
         name: 'pakyaw-task',
         component: PakyawTask,
         meta: { title: titleFormat('Pakyaw Task'), requiresAuth: true }
+      },
+      {
+        path: 'daily_inventory/',
+        name: 'daily inventory',
+        component: Inventory,
+        meta: { title: titleFormat('Daily Inventory'), requiresAuth: true }
       },
     ]
   }

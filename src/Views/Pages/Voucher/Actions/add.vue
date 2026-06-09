@@ -53,6 +53,7 @@
               formatLabel="none"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
+            <span v-if="selectedSupplier" class="inline-flex items-center rounded-md mt-2 bg-red-400/10 px-4 py-3 text-sm font-medium text-red-400 inset-ring inset-ring-red-400/20">Supplier: {{ selectedSupplier.supplier_name }}</span>
           </div>
 
           <!-- Weigh Slip No -->
@@ -671,12 +672,29 @@ const getComputation = (taskItem, index) => {
   // Calculate effective rate after rate deductions
   const effectiveRate = getEffectiveRate(taskItem)
   
-  // Calculate weight deduction (type 1 and base deduction)
-  const weightDeduction = calculateWeightDeduction(taskItem)
-  taskItem.deduction_amount = weightDeduction.toFixed(2)
+  // Calculate weight deduction - NOW TREATING task_deduction AS PERCENTAGE
+  let totalWeightDeduction = 0
+  
+  // Task deduction as PERCENTAGE of gross weight
+  if (taskItem.task_deduction && taskItem.task_deduction > 0) {
+    // Convert percentage to decimal and multiply by gross weight
+    totalWeightDeduction += gross * (parseFloat(taskItem.task_deduction) / 100)
+  }
+  
+  // Add selected deductions of type 1 (percentage of weight)
+  if (taskItem.deduction_type && Array.isArray(taskItem.deduction_type)) {
+    taskItem.deduction_type.forEach(value => {
+      const deduction = getDeductionDetails(value)
+      if (deduction && deduction.type == 1) {
+        totalWeightDeduction += (gross * (parseFloat(deduction.amount) / 100))
+      }
+    })
+  }
+  
+  taskItem.deduction_amount = totalWeightDeduction.toFixed(2)
   
   // Calculate net weight (gross - weight deduction)
-  taskItem.net_weight = (gross - weightDeduction).toFixed(2)
+  taskItem.net_weight = (gross - totalWeightDeduction).toFixed(2)
   
   // Calculate total amount (net weight * effective rate)
   taskItem.total_amount = (parseFloat(taskItem.net_weight) * effectiveRate).toFixed(2)
