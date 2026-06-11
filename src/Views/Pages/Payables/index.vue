@@ -44,16 +44,25 @@
             <!-- Card Body -->
             <div class="p-6">
               <div class="flex flex-wrap">
-                <!-- Date Picker and Buttons -->
+                <!-- Date Range Picker and Buttons -->
                 <div class="w-full flex flex-wrap items-center gap-3 mb-4">
                   <div class="w-full md:w-64">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">From Date:</label>
                     <input 
                       type="date" 
-                      v-model="payables.date" 
+                      v-model="dateRange.from" 
                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
                     />
                   </div>
-                  <div class="flex flex-wrap gap-2">
+                  <div class="w-full md:w-64">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">To Date:</label>
+                    <input 
+                      type="date" 
+                      v-model="dateRange.to" 
+                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                    />
+                  </div>
+                  <div class="flex flex-wrap gap-2 mt-6">
                     <button 
                       @click="list" 
                       class="px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white font-medium rounded-lg hover:from-purple-700 hover:to-purple-800 focus:ring-2 focus:ring-purple-500 transition-all duration-200 flex items-center"
@@ -61,7 +70,7 @@
                       <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                       </svg>
-                      Generate
+                      Generate Report
                     </button>
                     <button 
                       @click="excelPayables" 
@@ -88,8 +97,18 @@
                       <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                       </svg>
-                      Print
+                      Print Report
                     </button>
+                  </div>
+                </div>
+
+                <!-- Date Range Display -->
+                <div v-if="dateRange.from && dateRange.to && morningData.length > 0" class="w-full mb-4 p-3 bg-gray-50 rounded-md border border-gray-200">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <span class="font-semibold text-gray-700">Report Period:</span>
+                      <span class="ml-2 text-gray-600">{{ formatDate(dateRange.from) }} - {{ formatDate(dateRange.to) }}</span>
+                    </div>
                   </div>
                 </div>
 
@@ -148,7 +167,7 @@
                               v-model="voucher.selected" 
                               class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                             />
-                          </td>
+                           </td>
                           <td class="px-4 py-3 text-center">{{ index + 1 }}</td>
                           <td class="px-4 py-3 text-left">{{ voucher.supplier_name }}</td>
                           <td class="px-4 py-3 text-right font-medium">{{ formatCurrency(voucher.totalAmount) }}</td>
@@ -169,7 +188,7 @@
                           <td class="px-4 py-3 text-center">
                             <div class="flex justify-center space-x-1">
                               <button 
-                                :disabled="voucher.status == 4"
+                                v-if="voucher.status == 1"
                                 @click="markAsPaid(voucher.id)"
                                 class="p-1.5 bg-gradient-to-r from-green-600 to-green-700 text-white rounded hover:from-green-700 hover:to-green-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                                 title="Mark Voucher as Paid"
@@ -179,7 +198,7 @@
                                 </svg>
                               </button>
                               <button 
-                                v-if="voucher.status == 4"
+                                v-if="voucher.status == 3"
                                 @click="undoPayment(voucher.id)"
                                 class="p-1.5 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded hover:from-gray-700 hover:to-gray-800 transition-all duration-200"
                                 title="Undo Payment"
@@ -189,7 +208,7 @@
                                 </svg>
                               </button>
                             </div>
-                          </td>
+                           </td>
                         </tr>
                       </tbody>
                     </table>
@@ -214,13 +233,13 @@
                           <th class="px-4 py-3 text-center">Proof</th>
                           <th class="px-4 py-3 text-center">Status</th>
                           <th class="px-4 py-3 text-center">Actions</th>
-                        </tr>
+                         </tr>
                       </thead>
                       <tbody class="divide-y divide-gray-200">
                         <tr v-if="!afternoonData || afternoonData.length === 0">
                           <td :colspan="userPosition === 'SuperAdmin' ? 9 : 8" class="px-4 py-8 text-red-500 text-center">
                             No vouchers available
-                          </td>
+                           </td>
                         </tr>
                         <tr v-for="(voucher, index) in afternoonData" :key="voucher.id" class="hover:bg-gray-50">
                           <td v-if="userPosition === 'SuperAdmin'" class="px-4 py-3 text-center">
@@ -229,7 +248,7 @@
                               v-model="voucher.selected" 
                               class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                             />
-                          </td>
+                           </td>
                           <td class="px-4 py-3 text-center">{{ index + 1 }}</td>
                           <td class="px-4 py-3 text-left">{{ voucher.supplier_name }}</td>
                           <td class="px-4 py-3 text-right font-medium">{{ formatCurrency(voucher.totalAmount) }}</td>
@@ -245,7 +264,7 @@
                               Proof
                             </a>
                             <span v-else class="text-gray-400">No Proof</span>
-                          </td>
+                           </td>
                           <td class="px-4 py-3 text-center" v-html="getStatusLabel(voucher.status)"></td>
                           <td class="px-4 py-3 text-center">
                             <div class="flex justify-center space-x-1">
@@ -270,7 +289,7 @@
                                 </svg>
                               </button>
                             </div>
-                          </td>
+                           </td>
                         </tr>
                       </tbody>
                     </table>
@@ -290,6 +309,7 @@ import { ref, onMounted } from 'vue'
 import Swal from 'sweetalert2'
 import moment from 'moment'
 import api from '@/Js/Services/axios'
+import { VUE_APP_API_URL } from '@/Views/Utility/Global.js'
 
 // Props
 const props = defineProps({
@@ -300,8 +320,9 @@ const props = defineProps({
 })
 
 // State
-const payables = ref({
-  date: moment().format('YYYY-MM-DD')
+const dateRange = ref({
+  from: moment().format('YYYY-MM-DD'),
+  to: moment().format('YYYY-MM-DD')
 })
 const morningData = ref([])
 const afternoonData = ref([])
@@ -320,6 +341,12 @@ const formatCurrency = (value) => {
   }).format(value)
 }
 
+const formatDate = (dateString) => {
+  if (!dateString) return ''
+  return moment(dateString).format('MMM DD, YYYY')
+}
+
+
 const getStatusLabel = (status) => {
   switch(status) {
     case 1:
@@ -336,11 +363,11 @@ const getStatusLabel = (status) => {
 }
 
 const list = async () => {
-  if (!payables.value.date) {
+  if (!dateRange.value.from || !dateRange.value.to) {
     await Swal.fire({
       icon: 'warning',
       title: 'Warning',
-      text: 'Please select a date',
+      text: 'Please select both from and to dates',
       timer: 1500,
       showConfirmButton: false
     })
@@ -349,7 +376,8 @@ const list = async () => {
 
   try {
     const response = await api.post('/vouchers/payables-list', {
-      date: payables.value.date
+      dateFrom: dateRange.value.from,
+      dateTo: dateRange.value.to
     })
     
     if (response.data && !response.data.error) {
@@ -393,7 +421,7 @@ const markAsPaid = async (voucherId) => {
 
   if (result.isConfirmed) {
     try {
-      const response = await api.post('/vouchers/mark-paid', {
+      const response = await api.post('/vouchers/status-for-payment', {
         voucher_id: voucherId
       })
 
@@ -434,7 +462,7 @@ const undoPayment = async (voucherId) => {
 
   if (result.isConfirmed) {
     try {
-      const response = await api.post('/vouchers/payable-list', {
+      const response = await api.post('/vouchers/undo-pay', {
         voucher_id: voucherId
       })
 
@@ -523,39 +551,39 @@ const batchApprove = async (type) => {
 }
 
 const excelPayables = () => {
-  if (!payables.value.date) {
+  if (!dateRange.value.from || !dateRange.value.to) {
     Swal.fire({
       icon: 'warning',
       title: 'Warning',
-      text: 'Please select a date first',
+      text: 'Please select date range first',
       timer: 1500,
       showConfirmButton: false
     })
     return
   }
-  window.open(`/payables/excel-all?date=${payables.value.date}`, '_blank')
+  window.open(`${VUE_APP_API_URL}vouchers/payables-excel/${dateRange.value.from}/${dateRange.value.to}/0`, '_blank')
 }
 
 const excelPaid = () => {
-  if (!payables.value.date) {
+  if (!dateRange.value.from || !dateRange.value.to) {
     Swal.fire({
       icon: 'warning',
       title: 'Warning',
-      text: 'Please select a date first',
+      text: 'Please select date range first',
       timer: 1500,
       showConfirmButton: false
     })
     return
   }
-  window.open(`/payables/excel-paid?date=${payables.value.date}`, '_blank')
+  window.open(`${VUE_APP_API_URL}vouchers/payables-excel/${dateRange.value.from}/${dateRange.value.to}/3`, '_blank')
 }
 
 const printReport = () => {
-  if (!payables.value.date) {
+  if (!dateRange.value.from || !dateRange.value.to) {
     Swal.fire({
       icon: 'warning',
       title: 'Warning',
-      text: 'Please select a date first',
+      text: 'Please select date range first',
       timer: 1500,
       showConfirmButton: false
     })

@@ -66,7 +66,7 @@
                     <table class="w-full text-sm border-collapse">
                       <thead class="bg-gray-100">
                         <tr>
-                          <th colspan="8" class="px-4 py-3 text-left">
+                          <th colspan="9" class="px-4 py-3 text-left">
                             <div class="flex items-center justify-between">
                               <span class="text-sm text-gray-600">Task Count: {{ totalrows }}</span>
                               <div class="flex gap-2">
@@ -91,6 +91,7 @@
                           <th class="px-4 py-3 font-semibold text-gray-700">RATES</th>
                           <th class="px-4 py-3 font-semibold text-gray-700">TARIMA MULTIPLIER</th>
                           <th class="px-4 py-3 font-semibold text-gray-700">MEASUREMENT</th>
+                          <th class="px-4 py-3 font-semibold text-gray-700">Linked Item</th>
                           <th class="px-4 py-3 font-semibold text-gray-700">REMARKS</th>
                           <th class="px-4 py-3 font-semibold text-gray-700">ACTION</th>
                         </tr>
@@ -142,6 +143,18 @@
                               <option value="3">BY WEIGHT</option>
                               <option value="4">PER CONTAINER</option>
                               <option value="5">PANTAWID</option>
+                            </select>
+                          </td>
+                          <td class="px-4 py-3">
+                            <select 
+                              v-model="t.itemInventoryId" 
+                              class="w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                            >
+                              <option value="">--SELECT--</option>
+                              <option v-for="item in itemList" :key="item.id" :value="item.id">
+                                {{ item.itemName }}
+                              </option>
+
                             </select>
                           </td>
                           <td class="px-4 py-3">
@@ -215,6 +228,7 @@ const currentPage = ref(1)
 const rowCountPage = ref(10)
 const totalrows = ref(0)
 const pageRange = ref(5)
+const itemList = ref([])
 
 const search = ref({
   search: '',
@@ -248,6 +262,7 @@ const fetchRates = async () => {
     
     if (response.data && !response.data.error) {
       data.value = response.data.rates
+      itemList.value = response.data.items || []
       cdrop.value = response.data.tasks
       tcnt.value = response.data.total || 0
       totalrows.value = response.data.totalrows || 0
@@ -278,6 +293,7 @@ const updateRate = async (index, classId) => {
       class_id: classId,
       task: rate.taskId,
       rate: rate.rate,
+      item_id: rate.itemInventoryId, 
       multiplier: rate.multiplier,
       rate_measurement: rate.rateMeasurement,
       remarks: rate.remarks
