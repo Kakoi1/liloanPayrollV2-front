@@ -82,9 +82,6 @@
                 <table class="w-full border-collapse border border-gray-300">
                   <thead>
                     <tr class="bg-gray-100">
-                      <th class="text-center text-md p-2 border border-gray-300 bg-gray-100 min-w-[120px]">
-                        Date
-                      </th>
                       <th 
                         v-for="(header, index) in dataHeaders" 
                         :key="index" 
@@ -95,37 +92,30 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr v-if="!groupedData || Object.keys(groupedData).length === 0">
-                      <td :colspan="dataHeaders.length + 1" class="text-center text-red-600 font-bold text-md p-4 border border-gray-300">
+                    <tr v-if="!dataHeaders || dataHeaders.length === 0">
+                      <td class="text-center text-red-600 font-bold text-md p-4 border border-gray-300">
                         No items found.
                       </td>
                     </tr>
-                    <!-- Each date becomes one row with values spread across headers -->
-                    <tr v-for="(dateData, date) in groupedData" :key="date" class="hover:bg-gray-50">
-                      <td class="text-md p-2 border border-gray-300 font-semibold">
-                        {{ date }}
-                      </td>
+                    <tr v-else class="hover:bg-gray-50">
                       <td 
                         v-for="(header, headerIndex) in dataHeaders" 
                         :key="headerIndex" 
                         class="text-md p-2 border border-gray-300 text-right"
-                        :class="[dateData[header] && dateData[header] > 0 ? 'text-green-600' : 'text-red-400']"
+                        :class="[getColumnTotal(header) > 0 ? 'text-green-600' : 'text-red-400']"
                       >
-                        {{ formatNumber(dateData[header] || 0) }}
+                        {{ formatNumber(getColumnTotal(header)) }}
                       </td>
                     </tr>
                   </tbody>
                   <tfoot>
                     <tr class="bg-gray-100 font-bold">
-                      <td class="text-md p-2 border border-gray-300 text-center">
-                        Total
-                      </td>
                       <td 
                         v-for="(header, headerIndex) in dataHeaders" 
                         :key="headerIndex" 
-                        class="text-md p-2 border border-gray-300 text-right text-red-600"
+                        class="text-md p-2 border border-gray-300 text-center text-red-600"
                       >
-                        {{ formatNumber(getColumnTotal(header)) }}
+                        Total
                       </td>
                     </tr>
                   </tfoot>
@@ -151,15 +141,13 @@
                       <th class="text-center text-md p-2 border border-gray-300">Item Name</th>
                       <th class="text-center text-md p-2 border border-gray-300">Amount</th>
                       <th class="text-center text-md p-2 border border-gray-300">Date</th>
-                      <!-- <th class="text-center text-md p-2 border border-gray-300">Reference ID</th> -->
                       <th class="text-center text-md p-2 border border-gray-300">Transaction Type</th>
-                      <!-- <th class="text-center text-md p-2 border border-gray-300">Task ID</th> -->
                       <th class="text-center text-md p-2 border border-gray-300">Task Name</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr v-if="rawData.length === 0">
-                      <td :colspan="8" class="text-center text-red-600 font-bold text-md p-4 border border-gray-300">
+                      <td :colspan="6" class="text-center text-red-600 font-bold text-md p-4 border border-gray-300">
                         No transaction records found.
                       </td>
                     </tr>
@@ -168,13 +156,11 @@
                       <td class="text-md p-2 border border-gray-300">{{ item.name }}</td>
                       <td class="text-md p-2 border border-gray-300 text-right">{{ formatNumber(item.amount) }}</td>
                       <td class="text-md p-2 border border-gray-300 text-center">{{ item.date }}</td>
-                      <!-- <td class="text-md p-2 border border-gray-300 text-center">{{ item.referenceId }}</td> -->
                       <td class="text-md p-2 border border-gray-300 text-center">
                         <span :class="item.transactionType === 1 ? 'text-green-600' : 'text-red-600'">
                           {{ getTransactionTypeText(item.transactionType) }}
                         </span>
                       </td>
-                      <!-- <td class="text-md p-2 border border-gray-300 text-center">{{ item.taskId }}</td> -->
                       <td class="text-md p-2 border border-gray-300">{{ item.task_name }}</td>
                     </tr>
                   </tbody>
@@ -184,7 +170,7 @@
                       <td class="text-md p-2 border border-gray-300 text-right text-red-600">
                         {{ formatNumber(getTransactionsTotal()) }}
                       </td>
-                      <td colspan="5"></td>
+                      <td colspan="3"></td>
                     </tr>
                   </tfoot>
                 </table>
@@ -217,36 +203,12 @@ const dataHeaders = ref([]);
 const rawData = ref([]);
 const itemInventory = ref([]);
 
-// Group data by date, with each header's value
-const groupedData = computed(() => {
-  const grouped = {};
-  
-  rawData.value.forEach(item => {
-    const date = item.date || 'Unknown';
-    const header = item.name;
-    const value = parseFloat(item.amount) || 0;
-    
-    if (!grouped[date]) {
-      grouped[date] = {};
-    }
-    
-    // SUM the values instead of overwriting
-    if (grouped[date][header]) {
-      grouped[date][header] += value;
-    } else {
-      grouped[date][header] = value;
-    }
-  });
-  
-  return grouped;
-});
-
 // Get column total for a specific header across all dates
 const getColumnTotal = (header) => {
   let total = 0;
-  Object.values(groupedData.value).forEach(dateData => {
-    if (dateData[header]) {
-      total += dateData[header];
+  rawData.value.forEach(item => {
+    if (item.name === header) {
+      total += parseFloat(item.amount) || 0;
     }
   });
   return total;
