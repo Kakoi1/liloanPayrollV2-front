@@ -647,10 +647,10 @@ const updateTaskTotal = (task) => {
     if (task.unit == 1) hours = hours / 8
     const totalMulti = parseFloat(tarima * multi)
     const totalNetWeight = parseFloat(hours - (deduction + totalMulti))
-    console.log(totalNetWeight, hours, deduction, totalMulti);
+  console.log(totalNetWeight, hours, deduction, totalMulti, tarima, multi);
     
     // Calculate base total
-    let baseTotal = (hours * rate)
+    let baseTotal = (totalNetWeight * rate)
     
     // Calculate overtime ONLY if taskType is 1 and includeOvertime is true
     if (task.taskType == 1) {
@@ -676,9 +676,9 @@ const updateTaskTotal = (task) => {
             task.netKgPerEmp
       )
 
-      console.log( overtimeType,
-            dailyRate,
-            hours, overtime, baseTotal);
+      // console.log( overtimeType,
+      //       dailyRate,
+      //       hours, overtime, baseTotal);
         
         task.total = (baseTotal + overtime).toFixed(2)
     } else {
