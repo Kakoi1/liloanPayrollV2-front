@@ -220,6 +220,7 @@
                         <option value="1">Reg</option>
                         <option value="2">Spec</option>
                         <option value="3">Hol</option>
+                        <option value="4">Double</option>
                       </select>
                     </td>
                     <td class="px-3 py-2">
@@ -301,6 +302,7 @@
                         <option value="1">Reg</option>
                         <option value="2">Spec</option>
                         <option value="3">Hol</option>
+                        <option value="4">Double</option>
                       </select>
                     </td>
                     <td class="px-3 py-2">
@@ -615,19 +617,79 @@ const fetchPayrollPeriods = async () => {
   }
 }
 
-const updateTaskTotal = (task) => {
-  let hours = parseFloat(task.netKgPerEmp) || 0
-  const rate = parseFloat(task.rate) || 0
-  const tarima = parseFloat(task.tarima) || 0
-  const multi = parseFloat(task.taskMulti) || 0
-  const deduction = parseFloat(task.deduction) || 0
-  if (task.unit == 1) hours = hours / 8
-  const totalMulti = parseFloat(tarima * multi)
-  task.total = ((hours * rate) - (totalMulti + deduction)).toFixed(2)
-  calculateGrossTotal()
+const calculateOvertime = (type, daily, hours) => {
+    let ot_hours = hours - 8;
+    let hour_rate = daily / 8;
+    if (hours < 9) return 0;
+    
+    switch(type) {
+        case 1:  // regular (dayType 1)
+            return hour_rate * 1.25 * ot_hours;
+        case 2:  // special (dayType 2)
+            return hour_rate * 0.30 * ot_hours;
+        case 3:  // holiday (dayType 3)
+            return hour_rate * 2.6 * ot_hours;
+        case 4:
+            return hour_rate * 3.90 * ot_hours; 
+        default:
+            return 0;
+    }
 }
 
-const calculateGrossTotal = () => {
+const updateTaskTotal = (task) => {
+    let hours = parseFloat(task.netKgPerEmp) || 0
+    hours = Math.min(hours, 8);
+    const rate = parseFloat(task.rate) || 0
+    const tarima = parseFloat(task.tarima) || 0
+    const multi = parseFloat(task.taskMulti) || 0
+    const deduction = parseFloat(task.deduction) || 0
+    
+    if (task.unit == 1) hours = hours / 8
+    const totalMulti = parseFloat(tarima * multi)
+    const totalNetWeight = parseFloat(hours - (deduction + totalMulti))
+    console.log(totalNetWeight, hours, deduction, totalMulti);
+    
+    // Calculate base total
+    let baseTotal = (hours * rate)
+    
+    // Calculate overtime ONLY if taskType is 1 and includeOvertime is true
+    if (task.taskType == 1) {
+        // Use the task's rate as the daily rate
+        const dailyRate = parseFloat(task.rate) || 0
+        
+        // Map dayType to overtime type
+        let overtimeType = 1 // default to regular
+        if (task.dayType == 2) {
+            overtimeType = 2 // special
+        } else if (task.dayType == 3) {
+            overtimeType = 3 // holiday
+      }
+        else if (task.dayType == 4) {
+            overtimeType = 4 // double
+        }
+        // dayType 1 = regular
+        
+        
+        const overtime = calculateOvertime(
+            overtimeType,
+            dailyRate,
+            task.netKgPerEmp
+      )
+
+      console.log( overtimeType,
+            dailyRate,
+            hours, overtime, baseTotal);
+        
+        task.total = (baseTotal + overtime).toFixed(2)
+    } else {
+        task.overtime = 0
+        task.total = baseTotal.toFixed(2)
+    }
+    
+    calculateGrossTotal()
+}
+
+const calculateGrossTotal = () => { 
   let total = 0
   checkedTasks.value.forEach(task => { 
     if (task.forApproval !== 1) {

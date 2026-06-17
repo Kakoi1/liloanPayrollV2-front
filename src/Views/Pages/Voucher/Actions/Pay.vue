@@ -794,15 +794,32 @@ const recalculateItemTotal = (index) => {
   // Calculate effective rate after rate deductions
   const effectiveRate = getEffectiveRate(item)
   
-  // Calculate weight deduction (type 1 and base deduction)
-  const weightDeduction = calculateWeightDeduction(item)
-  item.deductionAmount = weightDeduction.toFixed(2)
+  // Calculate weight deductions (type 1 deductions)
+  let totalWeightDeduction = 0
+  
+  // FIX: Treat itemDeduction as percentage (divide by 100)
+  if (item.itemDeduction && item.itemDeduction > 0) {
+    totalWeightDeduction += (gross * (parseFloat(item.itemDeduction) / 100))
+  }
+  
+  // Add selected percentage deductions (type 1)
+  if (item.deductionIds && Array.isArray(item.deductionIds)) {
+    item.deductionIds.forEach(deductionId => {
+      const deduction = getDeductionDetails(deductionId)
+      if (deduction && deduction.type == 1) {
+        totalWeightDeduction += (gross * (parseFloat(deduction.amount) / 100))
+      }
+    })
+  }
+  
+  item.deductionAmount = totalWeightDeduction.toFixed(2)
   
   // Calculate net weight (gross - weight deduction)
-  item.netWeight = (gross - weightDeduction).toFixed(2)
+  const netWeight = gross - totalWeightDeduction
+  item.netWeight = netWeight.toFixed(2)
   
   // Calculate total amount (net weight * effective rate)
-  item.totalAmount = (parseFloat(item.netWeight) * effectiveRate).toFixed(2)
+  item.totalAmount = (netWeight * effectiveRate).toFixed(2)
   
   updateVoucherTotal()
 }

@@ -151,9 +151,9 @@
                       <th class="text-center text-md p-2 border border-gray-300">Item Name</th>
                       <th class="text-center text-md p-2 border border-gray-300">Amount</th>
                       <th class="text-center text-md p-2 border border-gray-300">Date</th>
-                      <th class="text-center text-md p-2 border border-gray-300">Reference ID</th>
+                      <!-- <th class="text-center text-md p-2 border border-gray-300">Reference ID</th> -->
                       <th class="text-center text-md p-2 border border-gray-300">Transaction Type</th>
-                      <th class="text-center text-md p-2 border border-gray-300">Task ID</th>
+                      <!-- <th class="text-center text-md p-2 border border-gray-300">Task ID</th> -->
                       <th class="text-center text-md p-2 border border-gray-300">Task Name</th>
                     </tr>
                   </thead>
@@ -168,13 +168,13 @@
                       <td class="text-md p-2 border border-gray-300">{{ item.name }}</td>
                       <td class="text-md p-2 border border-gray-300 text-right">{{ formatNumber(item.amount) }}</td>
                       <td class="text-md p-2 border border-gray-300 text-center">{{ item.date }}</td>
-                      <td class="text-md p-2 border border-gray-300 text-center">{{ item.referenceId }}</td>
+                      <!-- <td class="text-md p-2 border border-gray-300 text-center">{{ item.referenceId }}</td> -->
                       <td class="text-md p-2 border border-gray-300 text-center">
                         <span :class="item.transactionType === 1 ? 'text-green-600' : 'text-red-600'">
                           {{ getTransactionTypeText(item.transactionType) }}
                         </span>
                       </td>
-                      <td class="text-md p-2 border border-gray-300 text-center">{{ item.taskId }}</td>
+                      <!-- <td class="text-md p-2 border border-gray-300 text-center">{{ item.taskId }}</td> -->
                       <td class="text-md p-2 border border-gray-300">{{ item.task_name }}</td>
                     </tr>
                   </tbody>
