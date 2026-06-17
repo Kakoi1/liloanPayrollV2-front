@@ -638,7 +638,7 @@ const calculateOvertime = (type, daily, hours) => {
 
 const updateTaskTotal = (task) => {
     let hours = parseFloat(task.netKgPerEmp) || 0
-    hours = Math.min(hours, 8);
+     if (task.unit == 1) hours = Math.min(hours, 8);
     const rate = parseFloat(task.rate) || 0
     const tarima = parseFloat(task.tarima) || 0
     const multi = parseFloat(task.taskMulti) || 0
