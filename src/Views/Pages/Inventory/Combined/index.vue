@@ -48,6 +48,30 @@
                     class="w-full md:w-48 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Trnasaction type</label>
+                  <select 
+                    v-model="search.transac_type" 
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option :value="0">All</option>
+                    <option :value="1">In</option>
+                    <option :value="2">out</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Task type</label>
+                  <select 
+                    v-model="search.task_type" 
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option :value="0">All</option>
+                    <option :value="2">Habwa</option>
+                    <option :value="3">Loading</option>
+                    <option :value="33">Crusher</option>
+                    <option :value="35">Presser</option>
+                  </select>
+                </div>
                 <div class="flex gap-2">
                   <button @click="list" class="inline-flex items-center px-4 py-2 bg-maroon hover:bg-maroon-dark text-white rounded-md transition">
                     <i class="fa fa-file-alt mr-2"></i> Generate Report
@@ -143,6 +167,7 @@
                       <th class="text-center text-md p-2 border border-gray-300">Date</th>
                       <th class="text-center text-md p-2 border border-gray-300">Transaction Type</th>
                       <th class="text-center text-md p-2 border border-gray-300">Task Name</th>
+                      <th class="text-center text-md p-2 border border-gray-300">Remarks</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -154,7 +179,10 @@
                     <tr v-for="item in rawData" :key="item.id" class="hover:bg-gray-50">
                       <td class="text-md p-2 border border-gray-300 text-center">{{ item.id }}</td>
                       <td class="text-md p-2 border border-gray-300">{{ item.name }}</td>
-                      <td class="text-md p-2 border border-gray-300 text-right">{{ formatNumber(item.amount) }}</td>
+                      <td 
+                          class="text-md p-2 border border-gray-300 text-right"
+                          :class="item.transactionType === 1 ? 'text-green-600' : 'text-red-600'"
+                      >{{ formatNumber(item.amount) }}</td>
                       <td class="text-md p-2 border border-gray-300 text-center">{{ item.date }}</td>
                       <td class="text-md p-2 border border-gray-300 text-center">
                         <span :class="item.transactionType === 1 ? 'text-green-600' : 'text-red-600'">
@@ -162,19 +190,28 @@
                         </span>
                       </td>
                       <td class="text-md p-2 border border-gray-300">{{ item.task_name }}</td>
+                      <td class="text-md p-2 border border-gray-300 text-center">{{ item.remarks ?? '--' }}</td>
                     </tr>
                   </tbody>
-                  <tfoot v-if="rawData.length > 0">
+                  <!-- <tfoot v-if="rawData.length > 0">
                     <tr class="bg-gray-100 font-bold">
                       <td colspan="2" class="text-md p-2 border border-gray-300 text-right">Total Amount:</td>
                       <td class="text-md p-2 border border-gray-300 text-right text-red-600">
                         {{ formatNumber(getTransactionsTotal()) }}
                       </td>
-                      <td colspan="3"></td>
+                      <td colspan="4"></td>
                     </tr>
-                  </tfoot>
+                  </tfoot> -->
                 </table>
               </div>
+                <div v-if="totalRows > 0" class="mt-6">
+                  <Pagination
+                    :page_number="search.page_num"
+                    :total_rows="totalRows"
+                    :itemsperpage="search.items_perpage"
+                    @page_num="handlePageNum"
+                  />
+                </div>
             </div>
           </div>
         </div>
@@ -187,16 +224,32 @@
 import { ref, computed, onMounted } from 'vue';
 import api from '@/Js/Services/axios';
 import { handleApiError } from '@/Views/Utility/Helper.js';
+import Pagination from '@/Js/Components/Paginate.vue';
 
 // State
 const loading = ref(false);
 const isCollapsed = ref(false);
 const isMaximized = ref(false);
+const totalRows = ref(0)
+
+const search = ref({
+  search: '',
+  page_num: 1,
+  items_perpage: 10,
+  transac_type: 0,
+  task_type:0
+})
+
 
 const dateRange = ref({
-  from: new Date().toISOString().slice(0, 10),
-  to: new Date().toISOString().slice(0, 10)
+  from: '',
+  to: ''
 });
+
+const handlePageNum = (page) => {
+  search.value.page_num = page
+  list()
+}
 
 // Store the response data
 const dataHeaders = ref([]);
@@ -205,13 +258,10 @@ const itemInventory = ref([]);
 
 // Get column total for a specific header across all dates
 const getColumnTotal = (header) => {
-  let total = 0;
-  rawData.value.forEach(item => {
-    if (item.name === header) {
-      total += parseFloat(item.amount) || 0;
-    }
-  });
-  return total;
+  const item = itemInventory.value.find(i => i.itemName === header);
+  console.log(item);
+  
+  return item ? parseFloat(item.amount) : 0;
 };
 
 // Get total of all transactions
@@ -250,14 +300,15 @@ const formatDate = (dateString) => {
 };
 
 const list = async () => {
-  if (!dateRange.value.from || !dateRange.value.to) {
-    alert('Please select both from and to dates');
-    return;
-  }
+  // if (!dateRange.value.from || !dateRange.value.to) {
+  //   alert('Please select both from and to dates');
+  //   return;
+  // }
   
   loading.value = true;
   try {
     const response = await api.post('/vouchers/combined-inventory', {
+      ...search.value,
       dateFrom: dateRange.value.from,
       dateTo: dateRange.value.to
     });
@@ -267,6 +318,7 @@ const list = async () => {
       dataHeaders.value = response.data.data_headers || [];
       rawData.value = response.data.data || [];
       itemInventory.value = response.data.item_inventory || [];
+      totalRows.value = response.data.totalrows
     } else {
       alert(response.data.message || 'Failed to load data');
     }

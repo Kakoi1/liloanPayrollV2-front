@@ -57,7 +57,13 @@
         <!-- Item -->
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Item:</label>
-          <SelectComponent v-model="loadingForm.item" :options="itemOptions" placeholder="Select Work Type" class="w-full border-gray-700" />
+          <SelectComponent v-model="loadingForm.item" :options="itemOptions" placeholder="Select Item to Load" class="w-full border-gray-700" />
+          {{ console.log(loadingForm.item) }}
+        </div>
+
+        <div v-if="loadingForm.item == 21 || loadingForm.item == 101 ">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Solid Ratio</label>
+          <SelectComponent v-model="loadingForm.solidRatio" :options="ratioOptions" placeholder="Select solid ratio" class="w-full border-gray-700" />
         </div>
 
         <!-- Container Weight -->
@@ -137,13 +143,21 @@ const loadingForm = ref({
   loading_date: moment().format('YYYY-MM-DD'),
   van_no: '',
   seal_no: '',
-  item: '',
+  item: 0,
   container_weight: '',
   gross_weight: '',
-  net_weight: 0
+  net_weight: 0,
+  solidRatio: 0,
 })
 
 const itemOptions = ref([])
+
+const ratioOptions = [
+  { value: 1, label: '90% - 10%' },
+  { value: 2, label: '80% - 20%' },
+  { value: 3, label: '70% - 30%' },
+
+]
 
 // Computed
 const calculatedNetWeight = computed(() => {
@@ -163,12 +177,13 @@ const openModal = () => {
 const resetForm = () => {
   loadingForm.value = {
     loading_date: moment().format('YYYY-MM-DD'),
-    van_no: '',
+    van_no: 0,
     seal_no: '',
     item: '',
     container_weight: '',
     gross_weight: '',
-    net_weight: 0
+    net_weight: 0,
+    solidRatio: 0,
   }
 }
 
@@ -280,7 +295,8 @@ const saveLoading = async () => {
       item: loadingForm.value.item,
       container_weight: loadingForm.value.container_weight,
       gross_weight: loadingForm.value.gross_weight,
-      net_weight: loadingForm.value.net_weight
+      net_weight: loadingForm.value.net_weight,
+      solid_ratio: loadingForm.value.solidRatio
     }
 
     const response = await api.post('/loading/add', payload)

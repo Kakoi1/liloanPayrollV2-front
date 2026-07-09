@@ -59,7 +59,7 @@
           </div>
 
           <!-- Payment Terms -->
-          <div>
+          <!-- <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">
               Payment Terms <span class="text-red-500">*</span>
             </label>
@@ -75,17 +75,17 @@
               <option value="Upon delivery">Upon delivery</option>
               <option value="COD">Cash on Delivery</option>
             </select>
-          </div>
+          </div> -->
 
           <!-- Expected Delivery Date -->
-          <div>
+          <!-- <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Expected Delivery Date</label>
             <input 
               type="date" 
               v-model="form.expected_delivery" 
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
             >
-          </div>
+          </div> -->
 
           <!-- Remarks -->
           <div>
@@ -106,10 +106,10 @@
                 <span class="text-gray-600">Total Amount:</span>
                 <span class="font-semibold">{{ formatCurrency(form.amount) }}</span>
               </div>
-              <div class="flex justify-between">
+              <!-- <div class="flex justify-between">
                 <span class="text-gray-600">Payment Terms:</span>
                 <span>{{ form.payment_terms || 'Not specified' }}</span>
-              </div>
+              </div> -->
             </div>
           </div>
         </div>
@@ -200,10 +200,6 @@ const save = async () => {
   }
   if (!form.value.amount || form.value.amount <= 0) {
     Swal.fire({ icon: 'warning', title: 'Warning', text: 'Please enter a valid amount', timer: 1500, showConfirmButton: false })
-    return
-  }
-  if (!form.value.payment_terms) {
-    Swal.fire({ icon: 'warning', title: 'Warning', text: 'Please select payment terms', timer: 1500, showConfirmButton: false })
     return
   }
 
