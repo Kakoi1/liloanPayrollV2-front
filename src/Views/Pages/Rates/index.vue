@@ -2,17 +2,17 @@
   <div class="content-wrapper">
     <!-- Content Header -->
     <div class="content-header bg-white border-b">
-      <div class="container-fluid px-6 py-4">
+      <div class="container-fluid px-6 py-2">
         <div class="flex flex-wrap items-center justify-between mb-2">
           <div class="sm:col-span-6">
-            <h1 class="text-2xl font-bold text-gray-800 m-0">RATES</h1>
+            <h1 class="text-2xl font-bold text-gray-800 m-0">Task</h1>
           </div>
           <div class="sm:col-span-6">
             <ol class="flex space-x-2 text-sm">
               <li class="breadcrumb-item">
                 <a href="#" class="text-blue-600 hover:text-blue-800">Home</a>
               </li>
-              <li class="breadcrumb-item text-gray-500">RATES</li>
+              <li class="breadcrumb-item text-gray-500">Task</li>
             </ol>
           </div>
         </div>
@@ -20,13 +20,13 @@
     </div>
 
     <!-- Main Content -->
-    <section class="container-fluid px-6 py-4">
+    <section class="container-fluid px-6 py-2">
       <div class="flex flex-wrap">
         <div class="w-full">
           <div class="bg-white rounded-lg shadow-md">
             <!-- Card Header -->
-            <div class="px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-700 rounded-t-lg flex justify-between items-center">
-              <h5 class="text-white font-semibold text-lg">RATES TABLE</h5>
+            <div class="px-6 py-2 bg-gradient-to-r from-blue-600 to-blue-700 rounded-t-lg flex justify-between items-center">
+              <h5 class="text-white font-semibold text-lg">Task TABLE</h5>
               <div class="flex space-x-2" id="tools">
                 <button type="button" class="text-white hover:text-gray-200 transition-colors" @click="maximize">
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -42,9 +42,9 @@
             </div>
 
             <!-- Card Body -->
-            <div class="p-6">
+            <div class="p-2 px-4">
               <div class="flex flex-wrap">
-                <div class="w-full mt-4 mb-0 pb-0">
+                <div class="w-full mb-0 pb-0">
                   <!-- Search -->
                   <div class="w-full mb-4">
                     <div class="relative">
@@ -83,10 +83,10 @@
                         </tr>
                         <tr>
                           <th class="px-4 py-3 font-semibold text-gray-700 text-center">NO.</th>
-                          <th class="px-4 py-3 font-semibold text-gray-700">CLASSIFICATION</th>
-                          <th class="px-4 py-3 font-semibold text-gray-700">TASK</th>
+                          <th class="px-4 py-3 font-semibold text-gray-700">Task</th>
+                          <th class="px-4 py-3 font-semibold text-gray-700">Classification</th>
                           <th class="px-4 py-3 font-semibold text-gray-700">RATES</th>
-                          <th class="px-4 py-3 font-semibold text-gray-700">TARIMA MULTIPLIER</th>
+                          <!-- <th class="px-4 py-3 font-semibold text-gray-700">TARIMA MULTIPLIER</th> -->
                           <th class="px-4 py-3 font-semibold text-gray-700">MEASUREMENT</th>
                           <th class="px-4 py-3 font-semibold text-gray-700">Linked Item</th>
                           <th class="px-4 py-3 font-semibold text-gray-700">REMARKS</th>
@@ -123,14 +123,14 @@
                               class="w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                             >
                           </td>
-                          <td class="px-4 py-3">
+                          <!-- <td class="px-4 py-3">
                             <input 
                               type="number" 
                               v-model="t.multiplier" 
                               class="w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                               step="0.01"
                             >
-                          </td>
+                          </td> -->
                           <td class="px-4 py-3">
                             <select 
                               v-model="t.rateMeasurement" 
@@ -179,7 +179,7 @@
                           <td class="px-4 py-3">
                             <button 
                               @click="updateRate(t, tt)" 
-                              class="px-3 py-1.5 bg-gradient-to-r from-green-600 to-green-700 text-white text-sm rounded-lg hover:from-green-700 hover:to-green-800 focus:ring-2 focus:ring-green-500 transition-all duration-200 flex items-center"
+                              class="px-3 py-1.5 bg-gradient-to-r from-yellow-600 to-yellow-700 text-white text-sm rounded-lg hover:from-yellow-700 hover:to-yellow-800 focus:ring-2 focus:ring-green-500 transition-all duration-200 flex items-center"
                             >
                               <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
