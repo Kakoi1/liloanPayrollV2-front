@@ -65,9 +65,9 @@
               <tr>
                 <th class="px-4 py-3 text-left font-medium text-gray-700 w-1/6">Class</th>
                 <th class="px-4 py-3 text-left font-medium text-gray-700 w-1/6">Task</th>
-                <th class="px-4 py-3 text-right font-medium text-gray-700 w-1/12">Jumbo/Tarema</th>
-                <th class="px-4 py-3 text-right font-medium text-gray-700 w-1/12">Weight</th>
-                <th class="px-4 py-3 text-right font-medium text-gray-700 w-1/12">Waste</th>
+                <th class="px-4 py-3 text-right font-medium text-gray-700 w-1/8">Tarema Weight</th>
+                <th class="px-4 py-3 text-right font-medium text-gray-700 w-1/8">Weight</th>
+                <th class="px-4 py-3 text-right font-medium text-gray-700 w-1/8">Waste</th>
                 <th class="px-4 py-3 text-left font-medium text-gray-700 w-1/4">Employee</th>
                 <th class="px-4 py-3 text-left font-medium text-gray-700 w-24">Action</th>
               </tr>
@@ -461,9 +461,8 @@ const saveTask = async () => {
     await Swal.fire({
       icon: 'error',
       title: 'Error',
-      text: 'Failed to save production tasks',
-      timer: 1500,
-      showConfirmButton: false
+      text: 'Failed to save production tasks: '+ error.response?.data?.message || error.message || 'An error occurred',
+      showConfirmButton: true
     })
   }
 }

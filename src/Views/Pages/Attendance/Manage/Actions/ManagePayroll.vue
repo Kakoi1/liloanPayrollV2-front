@@ -178,14 +178,15 @@
                     <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider w-8">Select</th>
                     <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider w-16">Status</th>
                     <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider w-28">Date</th>
-                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider w-16">Type</th>
-                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider w-16">S/P</th>
-                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider w-28">Task</th>
+                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider w-20">Type</th>
+                    <!-- <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider w-16">S/P</th> -->
                     <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider w-28">Class</th>
+                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider w-28">Task</th>
                     <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider w-20">Rate</th>
                     <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider w-24">Hrs/Kg</th>
                     <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider w-20">Tarima</th>
-                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider w-16">Ded</th>
+                    <!-- <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider w-16">Ded</th> -->
+                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider w-16">Workers</th>
                     <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider w-24">Total</th>
                     <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider w-32">Remarks</th>
                     <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider w-20">Action</th>
@@ -216,19 +217,24 @@
                       <input type="date" v-model="task.date" class="w-full px-2 py-1 border border-gray-300 rounded text-sm">
                     </td>
                     <td class="px-3 py-2">
-                      <select v-model="task.dayType" class="w-full px-2 py-1 border border-gray-300 rounded text-sm">
-                        <option value="1">Reg</option>
-                        <option value="2">Spec</option>
-                        <option value="3">Hol</option>
-                        <option value="4">Double</option>
+                      <select v-model="task.dayType" @change="updateTaskTotal(task)" class="w-full px-2 py-1 border border-gray-300 rounded text-sm">
+                         <option :value="1">Reg</option>
+                        <!-- <option :value="2">Spec</option> -->
+                        <option :value="3">Hol</option>
+                        <option :value="4">Double</option>
+                        <option :value="7">Sun/Spec Hol</option>
+                        <option :value="6">Reg OT</option>
+                        <option :value="8">Sun/Spec Hol OT</option>
+                        <option :value="9">Hol OT</option>
+                        <option :value="10">Double OT</option>
                       </select>
                     </td>
-                    <td class="px-3 py-2">
+                    <!-- <td class="px-3 py-2">
                       <select v-model="task.workerCount" class="w-full px-2 py-1 border border-gray-300 rounded text-sm">
                         <option value="1">Solo</option>
                         <option value="2">Pair</option>
                       </select>
-                    </td>
+                    </td> -->
                     <td class="px-3 py-2">
                       <select v-model="task.taskType" @change="fetchClassForTask(task, i, 'checked')" class="w-full px-2 py-1 border border-gray-300 rounded text-sm">
                         <option value="">--</option>
@@ -245,16 +251,23 @@
                       <input type="text" v-model="task.rate" readonly class="w-full px-2 py-1 border border-gray-300 rounded text-sm bg-gray-100">
                     </td>
                     <td class="px-3 py-2">
-                      <div class="flex items-center space-x-1">
+                      <div v-if="task.taskType != 1" class="flex items-center space-x-1">
+                        <input type="number" v-model="task.originalNet" @input="updateTaskTotal(task)" max="8" class="w-20 px-2 py-1 border border-gray-300 rounded text-sm">
+                        <span class="text-xs text-gray-500">{{ getUnitLabel(task.unit) }}</span>
+                      </div>
+                      <div v-else class="flex items-center space-x-1">
                         <input type="number" v-model="task.netKgPerEmp" @input="updateTaskTotal(task)" class="w-20 px-2 py-1 border border-gray-300 rounded text-sm">
                         <span class="text-xs text-gray-500">{{ getUnitLabel(task.unit) }}</span>
+                        <!-- <input type="number" v-model="task.overtime" @input="updateTaskTotal(task)" class="w-20 px-2 py-1 border border-gray-300 rounded text-sm">
+                        <span class="text-xs text-gray-500">OT</span> -->
                       </div>
                     </td>
                     <td class="px-3 py-2">
-                      <input type="number" v-model="task.tarima" @input="updateTaskTotal(task)" class="w-full px-2 py-1 border border-gray-300 rounded text-sm">
+                      <input type="number" disabled v-model="task.tarima" @input="updateTaskTotal(task)" class="w-full px-2 py-1 border border-gray-300 rounded text-sm">
                     </td>
                     <td class="px-3 py-2">
-                      <input type="number" v-model="task.deduction" @input="updateTaskTotal(task)" class="w-full px-2 py-1 border border-gray-300 rounded text-sm">
+                      <!-- <input type="number" v-model="task.deduction" @input="updateTaskTotal(task)" class="w-full px-2 py-1 border border-gray-300 rounded text-sm"> -->
+                      <input type="number"  :disabled="task.taskType == 1" v-model="task.workerCount" @input="updateTaskTotal(task)" class="w-full px-2 py-1 border border-gray-300 rounded text-sm">
                     </td>
                     <td class="px-3 py-2">
                       <input type="number" v-model="task.total" readonly class="w-full px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm">
@@ -298,19 +311,24 @@
                       <input type="date" v-model="task.date" class="w-full px-2 py-1 border border-gray-300 rounded text-sm">
                     </td>
                     <td class="px-3 py-2">
-                      <select v-model="task.dayType" class="w-full px-2 py-1 border border-gray-300 rounded text-sm">
-                        <option value="1">Reg</option>
-                        <option value="2">Spec</option>
-                        <option value="3">Hol</option>
-                        <option value="4">Double</option>
+                      <select v-model="task.dayType" @change="updateTaskTotal(task)" class="w-full px-2 py-1 border border-gray-300 rounded text-sm">
+                        <option :value="1">Reg</option>
+                        <!-- <option :value="2">Spec</option> -->
+                        <option :value="3">Hol</option>
+                        <option :value="4">Double</option>
+                        <option :value="7">Sun/Spec Hol</option>
+                        <option :value="6">Reg OT</option>
+                        <option :value="8">Sun/Spec Hol OT</option>
+                        <option :value="9">Hol OT</option>
+                        <option :value="10">Double OT</option>
                       </select>
                     </td>
-                    <td class="px-3 py-2">
+                    <!-- <td class="px-3 py-2">
                       <select v-model="task.workerCount" class="w-full px-2 py-1 border border-gray-300 rounded text-sm">
                         <option value="1">Solo</option>
                         <option value="2">Pair</option>
                       </select>
-                    </td>
+                    </td> -->
                     <td class="px-3 py-2">
                       <select v-model="task.taskType" @change="fetchClassForTask(task, i, 'draft')" class="w-full px-2 py-1 border border-gray-300 rounded text-sm">
                         <option value="">--</option>
@@ -327,16 +345,23 @@
                       <input type="text" v-model="task.rate" readonly class="w-full px-2 py-1 border border-gray-300 rounded text-sm bg-gray-100">
                     </td>
                     <td class="px-3 py-2">
-                      <div class="flex items-center space-x-1">
-                        <input type="number" v-model="task.netKgPerEmp" @input="updateTaskTotal(task)" class="w-20 px-2 py-1 border border-gray-300 rounded text-sm">
+                      <div v-if="task.taskType != 1" class="flex items-center space-x-1">
+                        <input type="number" v-model="task.originalNet" @input="updateTaskTotal(task)" class="w-20 px-2 py-1 border border-gray-300 rounded text-sm">
                         <span class="text-xs text-gray-500">{{ getUnitLabel(task.unit) }}</span>
+                      </div>
+                      <div v-else class="flex items-center space-x-1">
+                        <input type="number" v-model="task.netKgPerEmp" @input="updateTaskTotal(task)" max="8" class="w-20 px-2 py-1 border border-gray-300 rounded text-sm">
+                        <span class="text-xs text-gray-500">{{ getUnitLabel(task.unit) }}</span>
+                        <!-- <input type="number" v-model="task.overtime" @input="updateTaskTotal(task)" class="w-20 px-2 py-1 border border-gray-300 rounded text-sm">
+                        <span class="text-xs text-gray-500">OT</span> -->
                       </div>
                     </td>
                     <td class="px-3 py-2">
-                      <input type="number" v-model="task.tarima" @input="updateTaskTotal(task)" class="w-full px-2 py-1 border border-gray-300 rounded text-sm">
+                      <input type="number" :disabled="task.unit == 4 || task.unit == 1" v-model="task.tarima" @input="updateTaskTotal(task)" class="w-full px-2 py-1 border border-gray-300 rounded text-sm">
                     </td>
                     <td class="px-3 py-2">
-                      <input type="number" v-model="task.deduction" @input="updateTaskTotal(task)" class="w-full px-2 py-1 border border-gray-300 rounded text-sm">
+                      <!-- <input type="number" v-model="task.deduction" @input="updateTaskTotal(task)" class="w-full px-2 py-1 border border-gray-300 rounded text-sm"> -->
+                       <input type="number" :disabled="task.taskType == 1" v-model="task.workerCount" @input="updateTaskTotal(task)" class="w-full px-2 py-1 border border-gray-300 rounded text-sm">
                     </td>
                     <td class="px-3 py-2">
                       <input type="number" v-model="task.total" readonly class="w-full px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm">
@@ -618,75 +643,115 @@ const fetchPayrollPeriods = async () => {
 }
 
 const calculateOvertime = (type, daily, hours) => {
-    let ot_hours = hours - 8;
+    let ot_hours = hours;
     let hour_rate = daily / 8;
-    if (hours < 9) return 0;
-    
+  // if (hours < 9) return 0;
     switch(type) {
-        case 1:  // regular (dayType 1)
+        case 6:  // regular (dayType 1)
             return hour_rate * 1.25 * ot_hours;
-        case 2:  // special (dayType 2)
-            return hour_rate * 0.30 * ot_hours;
-        case 3:  // holiday (dayType 3)
-            return hour_rate * 2.6 * ot_hours;
-        case 4:
+        case 8:  // special/sunday (dayType 2)
+            return hour_rate * 1.69 * ot_hours;
+        case 9:  // holiday (dayType 3)
+            return hour_rate * 2 * 1.3 * ot_hours;
+        case 10:
             return hour_rate * 3.90 * ot_hours; 
         default:
             return 0;
     }
 }
 
+const calculateHourlyRate = (type, daily, hours) => {
+    let hour_rate = daily / 8;
+    if (hours > 8) return 0;
+    
+    switch(type) {
+        case 1:  // regular (dayType 1)
+            return hour_rate * 1 * hours;
+        case 7:  // special/sunday (dayType 2)
+            return hour_rate * 1.3 * hours;
+        case 3:  // holiday (dayType 3)
+            return hour_rate * 2 * hours;
+        case 4: // double ot (dayType 4)
+            return hour_rate * 3 * hours; 
+
+        default:
+            return 0;
+    }
+}
+
+
+
 const updateTaskTotal = (task) => {
-    let hours = parseFloat(task.netKgPerEmp) || 0
-     if (task.unit == 1) hours = Math.min(hours, 8);
+  let hours = parseFloat(task.netKgPerEmp) || 0
+    let totalWork = parseFloat(task.originalNet) || 0
+    if (task.unit == 1) hours = Math.min(hours, 8);
     const rate = parseFloat(task.rate) || 0
     const tarima = parseFloat(task.tarima) || 0
     const multi = parseFloat(task.taskMulti) || 0
+    const workerCount = parseFloat(task.workerCount) || 1
     const deduction = parseFloat(task.deduction) || 0
     
-    if (task.unit == 1) hours = hours / 8
-    const totalMulti = parseFloat(tarima * multi)
-    const totalNetWeight = parseFloat(hours - (deduction + totalMulti))
-    console.log(totalNetWeight, hours, deduction, totalMulti);
+    if (task.unit == 1) hours = hours / 8 
+    const totalMulti = parseFloat(tarima)
+    // const netKgPerEmp = (totalWork / workerCount)
+    const totalNetWeight = parseFloat((totalWork -  totalMulti) / workerCount)
+    console.log(totalNetWeight, hours, deduction, totalMulti, tarima, multi, totalWork);
     
     // Calculate base total
-    let baseTotal = (hours * rate)
+    let baseTotal = (totalNetWeight * rate)
     
     // Calculate overtime ONLY if taskType is 1 and includeOvertime is true
-    if (task.taskType == 1) {
+  if (task.taskType == 1) {
+
+
         // Use the task's rate as the daily rate
         const dailyRate = parseFloat(task.rate) || 0
         
         // Map dayType to overtime type
-        let overtimeType = 1 // default to regular
-        if (task.dayType == 2) {
-            overtimeType = 2 // special
-        } else if (task.dayType == 3) {
-            overtimeType = 3 // holiday
-      }
-        else if (task.dayType == 4) {
-            overtimeType = 4 // double
-        }
+        // let overtimeType = 1 // default to regular
+        // if (task.dayType == 2) {
+        //     overtimeType = 2 // special
+        // } else if (task.dayType == 3) {
+        //     overtimeType = 3 // holiday
+        // }else if (task.dayType == 4) {
+        //     overtimeType = 4 // double
+        // }
         // dayType 1 = regular
         
-        
-        const overtime = calculateOvertime(
-            overtimeType,
+        if (task.dayType == 6 || task.dayType == 9 || task.dayType == 8 || task.dayType == 10) {
+          baseTotal = calculateOvertime(
+                task.dayType,
+                dailyRate,
+                task.netKgPerEmp
+          )
+            console.log(baseTotal, task.dayType,
+            dailyRate,
+            task.netKgPerEmp);
+        }else if(task.dayType == 1 || task.dayType == 3|| task.dayType == 4 || task.dayType == 7){
+          baseTotal = calculateHourlyRate(
+            task.dayType,
             dailyRate,
             task.netKgPerEmp
-      )
-
-      console.log( overtimeType,
-            dailyRate,
-            hours, overtime, baseTotal);
+          )
+          
+        }
         
-        task.total = (baseTotal + overtime).toFixed(2)
+
+      // console.log( overtimeType,
+      //       dailyRate,
+      //       hours, overtime, baseTotal);
+        
+        task.total = (baseTotal).toFixed(2)
+        // task.netKgPerEmp = netKgPerEmp.toFixed(2)
     } else {
         task.overtime = 0
         task.total = baseTotal.toFixed(2)
+        task.netKgPerEmp = totalNetWeight.toFixed(2)
     }
     
     calculateGrossTotal()
+    console.log(task);
+    
 }
 
 const calculateGrossTotal = () => { 
@@ -738,6 +803,7 @@ const fetchPayrollData = async () => {
         taskType: task.taskType || '', 
         taskId: task.taskId || '',
         rate: task.rate || '', 
+        originalNet: task.originalNet || 0,
         netKgPerEmp: task.unit == 4 ? 1 : task.netKgPerEmp,
         unit: task.unit || 'kg', 
         tarima: task.tarima || 0,
@@ -745,6 +811,7 @@ const fetchPayrollData = async () => {
         total: task.total || 0,
         remarks: task.remarks || '', 
         isCaptured: task.isCapture !== 0,
+        overtime: 0,
         payrollId: task.payrollId,
         selected: false, 
         classOptions: []
@@ -758,12 +825,14 @@ const fetchPayrollData = async () => {
         taskType: draft.taskType || '', 
         taskId: draft.taskId || '',
         rate: draft.rate || '', 
+        originalNet: draft.originalNet || 0,
         netKgPerEmp: draft.unit == 4 ? 1 : draft.netKgPerEmp,
         unit: draft.unit || 'kg', 
         tarima: draft.tarima || 0,
         deduction: draft.deduction || 0, 
         total: draft.total || 0,
         remarks: draft.remarks || '', 
+        overtime: 0,
         classOptions: []
       }))
       
@@ -910,12 +979,14 @@ const updateTask = async (task, index, type) => {
       taskType: task.taskType, 
       taskId: task.taskId, 
       rate: task.rate,
+      originalNet: task.originalNet,
+      workerCount: task.workerCount,
       netKgPerEmp: task.netKgPerEmp, 
       unit: task.unit, 
       tarima: task.tarima,
       deduction: task.deduction, 
       total: task.total, 
-      remarks: task.remarks
+      remarks: task.remarks,
     }
     
     const payload = {
@@ -981,6 +1052,8 @@ const saveDraftTask = async (index) => {
       taskType: task.taskType, 
       taskId: task.taskId, 
       rate: task.rate,
+      originalNet: task.originalNet,
+      workerCount: task.workerCount,
       netKgPerEmp: task.netKgPerEmp, 
       unit: task.unit, 
       tarima: task.tarima,

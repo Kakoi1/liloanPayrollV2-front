@@ -109,7 +109,7 @@
                           <tr>
                             <th class="px-4 py-3 text-left font-medium text-gray-700">Class</th>
                             <th class="px-4 py-3 text-left font-medium text-gray-700">Task</th>
-                            <th class="px-4 py-3 text-right font-medium text-gray-700">Jumbo/Tarema</th>
+                            <th class="px-4 py-3 text-right font-medium text-gray-700">Tarema Weight</th>
                             <th class="px-4 py-3 text-right font-medium text-gray-700">Weight</th>
                             <th class="px-4 py-3 text-right font-medium text-gray-700">Waste</th>
                             <th class="px-4 py-3 text-left font-medium text-gray-700">Employee(s)</th>

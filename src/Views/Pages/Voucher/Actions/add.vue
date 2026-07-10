@@ -325,6 +325,29 @@
                   />
                 </td>
               </tr>
+               <tr v-if="hasCashAdvance && cashAdvance">
+                 <td colspan="7" class="px-3 py-2 text-right font-medium text-yellow-600">
+                    Cash Advance Payment
+                    <span class="text-xs text-gray-500 ml-2">
+                      (Max: ₱{{ parseFloat(cashAdvance.balance).toFixed(2) }})
+                    </span>
+                  </td>
+                  <td colspan="2" class="px-3 py-2">
+                    <input 
+                      type="number" 
+                      v-model="voucher.cash_advance_payment" 
+                      @input="updateVoucherTotal"
+                      :max="cashAdvance?.balance || 0"
+                      :min="0"
+                      step="0.01"
+                      class="w-full px-2 py-1 border border-yellow-300 rounded text-sm focus:ring-1 focus:ring-yellow-500"
+                      placeholder="Enter cash advance payment"
+                    />
+                    <div class="text-xs text-gray-500 mt-1">
+                      Balance after payment: ₱{{ cashAdvanceBalanceAfterPayment }}
+                    </div>
+                  </td>
+                              </tr>
             </tbody>
             <tfoot class="bg-gray-100 font-bold">
               <tr>
@@ -386,6 +409,8 @@ const showModal = ref(false)
 const fileInput = ref(null)
 const selectedSupplier = ref(null)
 const selectedWorkers = ref([])
+const cashAdvance = ref(null)
+const hasCashAdvance = ref(false)
 
 const searchEmp = ref({
     search: '',
@@ -408,6 +433,8 @@ const voucher = ref({
   date: new Date().toISOString().split('T')[0],
   worker: [],
   add_less: 0,
+  cash_advance_payment: 0,
+  cash_advance_id: 0,
   total_amount: 0
 })
 
@@ -423,7 +450,31 @@ const transactionTimeOptions = [
 const calculateTotal = computed(() => {
   const taskTotal = task.value.reduce((sum, t) => sum + (parseFloat(t.total_amount) || 0), 0)
   const addLess = parseFloat(voucher.value.add_less) || 0
-  return (taskTotal + addLess).toFixed(2)
+  const cashAdvancePayment = parseFloat(voucher.value.cash_advance_payment) || 0
+
+  let total = taskTotal + addLess
+
+
+  if (total < cashAdvancePayment) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Invalid Cash Advance Payment',
+      text: `Cash advance payment cannot exceed the total amount. Please adjust the payment.`,
+      confirmButtonText: 'OK'
+    })
+    voucher.value.cash_advance_payment = 0
+    
+  }
+
+  let finalTotal = total - cashAdvancePayment
+
+  return Math.max(0, finalTotal).toFixed(2)
+})
+
+const cashAdvanceBalanceAfterPayment = computed(() => {
+  const balance = parseFloat(cashAdvance.value?.balance) || 0
+  const payment = parseFloat(voucher.value.cash_advance_payment) || 0
+  return Math.max(0, balance - payment).toFixed(2)
 })
 
 // Watch selectedWorkers to update voucher.worker
@@ -548,10 +599,48 @@ const openModal = () => {
   resetForm()
 }
 
-const handleSupplierSelected = (supplier) => {
+const handleSupplierSelected = async (supplier) => {
   selectedSupplier.value = supplier
   voucher.value.payee = supplier.id
   voucher.value.tier = supplier.supplierTier
+
+   await checkCashAdvance(supplier.id)
+}
+
+const checkCashAdvance = async (supplierId) => {
+  if (!supplierId) return
+
+  voucher.value.cash_advance_payment = 0
+  
+  try {
+    const response = await api.post(`/cash-advance/check`, {supplier_id: supplierId})
+    
+    if (response.data && response.data.data) {
+      const data = response.data.data
+      
+      // Check if supplier has cash advance
+      if (data && data.balance > 0) {
+        hasCashAdvance.value = true
+        cashAdvance.value = data
+        voucher.value.cash_advance_id = data.id
+        
+        // Show alert
+        Swal.fire({
+          icon: 'info',
+          title: 'Cash Advance Found',
+          text: `₱${parseFloat(data.balance).toFixed(2)} remaining`,
+          timer: 3000,
+          showConfirmButton: true
+        })
+      } else {
+        hasCashAdvance.value = false
+        cashAdvance.value = null
+      }
+    }
+  } catch (error) {
+    console.error('Error checking cash advance:', error)
+    // Don't show error to user, just log it
+  }
 }
 
 const getTierName = (tier) => {
@@ -706,7 +795,11 @@ const getComputation = (taskItem, index) => {
 const updateVoucherTotal = () => {
   const taskTotal = task.value.reduce((sum, t) => sum + (parseFloat(t.total_amount) || 0), 0)
   const addLess = parseFloat(voucher.value.add_less) || 0
-  voucher.value.total_amount = (taskTotal + addLess).toFixed(2)
+  const cashAdvancePayment = parseFloat(voucher.value.cash_advance_payment) || 0
+
+  let total = taskTotal + addLess - cashAdvancePayment
+  
+  voucher.value.total_amount = Math.max(0, total).toFixed(2)
 }
 
 const getCustomComputation = (index) => {
@@ -736,6 +829,22 @@ const saveVoucher = async () => {
       showConfirmButton: false
     })
     return
+  }
+
+  if (hasCashAdvance.value && cashAdvance.value) {
+    const payment = parseFloat(voucher.value.cash_advance_payment) || 0
+    const balance = parseFloat(cashAdvance.value.balance) || 0
+    
+    if (payment > balance) {
+      await Swal.fire({
+        icon: 'warning',
+        title: 'Warning',
+        text: `Cash advance payment (₱${payment.toFixed(2)}) exceeds available balance (₱${balance.toFixed(2)})`,
+        timer: 3000,
+        showConfirmButton: false
+      })
+      return
+    }
   }
 
   try {
@@ -787,6 +896,8 @@ const resetForm = () => {
     date: new Date().toISOString().split('T')[0],
     worker: [],
     add_less: 0,
+    cash_advance_payment: 0,
+    cash_advance_id: 0,
     total_amount: 0
   }
   task.value = []

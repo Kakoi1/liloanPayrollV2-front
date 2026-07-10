@@ -48,6 +48,30 @@
                     class="w-full md:w-48 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Trnasaction type</label>
+                  <select 
+                    v-model="search.transac_type" 
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option :value="0">All</option>
+                    <option :value="1">In</option>
+                    <option :value="2">out</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Task type</label>
+                  <select 
+                    v-model="search.task_type" 
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option :value="0">All</option>
+                    <option :value="2">Habwa</option>
+                    <option :value="3">Loading</option>
+                    <option :value="33">Crusher</option>
+                    <option :value="35">Presser</option>
+                  </select>
+                </div>
                 <div class="flex gap-2">
                   <button @click="list" class="inline-flex items-center px-4 py-2 bg-maroon hover:bg-maroon-dark text-white rounded-md transition">
                     <i class="fa fa-file-alt mr-2"></i> Generate Report
@@ -82,9 +106,6 @@
                 <table class="w-full border-collapse border border-gray-300">
                   <thead>
                     <tr class="bg-gray-100">
-                      <th class="text-center text-md p-2 border border-gray-300 bg-gray-100 min-w-[120px]">
-                        Date
-                      </th>
                       <th 
                         v-for="(header, index) in dataHeaders" 
                         :key="index" 
@@ -95,37 +116,30 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr v-if="!groupedData || Object.keys(groupedData).length === 0">
-                      <td :colspan="dataHeaders.length + 1" class="text-center text-red-600 font-bold text-md p-4 border border-gray-300">
+                    <tr v-if="!dataHeaders || dataHeaders.length === 0">
+                      <td class="text-center text-red-600 font-bold text-md p-4 border border-gray-300">
                         No items found.
                       </td>
                     </tr>
-                    <!-- Each date becomes one row with values spread across headers -->
-                    <tr v-for="(dateData, date) in groupedData" :key="date" class="hover:bg-gray-50">
-                      <td class="text-md p-2 border border-gray-300 font-semibold">
-                        {{ date }}
-                      </td>
+                    <tr v-else class="hover:bg-gray-50">
                       <td 
                         v-for="(header, headerIndex) in dataHeaders" 
                         :key="headerIndex" 
                         class="text-md p-2 border border-gray-300 text-right"
-                        :class="[dateData[header] && dateData[header] > 0 ? 'text-green-600' : 'text-red-400']"
+                        :class="[getColumnTotal(header) > 0 ? 'text-green-600' : 'text-red-400']"
                       >
-                        {{ formatNumber(dateData[header] || 0) }}
+                        {{ formatNumber(getColumnTotal(header)) }}
                       </td>
                     </tr>
                   </tbody>
                   <tfoot>
                     <tr class="bg-gray-100 font-bold">
-                      <td class="text-md p-2 border border-gray-300 text-center">
-                        Total
-                      </td>
                       <td 
                         v-for="(header, headerIndex) in dataHeaders" 
                         :key="headerIndex" 
-                        class="text-md p-2 border border-gray-300 text-right text-red-600"
+                        class="text-md p-2 border border-gray-300 text-center text-red-600"
                       >
-                        {{ formatNumber(getColumnTotal(header)) }}
+                        Total
                       </td>
                     </tr>
                   </tfoot>
@@ -151,44 +165,53 @@
                       <th class="text-center text-md p-2 border border-gray-300">Item Name</th>
                       <th class="text-center text-md p-2 border border-gray-300">Amount</th>
                       <th class="text-center text-md p-2 border border-gray-300">Date</th>
-                      <!-- <th class="text-center text-md p-2 border border-gray-300">Reference ID</th> -->
                       <th class="text-center text-md p-2 border border-gray-300">Transaction Type</th>
-                      <!-- <th class="text-center text-md p-2 border border-gray-300">Task ID</th> -->
                       <th class="text-center text-md p-2 border border-gray-300">Task Name</th>
+                      <th class="text-center text-md p-2 border border-gray-300">Remarks</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr v-if="rawData.length === 0">
-                      <td :colspan="8" class="text-center text-red-600 font-bold text-md p-4 border border-gray-300">
+                      <td :colspan="6" class="text-center text-red-600 font-bold text-md p-4 border border-gray-300">
                         No transaction records found.
                       </td>
                     </tr>
                     <tr v-for="item in rawData" :key="item.id" class="hover:bg-gray-50">
                       <td class="text-md p-2 border border-gray-300 text-center">{{ item.id }}</td>
                       <td class="text-md p-2 border border-gray-300">{{ item.name }}</td>
-                      <td class="text-md p-2 border border-gray-300 text-right">{{ formatNumber(item.amount) }}</td>
+                      <td 
+                          class="text-md p-2 border border-gray-300 text-right"
+                          :class="item.transactionType === 1 ? 'text-green-600' : 'text-red-600'"
+                      >{{ formatNumber(item.amount) }}</td>
                       <td class="text-md p-2 border border-gray-300 text-center">{{ item.date }}</td>
-                      <!-- <td class="text-md p-2 border border-gray-300 text-center">{{ item.referenceId }}</td> -->
                       <td class="text-md p-2 border border-gray-300 text-center">
                         <span :class="item.transactionType === 1 ? 'text-green-600' : 'text-red-600'">
                           {{ getTransactionTypeText(item.transactionType) }}
                         </span>
                       </td>
-                      <!-- <td class="text-md p-2 border border-gray-300 text-center">{{ item.taskId }}</td> -->
                       <td class="text-md p-2 border border-gray-300">{{ item.task_name }}</td>
+                      <td class="text-md p-2 border border-gray-300 text-center">{{ item.remarks ?? '--' }}</td>
                     </tr>
                   </tbody>
-                  <tfoot v-if="rawData.length > 0">
+                  <!-- <tfoot v-if="rawData.length > 0">
                     <tr class="bg-gray-100 font-bold">
                       <td colspan="2" class="text-md p-2 border border-gray-300 text-right">Total Amount:</td>
                       <td class="text-md p-2 border border-gray-300 text-right text-red-600">
                         {{ formatNumber(getTransactionsTotal()) }}
                       </td>
-                      <td colspan="5"></td>
+                      <td colspan="4"></td>
                     </tr>
-                  </tfoot>
+                  </tfoot> -->
                 </table>
               </div>
+                <div v-if="totalRows > 0" class="mt-6">
+                  <Pagination
+                    :page_number="search.page_num"
+                    :total_rows="totalRows"
+                    :itemsperpage="search.items_perpage"
+                    @page_num="handlePageNum"
+                  />
+                </div>
             </div>
           </div>
         </div>
@@ -201,55 +224,44 @@
 import { ref, computed, onMounted } from 'vue';
 import api from '@/Js/Services/axios';
 import { handleApiError } from '@/Views/Utility/Helper.js';
+import Pagination from '@/Js/Components/Paginate.vue';
 
 // State
 const loading = ref(false);
 const isCollapsed = ref(false);
 const isMaximized = ref(false);
+const totalRows = ref(0)
+
+const search = ref({
+  search: '',
+  page_num: 1,
+  items_perpage: 10,
+  transac_type: 0,
+  task_type:0
+})
+
 
 const dateRange = ref({
-  from: new Date().toISOString().slice(0, 10),
-  to: new Date().toISOString().slice(0, 10)
+  from: '',
+  to: ''
 });
+
+const handlePageNum = (page) => {
+  search.value.page_num = page
+  list()
+}
 
 // Store the response data
 const dataHeaders = ref([]);
 const rawData = ref([]);
 const itemInventory = ref([]);
 
-// Group data by date, with each header's value
-const groupedData = computed(() => {
-  const grouped = {};
-  
-  rawData.value.forEach(item => {
-    const date = item.date || 'Unknown';
-    const header = item.name;
-    const value = parseFloat(item.amount) || 0;
-    
-    if (!grouped[date]) {
-      grouped[date] = {};
-    }
-    
-    // SUM the values instead of overwriting
-    if (grouped[date][header]) {
-      grouped[date][header] += value;
-    } else {
-      grouped[date][header] = value;
-    }
-  });
-  
-  return grouped;
-});
-
 // Get column total for a specific header across all dates
 const getColumnTotal = (header) => {
-  let total = 0;
-  Object.values(groupedData.value).forEach(dateData => {
-    if (dateData[header]) {
-      total += dateData[header];
-    }
-  });
-  return total;
+  const item = itemInventory.value.find(i => i.itemName === header);
+  console.log(item);
+  
+  return item ? parseFloat(item.amount) : 0;
 };
 
 // Get total of all transactions
@@ -288,14 +300,15 @@ const formatDate = (dateString) => {
 };
 
 const list = async () => {
-  if (!dateRange.value.from || !dateRange.value.to) {
-    alert('Please select both from and to dates');
-    return;
-  }
+  // if (!dateRange.value.from || !dateRange.value.to) {
+  //   alert('Please select both from and to dates');
+  //   return;
+  // }
   
   loading.value = true;
   try {
     const response = await api.post('/vouchers/combined-inventory', {
+      ...search.value,
       dateFrom: dateRange.value.from,
       dateTo: dateRange.value.to
     });
@@ -305,6 +318,7 @@ const list = async () => {
       dataHeaders.value = response.data.data_headers || [];
       rawData.value = response.data.data || [];
       itemInventory.value = response.data.item_inventory || [];
+      totalRows.value = response.data.totalrows
     } else {
       alert(response.data.message || 'Failed to load data');
     }

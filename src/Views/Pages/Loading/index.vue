@@ -98,7 +98,7 @@
                             </tr>
                             <tr v-for="(team, index) in teams" :key="index" class="hover:bg-gray-50">
                               <td class="px-4 py-2">
-                                <span class="text-blue-600 font-medium cursor-pointer"">
+                                <span class="text-blue-600 font-medium cursor-pointer">
                                   {{ team.name }}
                                 </span>
                               </td>
@@ -112,7 +112,7 @@
 
                                 <template v-else >
                                   <p>Loading: </p>
-                                  <div v-for="item in team.assignedItem" class="leading-[30px]">
+                                  <div v-for="item in team.assignedItem" class="leading-[30px]" :key="item.id">
                                     <span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
                                       {{ item.itemName }}
                                     </span>

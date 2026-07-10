@@ -66,13 +66,18 @@ const themeByMonth = computed(() => {
   const isChristmas = currentMonth === 11; // December
   const isNewYear = currentMonth === 0; // January
   const isValentines = currentMonth === 1; // January
+  const isIndependece = currentMonth === 5; 
   const isHalloween = currentMonth === 9 && currentDay === 31; // Halloween on October 31
 
   if (isChristmas) {
     return { imageUrl: holidayImages[0], overlayClass: "bg-gray-800", holidayName: 'Merry Christmas!' }; // Christmas image
   } else if (isNewYear) {
     return { imageUrl: holidayImages[1], overlayClass: "bg-gray-800", holidayName: 'Happy New Year!' }; // New Year image
-  } else if (isHalloween) {
+  }
+  else if (isIndependece) {
+    return { imageUrl: holidayImages[4], overlayClass: "bg-gray-800", holidayName: 'Happy Independence Day!' }; // New Year image
+  }
+  else if (isHalloween) {
     return { imageUrl: holidayImages[9], overlayClass: "bg-gray-800", holidayName: 'Happy Halloween!' }; // Halloween image
   }
   // Default image if no holiday
@@ -125,7 +130,7 @@ const maxWidthClass = computed(() => {
               :src="themeByMonth.imageUrl"
               :alt="themeByMonth.holidayName"
               class="mx-auto rounded-full"
-              style="max-width: 70px; height: 70px;"
+              style="max-width: 100px; height: 100px;"
             />
           </div>
         </div>

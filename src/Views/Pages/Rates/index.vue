@@ -71,15 +71,12 @@
                               <span class="text-sm text-gray-600">Task Count: {{ totalrows }}</span>
                               <div class="flex gap-2">
                                 <NewClass 
-                                    :classifications="cdrop" 
-                                    @updated="fetchClassifications"
-                                  />
-                                  
-                                  <!-- Task Modal Button -->
-                                  <NewTask 
-                                    :classifications="cdrop" 
-                                    @saved="fetchRates"
-                                  />
+                                  :classifications="cdrop" 
+                                />
+                                <NewTask 
+                                  :classifications="cdrop" 
+                                  @saved="fetchRates"
+                                />
                               </div>
                             </div>
                           </th>
@@ -98,25 +95,26 @@
                       </thead>
                       <tbody class="divide-y divide-gray-200">
                         <tr v-if="data.length === 0">
-                          <td colspan="8" class="px-4 py-8 text-red-500 text-center">No Record Found</td>
+                          <td colspan="9" class="px-4 py-8 text-red-500 text-center">No Record Found</td>
                         </tr>
-                        <tr v-for="(t, tt) in data" :key="tt" class="hover:bg-gray-50 transition-colors">
+                        <tr v-for="(t, tt) in data" :key="t.id || tt" class="hover:bg-gray-50 transition-colors">
                           <td class="px-4 py-3 text-center">{{ tt + 1 }}</td>
+                          <td class="px-4 py-3">
+                            <input 
+                              type="text" 
+                              :value="t.classification_name || t.class" 
+                              disabled
+                              class="w-full px-3 py-1.5 bg-gray-100 border border-gray-300 rounded-lg text-sm"
+                            >
+                          </td>
                           <td class="px-4 py-3">
                             <select 
                               v-model="t.taskId" 
                               class="w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                              @change="onTaskChange(t)"
                             >
                               <option v-for="(cd, cdd) in cdrop" :key="cdd" :value="cd.id">{{ cd.task_name }}</option>
                             </select>
-                          </td>
-                          <td class="px-4 py-3">
-                            <input 
-                              type="text" 
-                              v-model="t.class" 
-                              disabled
-                              class="w-full px-3 py-1.5 bg-gray-100 border border-gray-300 rounded-lg text-sm"
-                            >
                           </td>
                           <td class="px-4 py-3">
                             <input 
@@ -130,6 +128,7 @@
                               type="number" 
                               v-model="t.multiplier" 
                               class="w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                              step="0.01"
                             >
                           </td>
                           <td class="px-4 py-3">
@@ -148,13 +147,26 @@
                           <td class="px-4 py-3">
                             <select 
                               v-model="t.itemInventoryId" 
+                              @focus="fetchItemsForRate(t)"
+                              @change="onItemChange(t)"
                               class="w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                             >
-                              <option value="">--SELECT--</option>
-                              <option v-for="item in itemList" :key="item.id" :value="item.id">
-                                {{ item.itemName }}
+                              <option :value="null">--Select--</option>
+                              <!-- Show the currently linked item first if it exists and not in the list -->
+                              <option 
+                                v-if="t.linkedItem && !isItemInList(t.itemList, t.itemInventoryId)"
+                                :value="t.itemInventoryId"
+                              >
+                                {{ t.linkedItem }}
                               </option>
-
+                              <!-- Show all items from the list -->
+                              <option 
+                                v-for="item in t.itemList" 
+                                :key="item.id" 
+                                :value="item.id"
+                              >
+                                {{ item.name }}
+                              </option>
                             </select>
                           </td>
                           <td class="px-4 py-3">
@@ -166,7 +178,7 @@
                           </td>
                           <td class="px-4 py-3">
                             <button 
-                              @click="updateRate(tt, t.id)" 
+                              @click="updateRate(t, tt)" 
                               class="px-3 py-1.5 bg-gradient-to-r from-green-600 to-green-700 text-white text-sm rounded-lg hover:from-green-700 hover:to-green-800 focus:ring-2 focus:ring-green-500 transition-all duration-200 flex items-center"
                             >
                               <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -196,18 +208,14 @@
         </div>
       </div>
     </section>
-
-    <!-- Modals will be added here later -->
-    <!-- <RatesModal v-if="clsModal" @close="clsModal = false" />
-    <TaskModal v-if="tskModal" @close="tskModal = false" /> -->
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 import Swal from 'sweetalert2'
 import api from '@/Js/Services/axios'
-import { FormDx, handleApiError } from '@/Views/Utility/Helper'
+import { FormDx, handleApiError, useDebounce } from '@/Views/Utility/Helper'
 import Paginate from '@/Js/Components/Paginate.vue'
 import NewClass from './Actions/NewClass.vue'
 import NewTask from './Actions/NewTask.vue'
@@ -228,7 +236,7 @@ const currentPage = ref(1)
 const rowCountPage = ref(10)
 const totalrows = ref(0)
 const pageRange = ref(5)
-const itemList = ref([])
+const isLoading = ref(false)
 
 const search = ref({
   search: '',
@@ -236,13 +244,19 @@ const search = ref({
   items_perpage: 10
 })
 
+// Helper function to check if an item exists in the list
+const isItemInList = (itemList, itemId) => {
+  if (!itemList || !itemId) return false
+  return itemList.some(item => item.id === itemId)
+}
+
 // Methods
 const maximize = () => {
-  // Implement maximize functionality
+  console.log('Maximize clicked')
 }
 
 const collapse = () => {
-  // Implement collapse functionality
+  console.log('Collapse clicked')
 }
 
 const filter = async () => {
@@ -255,49 +269,169 @@ const handlePageNum = (page_num) => {
   fetchRates()
 }
 
-const fetchRates = async () => {
+// const fetchClassifications = useDebounce(async () => {
+//   try {
+//     const response = await api.post('/classifications/list')
+    
+//     if (response.data && !response.data.error) {
+//       cdrop.value = response.data.classifications || []
+//     }
+//   } catch (error) {
+//     console.error('Failed to fetch classifications:', error)
+//     handleApiError(error)
+//   }
+// }, 500)
+
+// Get items for a specific rate row
+const getItemsForRate = (rate) => {
+  return rate.itemList || []
+}
+
+// Fetch items for a specific rate
+const fetchItemsForRate = useDebounce(async (rate) => {
+  if (!rate.taskId) {
+    rate.itemList = []
+    return
+  }
+
+  // Check if items are already loaded for this task
+  if (rate.itemList && rate.itemList.length > 0) {
+    return
+  }
+
+  try {
+    const response = await api.post('/rates/list-items', {
+      taskId: rate.taskId,
+      classificationId: rate.classificationId || rate.class_id
+    })
+
+    if (response.data && !response.data.error) {
+      const items = response.data.items || []
+      
+      // If there's a currently linked item that's not in the list, add it
+      if (rate.itemInventoryId && rate.linkedItem) {
+        const itemExists = items.some(item => item.id === rate.itemInventoryId)
+        if (!itemExists) {
+          // Add the current linked item to the list temporarily
+          items.unshift({
+            id: rate.itemInventoryId,
+            name: rate.linkedItem
+          })
+        }
+      }
+      
+      rate.itemList = items
+    }
+  } catch (error) {
+    console.error('Failed to fetch items:', error)
+    rate.itemList = []
+    handleApiError(error)
+  }
+}, 500)
+
+const onTaskChange = (rate) => {
+  // Reset item list when task changes
+  rate.itemList = []
+  rate.itemInventoryId = null
+  rate.linkedItem = null
+}
+
+const onItemChange = (rate) => {
+  // Update linkedItem when item changes
+  const selectedItem = rate.itemList.find(item => item.id === rate.itemInventoryId)
+  if (selectedItem) {
+    rate.linkedItem = selectedItem.name
+  } else {
+    rate.linkedItem = null
+  }
+  console.log('Selected item ID:', rate.itemInventoryId)
+  console.log('Selected item name:', rate.linkedItem)
+}
+
+const fetchRates = useDebounce(async () => {
+  if (isLoading.value) return
+  isLoading.value = true
+
   try {
     const formData = FormDx(search.value)
     const response = await api.post('/rates/list', formData)
     
     if (response.data && !response.data.error) {
-      data.value = response.data.rates
-      itemList.value = response.data.items || []
-      cdrop.value = response.data.tasks
+      // Initialize each rate with its own itemList
+      const rates = response.data.rates || []
+      data.value = rates.map(rate => ({
+        ...rate,
+        itemList: [],
+        itemInventoryId: rate.itemInventoryId || null,
+        linkedItem: rate.linkedItem || rate.item_name || null
+      }))
+      
+      // After setting data, fetch items for each rate that has a task
+      nextTick(() => {
+        data.value.forEach(rate => {
+          if (rate.taskId) {
+            fetchItemsForRate(rate)
+          }
+        })
+      })
+      
+      cdrop.value = response.data.tasks || []
       tcnt.value = response.data.total || 0
       totalrows.value = response.data.totalrows || 0
     }
   } catch (error) {
     console.error('Failed to fetch rates:', error)
-   handleApiError(error)
-  }
-}
-
-// const fetchClassifications = async () => {
-//   try {
-//     const response = await api.post('/classifications/list')
-    
-//     if (response.data && !response.data.error) {
-//       cdrop.value = response.data.classifications
-//     }
-//   } catch (error) {
-//     console.error('Failed to fetch classifications:', error)
-//   }
-// }
-
-const updateRate = async (index, classId) => {
-  const rate = data.value[index]
-  
-  try {
-    const response = await api.post('/rates/update', {
-      class_id: classId,
-      task: rate.taskId,
-      rate: rate.rate,
-      item_id: rate.itemInventoryId, 
-      multiplier: rate.multiplier,
-      rate_measurement: rate.rateMeasurement,
-      remarks: rate.remarks
+    await Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Failed to fetch rates',
+      timer: 3000,
+      showConfirmButton: false
     })
+    handleApiError(error)
+  } finally {
+    isLoading.value = false
+  }
+}, 500)
+
+const updateRate = async (rate, index) => {
+  // Validate required fields
+  if (!rate.taskId) {
+    await Swal.fire({
+      icon: 'warning',
+      title: 'Validation Error',
+      text: 'Please select a task',
+      timer: 2000,
+      showConfirmButton: false
+    })
+    return
+  }
+
+  if (!rate.rate || isNaN(parseFloat(rate.rate))) {
+    await Swal.fire({
+      icon: 'warning',
+      title: 'Validation Error',
+      text: 'Please enter a valid rate',
+      timer: 2000,
+      showConfirmButton: false
+    })
+    return
+  }
+
+  try {
+    const payload = {
+      class_id: rate.id || rate.class_id,
+      task: rate.taskId,
+      rate: parseFloat(rate.rate),
+      item_id: rate.itemInventoryId || null,
+      multiplier: parseFloat(rate.multiplier) || 0,
+      rate_measurement: rate.rateMeasurement || '',
+      remarks: rate.remarks || ''
+    }
+
+    console.log('Update payload:', payload)
+
+    const response = await api.post('/rates/update', payload)
     
     if (response.data && !response.data.error) {
       await Swal.fire({
@@ -308,22 +442,39 @@ const updateRate = async (index, classId) => {
         showConfirmButton: false
       })
       await fetchRates()
+    } else {
+      throw new Error(response.data.message || 'Update failed')
     }
   } catch (error) {
     console.error('Failed to update rate:', error)
     await Swal.fire({
       icon: 'error',
       title: 'Error',
-      text: 'Failed to update rate',
-      timer: 1500,
+      text: error.message || 'Failed to update rate',
+      timer: 3000,
       showConfirmButton: false
     })
+    handleApiError(error)
   }
 }
 
 // Initialize
-onMounted(() => {
-//   fetchClassifications()
-  fetchRates()
+onMounted(async () => {
+  try {
+    await Promise.all([
+      // fetchClassifications(),
+      fetchRates()
+    ])
+  } catch (error) {
+    console.error('Failed to initialize component:', error)
+  }
 })
 </script>
+
+<style scoped>
+.breadcrumb-item + .breadcrumb-item::before {
+  content: "/";
+  padding: 0 0.5rem;
+  color: #6b7280;
+}
+</style>
