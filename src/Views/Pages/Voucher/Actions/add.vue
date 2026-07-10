@@ -23,7 +23,7 @@
       <div class="p-6 space-y-4">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <!-- Transaction Time -->
-          <div>
+          <!-- <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Transaction Time:</label>
             <SelectComponent
               v-model="voucher.transaction_time"
@@ -31,10 +31,10 @@
               placeholder="--Select Transaction Time--"
             />
           </div>
-          <div></div>
+          <div></div>  -->
 
           <!-- Paid To / Supplier (using Dropdown Component) -->
-          <div>
+          <div class="border border-blue-300 border-[2px] rounded-lg p-2">
             <label class="block text-sm font-medium text-gray-700 mb-1">
               Paid To: 
               <i v-if="selectedSupplier?.supplierTier" :class="getMedalIconClass(selectedSupplier?.supplierTier)" class="ml-1"></i>
@@ -53,7 +53,7 @@
               formatLabel="none"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
-            <span v-if="selectedSupplier" class="inline-flex items-center rounded-md mt-2 bg-red-400/10 px-4 py-3 text-sm font-medium text-red-400 inset-ring inset-ring-red-400/20">Supplier: {{ selectedSupplier.supplier_name }}</span>
+            <span v-if="selectedSupplier" class="inline-flex items-center rounded-md bg-red-400/10 p-2 mt-1 text-sm font-medium text-red-400 inset-ring inset-ring-red-400/20 border border-red-400/20">Supplier: {{ selectedSupplier.supplier_name }}</span>
           </div>
 
           <!-- Weigh Slip No -->
@@ -85,12 +85,12 @@
               type="date" 
               disabled
               v-model="voucher.date" 
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-200"
             />
           </div>
 
           <!-- Workers Selection (using Dropdown Component for adding workers) -->
-          <div class="md:col-span-2">
+          <div class="md:col-span-2 border border-blue-300 border-[2px] rounded-lg p-2">
             <label class="block text-sm font-medium text-gray-700 mb-1">Workers:</label>
             
             <!-- Dropdown for selecting workers -->
@@ -106,11 +106,11 @@
                 @item-selected="addWorker"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
-              <p class="text-xs text-gray-500 mt-1">Search and select workers to add them to the list</p>
+              <!-- <p class="text-xs text-gray-500 mt-1">Search and select workers to add them to the list</p> -->
             </div>
 
             <!-- Selected Workers as Input Fields -->
-            <div class="space-y-2 mt-3">
+            <div class="space-y-2 mt-1">
               <div 
                 v-for="(worker, index) in selectedWorkers" 
                 :key="index"
@@ -121,7 +121,7 @@
                     type="text" 
                     :value="worker.label" 
                     readonly
-                    class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-700"
+                    class="w-full px-3 py-2 bg-blue-50 border border-blue-300 rounded-lg text-gray-700"
                   />
                 </div>
                 <button 
@@ -221,7 +221,7 @@
                       placeholder="Auto"
                     />
                     <div v-if="t.gross_weight" class="text-xs text-gray-500">
-                      Base: {{ t.task_deduction || 0 }}
+                      Base: {{ t.task_deduction || 0 }}%
                     </div>
                   </div>
                 </td>
