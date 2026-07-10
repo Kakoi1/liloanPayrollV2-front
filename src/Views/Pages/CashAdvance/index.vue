@@ -7,7 +7,7 @@
     </div>
 
     <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <!-- <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
       <div class="bg-white rounded-lg shadow p-4 border-l-4 border-blue-500">
         <div class="flex justify-between items-start">
           <div>
@@ -63,32 +63,34 @@
           </div>
         </div>
       </div>
-    </div>
+    </div> -->
 
     <!-- Filters -->
     <div class="bg-white rounded-lg shadow mb-6 p-4">
       <div class="flex flex-wrap gap-3 items-end">
         <div class="flex-1 min-w-[180px]">
           <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-          <select v-model="filters.status" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-            <option value="">All</option>
-            <option value="pending">Pending</option>
-            <option value="approved">Approved</option>
-            <option value="released">Released</option>
-            <option value="paid">Fully Paid</option>
+          <select v-model="search.status" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+            <option :value="0">All</option>
+            <option :value="1">Pending</option>
+            <option :value="2">Fully Paid</option>
           </select>
         </div>
         <div class="flex-1 min-w-[180px]">
           <label class="block text-sm font-medium text-gray-700 mb-1">Date From</label>
-          <input type="date" v-model="filters.dateFrom" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+          <input type="date" v-model="search.dateFrom" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
         </div>
         <div class="flex-1 min-w-[180px]">
           <label class="block text-sm font-medium text-gray-700 mb-1">Date To</label>
-          <input type="date" v-model="filters.dateTo" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+          <input type="date" v-model="search.dateTo" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
         </div>
         <div class="flex-1 min-w-[200px]">
           <label class="block text-sm font-medium text-gray-700 mb-1">Search Supplier</label>
-          <input type="text" v-model="filters.search" placeholder="Search by name or code..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+          <input type="search" 
+          placeholder="Search..." 
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+          v-model="search.search" 
+          @keyup="filter">
         </div>
         <div>
           <button @click="fetchData" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
@@ -96,9 +98,7 @@
           </button>
         </div>
         <div>
-          <button @click="openAddModal" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
-            + New Cash Advance
-          </button>
+          <AddCashAdvance @saved="handleSaved" />
         </div>
       </div>
     </div>
@@ -111,9 +111,9 @@
             <tr>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Supplier</th>
               <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Amount</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Request Date</th>
+              <!-- <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Request Date</th> -->
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Release Date</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Payment Terms</th>
+              <!-- <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Payment Terms</th> -->
               <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Balance</th>
               <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Status</th>
               <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Actions</th>
@@ -125,9 +125,9 @@
                 <div class="font-medium text-gray-900">{{ item.supplier_name }}</div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-right font-semibold">{{ formatCurrency(item.amount) }}</td>
-              <td class="px-6 py-4 whitespace-nowrap">{{ formatDate(item.request_date) }}</td>
-              <td class="px-6 py-4 whitespace-nowrap">{{ formatDate(item.release_date) || '-' }}</td>
-              <td class="px-6 py-4 whitespace-nowrap">{{ item.payment_terms }}</td>
+              <!-- <td class="px-6 py-4 whitespace-nowrap">{{ formatDate(item.request_date) }}</td> -->
+              <td class="px-6 py-4 whitespace-nowrap">{{ item.date || '-' }}</td>
+              <!-- <td class="px-6 py-4 whitespace-nowrap">{{ item.payment_terms }}</td> -->
               <td class="px-6 py-4 whitespace-nowrap text-right">{{ formatCurrency(item.balance) }}</td>
               <td class="px-6 py-4 whitespace-nowrap text-center">
                 <span :class="getStatusClass(item.status)" class="px-2 py-1 text-xs rounded-full">
@@ -136,12 +136,8 @@
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-center">
                 <div class="flex justify-center gap-2">
-                  <button @click="openViewModal(item)" class="text-blue-600 hover:text-blue-800" title="View">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                    </svg>
-                  </button>
+                  
+                  <ViewCashAdvance :caId="item.id" />
                   <button v-if="item.status === 'pending'" @click="approveRequest(item.id)" class="text-green-600 hover:text-green-800" title="Approve">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
@@ -165,45 +161,64 @@
             </tr>
           </tbody>
         </table>
+          <Pagination
+            :page_number="search.page_num"
+            :total_rows="totalRows"
+            :itemsperpage="search.items_perpage"
+            @page_num="handlePageNum"
+          />
       </div>
     </div>
 
     <!-- Modals -->
-    <ViewCashAdvance ref="viewModalRef" @approved="handleApproved" @released="handleReleased" />
-    <AddCashAdvance ref="addModalRef" :suppliers="supplierList" @saved="handleSaved" />
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
+import Pagination from '@/Js/Components/Paginate.vue'
 import Swal from 'sweetalert2'
-// import ViewCashAdvance from './Actions/ViewCashAdvance.vue'
+import ViewCashAdvance from './Actions/view.vue'
 import AddCashAdvance from './Actions/add.vue'
+import { FormDx, handleApiError } from '@/Views/Utility/Helper.js'
+import api from '@/Js/Services/axios.js'
 
 // Refs for modals
-const viewModalRef = ref(null)
-const addModalRef = ref(null)
+
 
 // State
 const cashAdvances = ref([])
 const supplierList = ref([])
 const loading = ref(false)
+const totalRows = ref(0)
 
-const filters = reactive({
-  status: '',
+const search = ref({
+  status: 0,
   dateFrom: '',
   dateTo: '',
-  search: ''
+  search: '',
+  page_num: 1,
+  items_perpage: 10
 })
 
 // Stats
-const stats = computed(() => {
-  const total = cashAdvances.value.length
-  const totalAmount = cashAdvances.value.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0)
-  const pending = cashAdvances.value.filter(item => item.status === 'pending').length
-  const suppliers = [...new Set(cashAdvances.value.map(item => item.supplier_id))].length
-  return { total, totalAmount, pending, suppliers }
-})
+// const stats = computed(() => {
+//   const total = cashAdvances.value.length
+//   const totalAmount = cashAdvances.value.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0)
+//   const pending = cashAdvances.value.filter(item => item.status === 'pending').length
+//   const suppliers = [...new Set(cashAdvances.value.map(item => item.supplier_id))].length
+//   return { total, totalAmount, pending, suppliers }
+// })
+
+const filter = async () => {
+  search.value.page_num = 1
+  await fetchCompensations()
+}
+
+const handlePageNum = (page_num) => {
+  search.value.page_num = page_num
+  fetchCompensations()
+}
 
 // Helper functions
 const formatCurrency = (amount) => {
@@ -220,20 +235,20 @@ const formatDate = (date) => {
 
 const getStatusClass = (status) => {
   const classes = {
-    pending: 'bg-yellow-100 text-yellow-800',
-    approved: 'bg-blue-100 text-blue-800',
-    released: 'bg-purple-100 text-purple-800',
-    paid: 'bg-green-100 text-green-800'
+    // pending: 'bg-yellow-100 text-yellow-800',
+    // approved: 'bg-blue-100 text-blue-800',
+    1: 'bg-purple-100 text-purple-800',
+    2: 'bg-green-100 text-green-800'
   }
   return classes[status] || 'bg-gray-100 text-gray-800'
 }
 
 const getStatusText = (status) => {
   const texts = {
-    pending: 'Pending',
-    approved: 'Approved',
-    released: 'Released',
-    paid: 'Fully Paid'
+    // pending: 'Pending',
+    // approved: 'Approved',
+    1: 'Released',
+    2: 'Fully Paid'
   }
   return texts[status] || status
 }
@@ -241,36 +256,24 @@ const getStatusText = (status) => {
 // API calls
 const fetchData = async () => {
   loading.value = true
+  const formData = FormDx(search.value)
   try {
-    await new Promise(resolve => setTimeout(resolve, 500))
+    const response = await api.post('/cash-advance/list', formData)
+
+    if (response.data && !response.data.error) { 
+      cashAdvances.value = response.data.data
+      totalRows.value = response.data.totalrows
+    }
     
-    cashAdvances.value = [
-      { id: 1, supplier_name: 'ABC Trading', supplier_code: 'SUP001', contact_person: 'John Reyes', amount: 50000, request_date: '2024-01-15', release_date: '2024-01-20', payment_terms: '30 days', balance: 0, status: 'paid', remarks: 'Raw materials purchase' },
-      { id: 2, supplier_name: 'XYZ Supply', supplier_code: 'SUP002', contact_person: 'Maria Santos', amount: 75000, request_date: '2024-02-10', release_date: null, payment_terms: '60 days', balance: 75000, status: 'pending', remarks: 'Equipment procurement' },
-      { id: 3, supplier_name: 'Mega Distributors', supplier_code: 'SUP003', contact_person: 'Robert Cruz', amount: 120000, request_date: '2024-02-05', release_date: '2024-02-08', payment_terms: '90 days', balance: 80000, status: 'approved', remarks: 'Bulk order' }
-    ]
-    
-    supplierList.value = [
-      { id: 1, name: 'ABC Trading', supplier_code: 'SUP001', contact_person: 'John Reyes' },
-      { id: 2, name: 'XYZ Supply', supplier_code: 'SUP002', contact_person: 'Maria Santos' },
-      { id: 3, name: 'Mega Distributors', supplier_code: 'SUP003', contact_person: 'Robert Cruz' }
-    ]
   } catch (error) {
     console.error('Failed to fetch data:', error)
+    handleApiError(error)
   } finally {
     loading.value = false
   }
 }
 
 // Modal handlers
-const openViewModal = (item) => {
-  viewModalRef.value?.open(item)
-}
-
-const openAddModal = () => {
-  addModalRef.value?.open()
-}
-
 const handleSaved = async (data) => {
   try {
     await Swal.fire({ icon: 'success', title: 'Success!', text: 'Cash advance request submitted', timer: 1500, showConfirmButton: false })

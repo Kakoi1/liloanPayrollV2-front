@@ -461,9 +461,8 @@ const saveTask = async () => {
     await Swal.fire({
       icon: 'error',
       title: 'Error',
-      text: 'Failed to save production tasks',
-      timer: 1500,
-      showConfirmButton: false
+      text: 'Failed to save production tasks: '+ error.response?.data?.message || error.message || 'An error occurred',
+      showConfirmButton: true
     })
   }
 }
