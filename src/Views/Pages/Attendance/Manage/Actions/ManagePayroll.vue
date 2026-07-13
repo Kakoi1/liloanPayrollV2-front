@@ -214,7 +214,7 @@
                       <span v-else class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">For Approval</span>
                     </td>
                     <td class="px-3 py-2">
-                      <input type="date" v-model="task.date" class="w-full px-2 py-1 border border-gray-300 rounded text-sm">
+                      <input type="date" @change="getDayType(task)" v-model="task.date" class="w-full px-2 py-1 border border-gray-300 rounded text-sm">
                     </td>
                     <td class="px-3 py-2">
                       <select v-model="task.dayType" @change="updateTaskTotal(task)" class="w-full px-2 py-1 border border-gray-300 rounded text-sm">
@@ -308,7 +308,7 @@
                       <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Draft</span>
                     </td>
                     <td class="px-3 py-2">
-                      <input type="date" v-model="task.date" class="w-full px-2 py-1 border border-gray-300 rounded text-sm">
+                      <input type="date" @change="getDayType(task)" v-model="task.date" class="w-full px-2 py-1 border border-gray-300 rounded text-sm">
                     </td>
                     <td class="px-3 py-2">
                       <select v-model="task.dayType" @change="updateTaskTotal(task)" class="w-full px-2 py-1 border border-gray-300 rounded text-sm">
@@ -679,7 +679,16 @@ const calculateHourlyRate = (type, daily, hours) => {
     }
 }
 
-
+const getDayType = async (task) => {
+  console.log(task);
+  
+  const response = await api.post('payroll/get-day-type', { date: task.date })
+  console.log(response.data.dayType);
+  
+  if (!response.data.error) {
+     task.dayType = response.data.dayType
+  }
+}
 
 const updateTaskTotal = (task) => {
   let hours = parseFloat(task.netKgPerEmp) || 0

@@ -432,6 +432,12 @@
                 <span>System Logs</span>
               </span>
             </RouterLink>
+            <RouterLink to="/holidays" class="block py-2 px-2 text-sm rounded hover:bg-gray-800 hover:text-green-400 transition-colors">
+              <span class="flex items-center space-x-2">
+                <span class="w-1 h-1 bg-green-400 rounded-full"></span>
+                <span>Holidays</span>
+              </span>
+            </RouterLink>
           </div>
         </transition>
 
