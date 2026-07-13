@@ -686,7 +686,8 @@ const getDayType = async (task) => {
   console.log(response.data.dayType);
   
   if (!response.data.error) {
-     task.dayType = response.data.dayType
+    task.dayType = response.data.dayType
+     updateTaskTotal(task)
   }
 }
 
