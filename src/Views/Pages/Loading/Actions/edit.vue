@@ -37,7 +37,7 @@
         <div class="space-y-4">
           <!-- Loading Date -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Loading Date:</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Loading Start Date:</label>
             <input 
               type="date" 
               v-model="formData.loadingDate" 
@@ -78,6 +78,38 @@
             />
           </div>
 
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Select Team:</label>
+          <SelectComponent
+            v-model="selectedTeam"
+            :options="teamOptions"
+            placeholder="-- Choose Team --"
+            class="w-full"
+          />
+
+          <div v-if="selectedTeam && selectedTeamDetails" class="bg-blue-50 p-3 rounded-lg border border-blue-200">
+            <h5 class="text-sm font-medium text-blue-700 mb-2 flex items-center">
+              <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+              </svg>
+              Team Members
+            </h5>
+            <div class="flex flex-wrap gap-1">
+              <span 
+                v-for="(member, idx) in selectedTeamDetails[0].members" 
+                :key="idx"
+                class="inline-flex items-center px-2 py-0.5 bg-blue-100 text-blue-800 text-xs rounded-full"
+              >
+                {{ member.fullName || member.name }}
+              </span>
+              <span v-if="!selectedTeamDetails[0].members || selectedTeamDetails[0].members.length === 0" class="text-xs text-gray-500">
+                No members in this team
+              </span>
+            </div>
+          </div>
+
+        </div>
+
           <!-- Container Weight -->
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Container Weight:</label>
@@ -116,6 +148,15 @@
             <!-- <p class="text-xs text-gray-500 mt-1">Net Weight = Gross Weight - Container Weight</p> -->
           </div>
 
+           <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Loading End Date:</label>
+            <input 
+              type="date" 
+              v-model="formData.end_date" 
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+            />
+          </div>
+
           <!-- Team Assignment -->
           <!-- <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Assign Team:</label>
@@ -139,7 +180,6 @@
           <button 
             @click="updateLoading" 
             class="px-4 py-2 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white font-medium rounded-lg hover:from-yellow-600 hover:to-yellow-700 focus:ring-2 focus:ring-yellow-500 transition-all duration-200 flex items-center"
-            :disabled="!isFormValid"
           >
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
@@ -153,7 +193,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import Swal from 'sweetalert2'
 import moment from 'moment'
 import api from '@/Js/Services/axios'
@@ -173,6 +213,8 @@ const emit = defineEmits(['updated'])
 const showModal = ref(false)
 const itemOptions = ref([])
 const teamOptions = ref([])
+const selectedTeam = ref(null)
+const selectedTeamDetails = ref(null)
 const formData = ref({
   loadingId: null,
   loadingDate: '',
@@ -181,21 +223,24 @@ const formData = ref({
   itemId: '',
   containerWeight: 0,
   grossWeight: 0,
+  team_id: null,
+  end_date: ''
 })
 const calculatedNetWeight = ref(0)
 
-// Computed
-const isFormValid = computed(() => {
-  return formData.value.vanNo && 
-         formData.value.sealNo && 
-         formData.value.itemId && 
-         formData.value.containerWeight !== '' &&
-         formData.value.grossWeight !== ''
-})
+// // Computed
+// const isFormValid = computed(() => {
+//   return formData.value.vanNo && 
+//          formData.value.sealNo && 
+//          formData.value.itemId && 
+//          formData.value.containerWeight !== '' &&
+//          formData.value.grossWeight !== ''
+// })
 
 // Methods
 const openModal = () => {
   showModal.value = true
+  selectedTeam.value = props.loading.teamId ?? 0
   fetchItems()
   fetchTeams()
   loadFormData()
@@ -210,6 +255,8 @@ const loadFormData = () => {
     itemId: props.loading.itemId || '',
     containerWeight: parseFloat(props.loading.containerWeight) || 0,
     grossWeight: parseFloat(props.loading.grossWeight) || 0,
+    team_id: selectedTeam.value,
+    end_date: props.loading.endDate
   }
   calculateNetWeight()
 }
@@ -222,7 +269,14 @@ const formatNumber = (value) => {
 const calculateNetWeight = () => {
   const gross = parseFloat(formData.value.grossWeight) || 0
   const container = parseFloat(formData.value.containerWeight) || 0
-  calculatedNetWeight.value = (gross - container).toFixed(2)
+
+  let total_weight = gross - container
+
+  if (total_weight < 1) {
+    total_weight = 0
+  }
+
+  calculatedNetWeight.value = total_weight.toFixed(2)
 }
 
 const fetchItems = async () => {
@@ -255,17 +309,31 @@ const fetchTeams = async () => {
   }
 }
 
-const updateLoading = async () => {
-  if (!isFormValid.value) {
-    await Swal.fire({
-      icon: 'warning',
-      title: 'Warning',
-      text: 'Please fill in all required fields',
-      timer: 1500,
-      showConfirmButton: false
+const fetchTeamDetails = async (teamId) => {
+  if (!teamId) return
+  try {
+    const response = await api.post('/teams/details', {
+      team_id: teamId
     })
-    return
+    if (response.data && !response.data.error) {
+      selectedTeamDetails.value = response.data.team
+    }
+  } catch (error) {
+    console.error('Failed to fetch team details:', error)
   }
+}
+
+const updateLoading = async () => {
+  // if (!isFormValid.value) {
+  //   await Swal.fire({
+  //     icon: 'warning',
+  //     title: 'Warning',
+  //     text: 'Please fill in all required fields',
+  //     timer: 1500,
+  //     showConfirmButton: false
+  //   })
+  //   return
+  // }
 
   try {
     const response = await api.post('/loading/edit', {
@@ -275,8 +343,10 @@ const updateLoading = async () => {
       seal_no: formData.value.sealNo,
       item_id: formData.value.itemId,
       container_weight: formData.value.containerWeight,
-      gross_weight: formData.value.grossWeight,
+      gross_weight: formData.value.grossWeight ?? 0,
       net_weight: calculatedNetWeight.value,
+      team_id: selectedTeam.value,
+      end_date: formData.value.end_date
     })
 
     if (response.data && !response.data.error) {
@@ -305,6 +375,7 @@ const updateLoading = async () => {
 
 const closeModal = () => {
   showModal.value = false
+  selectedTeamDetails.value = null
   formData.value = {
     loadingId: null,
     loadingDate: '',
@@ -315,5 +386,13 @@ const closeModal = () => {
     grossWeight: 0,
   }
   calculatedNetWeight.value = 0
+  selectedTeam.value = null
 }
+watch(selectedTeam, (newTeamId) => {
+  if (newTeamId) {
+    fetchTeamDetails(newTeamId)
+  } else {
+    selectedTeamDetails.value = null
+  }
+})
 </script>

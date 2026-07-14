@@ -23,7 +23,7 @@
       <div class="p-6 space-y-4">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <!-- Transaction Time -->
-          <!-- <div>
+          <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Transaction Time:</label>
             <SelectComponent
               v-model="voucher.transaction_time"
@@ -31,7 +31,7 @@
               placeholder="--Select Transaction Time--"
             />
           </div>
-          <div></div>  -->
+          <div></div> 
 
           <!-- Paid To / Supplier (using Dropdown Component) -->
           <div class="border border-blue-300 border-[2px] rounded-lg p-2">
@@ -54,6 +54,13 @@
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
             <span v-if="selectedSupplier" class="inline-flex items-center rounded-md bg-red-400/10 p-2 mt-1 text-sm font-medium text-red-400 inset-ring inset-ring-red-400/20 border border-red-400/20">Supplier: {{ selectedSupplier.supplier_name }}</span>
+
+            <span v-if="hasCashAdvance && cashAdvance" class="inline-flex items-center rounded-md mt-1 ml-2 bg-yellow-400/10 px-4 py-3 text-sm font-medium  inset-ring inset-ring-yellow-400/20">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Cash Advance: ₱{{ parseFloat(cashAdvance.balance).toFixed(2) }}
+              </span>
           </div>
 
           <!-- Weigh Slip No -->

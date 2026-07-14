@@ -141,6 +141,15 @@
           </div>
         </div>
 
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Loading End Date:</label>
+          <input 
+            type="date" 
+            v-model="end_date" 
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+          />
+        </div>
+
         <!-- Action Buttons -->
         <div class="flex justify-end space-x-3 mt-6">
           <button 
@@ -187,6 +196,7 @@ const showModal = ref(false)
 const selectedTeam = ref(null)
 const selectedTeamDetails = ref(null)
 const teamOptions = ref([])
+const end_date = ref('')
 const payrollDate = ref(new Date().toISOString().split('T')[0])
 
 // Computed
@@ -278,6 +288,34 @@ const finishLoading = async () => {
     })
     return
   }
+  
+  if (!props.loading.itemId) {
+    await Swal.fire({
+      icon: 'warning',
+      title: 'Warning',
+      text: 'Please select an item to finish Loading',
+      showConfirmButton: true
+    })
+    return
+  }
+  if (props.loading.grossWeight <= 0 && props.loading.netWeight <= 0) {
+    await Swal.fire({
+      icon: 'warning',
+      title: 'Warning',
+      text: 'Gross and Net Wight must Not be 0',
+      showConfirmButton: true
+    })
+    return
+  }
+  if (!end_date.value) {
+    await Swal.fire({
+      icon: 'warning',
+      title: 'Warning',
+      text: 'Please select a End date',
+      showConfirmButton: true
+    })
+    return
+  }
 
   // Validate payroll date range
   if (payrollDate.value < minPayrollDate.value || payrollDate.value > maxPayrollDate.value) {
@@ -296,7 +334,7 @@ const finishLoading = async () => {
     try {
       const assignResponse = await api.post('/loading/assign-team', {
         loading_id: props.loading.id,
-        team_id: selectedTeam.value
+        team_id: selectedTeam.value,
       })
       if (assignResponse.data && !assignResponse.data.error) {
         // Team assigned successfully
@@ -333,7 +371,8 @@ const finishLoading = async () => {
       const response = await api.post('/loading/finish', {
         loading_id: props.loading.id,
         team_id: selectedTeam.value,
-        payroll_date: payrollDate.value
+        payroll_date: payrollDate.value,
+        end_date: end_date.value
       })
 
       if (response.data && !response.data.error) {
