@@ -610,6 +610,8 @@ const handleSupplierSelected = async (supplier) => {
   selectedSupplier.value = supplier
   voucher.value.payee = supplier.id
   voucher.value.tier = supplier.supplierTier
+  cashAdvance.value = null
+  hasCashAdvance.value = false
 
    await checkCashAdvance(supplier.id)
 }
@@ -875,10 +877,20 @@ const saveVoucher = async () => {
         icon: 'success',
         title: 'Success!',
         text: response.data.message,
-        timer: 1500,
-        showConfirmButton: false
+        // timer: 1500,
+        showConfirmButton: true
       })
-      
+
+    const pdf = atob(response.data.pdf);
+
+    const bytes = new Uint8Array(pdf.length);
+    for (let i = 0; i < pdf.length; i++) {
+        bytes[i] = pdf.charCodeAt(i);
+    }
+
+    const blob = new Blob([bytes], { type: 'application/pdf' });
+    window.open(URL.createObjectURL(blob));
+            
       emit('saved')
       closeModal()
     }
@@ -917,6 +929,8 @@ const resetForm = () => {
 
 const closeModal = () => {
   showModal.value = false
+  cashAdvance.value = null
+  hasCashAdvance.value = false
   resetForm()
 }
 </script>
