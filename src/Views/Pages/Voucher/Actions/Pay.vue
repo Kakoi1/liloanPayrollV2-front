@@ -434,8 +434,9 @@ const editData = ref({
 
 // Options
 const transactionTimeOptions = [
-  { value: 1, label: 'Morning' },
-  { value: 2, label: 'Afternoon' }
+  { value: '1', label: 'Morning' },
+  { value: '2', label: 'Afternoon' },
+  { value: '3', label: 'Evening' },
 ]
 
 // Helper Functions for Tier

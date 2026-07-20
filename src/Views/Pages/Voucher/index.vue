@@ -203,8 +203,8 @@
                           <td class="px-4 py-3">{{ v.weightSlip }}</td>
                           <td class="px-4 py-3 font-medium">{{ formatCurrency(v.totalAmount) }}</td>
                           <td class="px-4 py-3">
-                            <span :class="v.transactionTime == 1 ? 'text-blue-600' : 'text-orange-600'">
-                              {{ v.transactionTime == 1 ? 'Morning' : 'Afternoon' }}
+                            <span :class="getTransStyle(v.transactionTime)">
+                              {{ getTransText(v.transactionTime)}}
                             </span>
                           </td>
                           <td class="px-4 py-3" v-html="getStatusLabel(v.status)"></td>
@@ -271,6 +271,32 @@ const props = defineProps({
     default: ''
   }
 })
+
+const getTransStyle = (type) => {
+  switch(type) {
+    case 1:
+      return 'text-green-600'
+    case 2:
+      return 'text-orange-600'
+    case 3:
+      return 'text-blue-600'
+    default:
+      return 'text-gray-600'
+  }
+}
+
+const getTransText= (type) => {
+  switch(type) {
+    case 1:
+      return 'Morning'
+    case 2:
+      return 'Afternoon'
+    case 3:
+      return 'Evening'
+    default:
+      return 'Undefined'
+  }
+}
 
 // State
 const data = ref([])

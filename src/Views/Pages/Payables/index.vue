@@ -136,8 +136,8 @@
 
                 <!-- Morning Section -->
                 <div class="w-full mt-4">
-                  <div class="bg-red-50 p-2 rounded-t-lg border border-red-200">
-                    <h4 class="text-red-600 font-semibold">Morning</h4>
+                  <div class="bg-green-50 p-2 rounded-t-lg border border-green-200">
+                    <h4 class="text-green-600 font-semibold">Morning</h4>
                   </div>
                   <div class="overflow-x-auto border border-t-0 border-gray-200 rounded-b-lg">
                     <table class="w-full text-sm border-collapse">
@@ -156,7 +156,7 @@
                       </thead>
                       <tbody class="divide-y divide-gray-200">
                         <tr v-if="!morningData || morningData.length === 0">
-                          <td :colspan="userPosition === 'SuperAdmin' ? 9 : 8" class="px-4 py-8 text-red-500 text-center">
+                          <td :colspan="userPosition === 'SuperAdmin' ? 9 : 8" class="px-4 py-8 text-green-500 text-center">
                             No vouchers available
                           </td>
                         </tr>
@@ -295,6 +295,86 @@
                     </table>
                   </div>
                 </div>
+                <!-- Evening Section -->
+                <div class="w-full mt-6">
+                  <div class="bg-blue-50 p-2 rounded-t-lg border border-blue-200">
+                    <h4 class="text-blue-600 font-semibold">Evening</h4>
+                  </div>
+                  <div class="overflow-x-auto border border-t-0 border-gray-200 rounded-b-lg">
+                    <table class="w-full text-sm border-collapse">
+                      <thead class="bg-gray-100">
+                        <tr>
+                          <th v-if="userPosition === 'SuperAdmin'" class="px-4 py-3 text-center w-12">Select</th>
+                          <th class="px-4 py-3 text-center">No.</th>
+                          <th class="px-4 py-3 text-left">Customer Name</th>
+                          <th class="px-4 py-3 text-right">Amount</th>
+                          <th class="px-4 py-3 text-left">Bank</th>
+                          <th class="px-4 py-3 text-left">Account Number</th>
+                          <th class="px-4 py-3 text-center">Proof</th>
+                          <th class="px-4 py-3 text-center">Status</th>
+                          <th class="px-4 py-3 text-center">Actions</th>
+                         </tr>
+                      </thead>
+                      <tbody class="divide-y divide-gray-200">
+                        <tr v-if="!eveningData || eveningData.length === 0">
+                          <td :colspan="userPosition === 'SuperAdmin' ? 9 : 8" class="px-4 py-8 text-red-500 text-center">
+                            No vouchers available
+                           </td>
+                        </tr>
+                        <tr v-for="(voucher, index) in eveningData" :key="voucher.id" class="hover:bg-gray-50">
+                          <td v-if="userPosition === 'SuperAdmin'" class="px-4 py-3 text-center">
+                            <input 
+                              type="checkbox" 
+                              v-model="voucher.selected" 
+                              class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                            />
+                           </td>
+                          <td class="px-4 py-3 text-center">{{ index + 1 }}</td>
+                          <td class="px-4 py-3 text-left">{{ voucher.supplier_name }}</td>
+                          <td class="px-4 py-3 text-right font-medium">{{ formatCurrency(voucher.totalAmount) }}</td>
+                          <td class="px-4 py-3 text-left">{{ voucher.bankName || '-' }}</td>
+                          <td class="px-4 py-3 text-left">{{ voucher.bankAccount || '-' }}</td>
+                          <td class="px-4 py-3 text-center">
+                            <a 
+                              v-if="voucher.proof"
+                              :href="voucher.proof"
+                              target="_blank"
+                              class="text-blue-600 hover:text-blue-800 underline"
+                            >
+                              Proof
+                            </a>
+                            <span v-else class="text-gray-400">No Proof</span>
+                           </td>
+                          <td class="px-4 py-3 text-center" v-html="getStatusLabel(voucher.status)"></td>
+                          <td class="px-4 py-3 text-center">
+                            <div class="flex justify-center space-x-1">
+                              <button 
+                                :disabled="voucher.status == 4"
+                                @click="markAsPaid(voucher.id)"
+                                class="p-1.5 bg-gradient-to-r from-green-600 to-green-700 text-white rounded hover:from-green-700 hover:to-green-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                title="Mark Voucher as Paid"
+                              >
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                              </button>
+                              <button 
+                                v-if="voucher.status == 4"
+                                @click="undoPayment(voucher.id)"
+                                class="p-1.5 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded hover:from-gray-700 hover:to-gray-800 transition-all duration-200"
+                                title="Undo Payment"
+                              >
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                              </button>
+                            </div>
+                           </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -326,6 +406,7 @@ const dateRange = ref({
 })
 const morningData = ref([])
 const afternoonData = ref([])
+const eveningData = ref([])
 
 // Methods
 const maximize = () => {}
@@ -391,6 +472,10 @@ const list = async () => {
       
       // Map afternoon data with selected property
       afternoonData.value = (data.afternoon || []).map(v => ({
+        ...v,
+        selected: false
+      }))
+      eveningData.value = (data.evening || []).map(v => ({
         ...v,
         selected: false
       }))

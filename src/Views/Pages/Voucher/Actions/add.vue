@@ -24,7 +24,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <!-- Transaction Time -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Transaction Time:</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Transaction Time: <sub class="text-red-400">(optional)</sub></label>
             <SelectComponent
               v-model="voucher.transaction_time"
               :options="transactionTimeOptions"
@@ -450,7 +450,8 @@ const task = ref([])
 // Options
 const transactionTimeOptions = [
   { value: '1', label: 'Morning' },
-  { value: '2', label: 'Afternoon' }
+  { value: '2', label: 'Afternoon' },
+  { value: '3', label: 'Evening' },
 ]
 
 // Computed
