@@ -92,6 +92,16 @@
                           :class="['inline-block py-2 px-4 text-sm font-medium rounded-t-lg transition-colors', 
                             activeTab === 4 ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700']"
                         >
+                          Evening
+                        </a>
+                      </li>
+                      <li class="mr-2">
+                        <a 
+                          href="#" 
+                          @click.prevent="activeTab = 5; list(5)" 
+                          :class="['inline-block py-2 px-4 text-sm font-medium rounded-t-lg transition-colors', 
+                            activeTab === 5 ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700']"
+                        >
                           All
                         </a>
                       </li>
@@ -111,7 +121,7 @@
                         >
                       </div>
                       <!-- Date Range Picker - Only show for All tab -->
-                      <div v-if="searchVoucher.all == 4" class="flex gap-3">
+                      <div v-if="searchVoucher.all == 5" class="flex gap-3">
                         <div>
                           <input 
                             type="date" 
@@ -368,7 +378,7 @@ const list = (tab) => {
   searchVoucher.value.all = tab
   searchVoucher.value.page_num = 1
   // Clear date range when switching tabs
-  if (tab !== 4) {
+  if (tab !== 5) {
     searchVoucher.value.date_from = ''
     searchVoucher.value.date_to = ''
   }
