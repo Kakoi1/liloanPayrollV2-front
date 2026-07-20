@@ -191,6 +191,7 @@
                           <th class="px-4 py-3 font-semibold text-gray-700">Weigh Slip No.</th>
                           <th class="px-4 py-3 font-semibold text-gray-700">Total Amount</th>
                           <th class="px-4 py-3 font-semibold text-gray-700">Transaction Time</th>
+                          <th class="px-4 py-3 font-semibold text-gray-700">Date Inputed</th>
                           <th class="px-4 py-3 font-semibold text-gray-700">Status</th>
                           <th class="px-4 py-3 font-semibold text-gray-700">Action</th>
                         </tr>
@@ -204,7 +205,7 @@
                             <input 
                               type="checkbox" 
                               v-model="v.check" 
-                              :disabled="v.status != 3"
+                              
                               class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                             >
                           </td>
@@ -217,6 +218,7 @@
                               {{ getTransText(v.transactionTime)}}
                             </span>
                           </td>
+                          <td class="px-4 py-3">{{ v.DateOnly }} - {{ v.TimeOnly }}</td>
                           <td class="px-4 py-3" v-html="getStatusLabel(v.status)"></td>
                           <td class="px-4 py-3">
                             <div class="flex justify-center space-x-1">
