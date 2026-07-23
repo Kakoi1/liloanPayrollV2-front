@@ -167,6 +167,7 @@
                   </svg>
                   New Task
                 </button>
+                <Add :fromPayroll="1" @saved="fetchPayrollData"/>
               </div>
             </div>
 
@@ -548,6 +549,7 @@ import { ref, computed } from 'vue'
 import Swal from 'sweetalert2'
 import moment from 'moment'
 import api from '@/Js/Services/axios'
+import Add from '@/Views/Pages/Voucher/Actions/add.vue'
 import CreatePayroll from './CreatePayroll.vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faCheckDouble } from '@fortawesome/free-solid-svg-icons'

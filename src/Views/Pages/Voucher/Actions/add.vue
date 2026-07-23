@@ -408,8 +408,15 @@ const props = defineProps({
   deductionOptions: {
     type: Array,
     default: () => []
+  },
+  fromPayroll: {
+    type: Number,
+    default: 0
   }
 })
+
+const taskOptions = ref([])
+const deductionOptions = ref([])
 
 // State
 const showModal = ref(false)
@@ -453,6 +460,54 @@ const transactionTimeOptions = [
   { value: '2', label: 'Afternoon' },
   { value: '3', label: 'Evening' },
 ]
+
+const fetchTasks = async () => {
+  // loading.value.tasks = true
+  try {
+    const response = await api.post('/vouchers/task-list')
+    if (response.data && !response.data.error) {
+      taskOptions.value = response.data.tasks.map(t => ({
+        value: t.id,
+        label: t.name,
+        deduc: t.deduction,
+        1: t.normal_price,
+        2: t.bronze_price,
+        3: t.silver_price,
+        4: t.gold_price,
+      }))
+    }
+  } catch (error) {
+    console.error('Failed to fetch tasks:', error)
+  } finally {
+    // loading.value.tasks = false
+  }
+}
+
+const fetchDeductions = async () => {
+  // loading.value.deductions = true
+  try {
+    const response = await api.post('/vouchers/deduction-list')
+    if (response.data && !response.data.error) {
+      deductionOptions.value = response.data.deductions.map(d => ({
+        value: d.id,
+        label: d.name,
+        type: d.type,
+        amount: d.amount
+      }))
+    }
+  } catch (error) {
+    console.error('Failed to fetch deductions:', error)
+  } finally {
+    // loading.value.deductions = false
+  }
+}
+
+const fetchAllDropdownData = async () => {
+  await Promise.all([
+    fetchTasks(),
+    fetchDeductions()
+  ])
+}
 
 // Computed
 const calculateTotal = computed(() => {
@@ -511,6 +566,7 @@ const calculateRateDeduction = (taskItem) => {
   return totalRateDeduction
 }
 
+
 // Calculate weight deduction (type 1 deductions and base deduction)
 const calculateWeightDeduction = (taskItem) => {
   if (!taskItem.gross_weight) return 0
@@ -549,10 +605,10 @@ const getSelectedDeductions = (taskIndex) => {
 // Get available deductions for a task row (not yet selected)
 const availableDeductions = (taskIndex) => {
   const taskItem = task.value[taskIndex]
-  if (!taskItem) return props.deductionOptions
+  if (!taskItem) return deductionOptions.value
   
   const selectedValues = taskItem.deduction_type || []
-  return props.deductionOptions.filter(opt => !selectedValues.includes(opt.value))
+  return deductionOptions.value.filter(opt => !selectedValues.includes(opt.value))
 }
 
 // Add deduction to task row
@@ -605,6 +661,7 @@ const getEffectiveRate = (taskItem) => {
 const openModal = () => {
   showModal.value = true
   resetForm()
+  fetchAllDropdownData()
 }
 
 const handleSupplierSelected = async (supplier) => {
@@ -738,7 +795,7 @@ const removeRowTask = (index) => {
 
 const handleTaskChange = (value, index) => {
   const taskItem = task.value[index]
-  const selectedTask = props.taskOptions.find(t => t.value == value)
+  const selectedTask = taskOptions.value.find(t => t.value == value)
   
   if (selectedTask) {
     // Get the price based on supplier tier
@@ -816,7 +873,6 @@ const getCustomComputation = (index) => {
   const taskItem = task.value[index]
   getComputation(taskItem, index)
 }
-
 const saveVoucher = async () => {
   // Validate required fields
   if (!voucher.value.payee) {
@@ -862,7 +918,8 @@ const saveVoucher = async () => {
     const formData = new FormData()
     formData.append('voucher', JSON.stringify(voucher.value))
     formData.append('tasks', JSON.stringify(task.value))
-    
+    formData.append('hide', props.fromPayroll)
+
     if (fileInput.value?.files[0]) {
       formData.append('proof', fileInput.value.files[0])
     }
