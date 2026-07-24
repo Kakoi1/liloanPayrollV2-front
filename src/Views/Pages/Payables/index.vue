@@ -49,7 +49,7 @@
                   <div class="w-full md:w-64">
                     <label class="block text-sm font-medium text-gray-700 mb-1">From Date:</label>
                     <input 
-                      type="date" 
+                      type="datetime-local" 
                       v-model="dateRange.from" 
                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
                     />
@@ -57,7 +57,7 @@
                   <div class="w-full md:w-64">
                     <label class="block text-sm font-medium text-gray-700 mb-1">To Date:</label>
                     <input 
-                      type="date" 
+                      type="datetime-local" 
                       v-model="dateRange.to" 
                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
                     />
@@ -90,7 +90,7 @@
                       </svg>
                       Excel (Paid)
                     </button>
-                    <button 
+                    <!-- <button 
                       @click="printReport" 
                       class="px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 text-white font-medium rounded-lg hover:from-red-700 hover:to-red-800 focus:ring-2 focus:ring-red-500 transition-all duration-200 flex items-center"
                     >
@@ -98,19 +98,19 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                       </svg>
                       Print Report
-                    </button>
+                    </button> -->
                   </div>
                 </div>
 
                 <!-- Date Range Display -->
-                <div v-if="dateRange.from && dateRange.to && morningData.length > 0" class="w-full mb-4 p-3 bg-gray-50 rounded-md border border-gray-200">
+                <!-- <div v-if="dateRange.from && dateRange.to && morningData.length > 0" class="w-full mb-4 p-3 bg-gray-50 rounded-md border border-gray-200">
                   <div class="flex items-center justify-between">
                     <div>
                       <span class="font-semibold text-gray-700">Report Period:</span>
                       <span class="ml-2 text-gray-600">{{ formatDate(dateRange.from) }} - {{ formatDate(dateRange.to) }}</span>
                     </div>
                   </div>
-                </div>
+                </div> -->
 
                 <!-- Batch Actions (Admin only) -->
                 <div v-if="userPosition === 'SuperAdmin'" class="w-full flex gap-2 mb-4">
@@ -401,9 +401,11 @@ const props = defineProps({
 
 // State
 const dateRange = ref({
-  from: moment().format('YYYY-MM-DD'),
-  to: moment().format('YYYY-MM-DD')
-})
+  from: moment().startOf('day').format('YYYY-MM-DD HH:mm:ss'),
+  to: moment().hour(23).minute(59).second(59).format('YYYY-MM-DD HH:mm:ss')
+});
+console.log(dateRange);
+
 const morningData = ref([])
 const afternoonData = ref([])
 const eveningData = ref([])
@@ -646,7 +648,7 @@ const excelPayables = () => {
     })
     return
   }
-  window.open(`${VUE_APP_API_URL}vouchers/payables-excel/${dateRange.value.from}/${dateRange.value.to}/0`, '_blank')
+  window.open(`${VUE_APP_API_URL}vouchers/payables-excel/${dateRange.value.from}/${dateRange.value.to}/1`, '_blank')
 }
 
 const excelPaid = () => {

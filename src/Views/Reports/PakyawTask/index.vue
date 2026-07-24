@@ -104,12 +104,12 @@
           <thead>
             <tr class="bg-gray-100">
               <th class="px-2 py-2 text-left">Date</th>
-              <th class="px-2 py-2 text-left">Task</th>
               <th class="px-2 py-2 text-left">Class</th>
+              <th class="px-2 py-2 text-left">Task</th>
               <th class="px-2 py-2 text-left">Hours/Weight</th>
                <th class="px-2 py-2 text-left">Rate</th>
               <th class="px-2 py-2 text-left">Total</th>
-              <!-- <th class="px-2 py-2 text-left">Remarks</th> -->
+              <th class="px-2 py-2 text-left">Remarks</th>
             </tr>
           </thead>
           <tbody>
@@ -123,7 +123,7 @@
               <td class="px-2 py-2">{{ task.netKgPerEmp || '0' }} {{ task.unitAbbre }}</td>
               <td class="px-2 py-2">{{ task.rate || '0' }}</td>
               <td class="px-2 py-2 font-semibold text-green-600">{{ formatNumber(task.total) }}</td>
-              <!-- <td class="px-2 py-2">{{ task.remarks || '-' }}</td> -->
+              <td class="px-2 py-2 max-w-[100px] text-wrap">{{ task.remarks || '-' }}</td>
             </tr>
           </tbody>
           <tfoot>
