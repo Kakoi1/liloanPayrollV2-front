@@ -84,7 +84,7 @@
                       Generate Excel
                     </button>
                     <button 
-                      @click="printReport" 
+                      @click="printPdf" 
                       class="px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 text-white font-medium rounded-lg hover:from-red-700 hover:to-red-800 focus:ring-2 focus:ring-red-500 transition-all duration-200 flex items-center"
                     >
                       <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -164,6 +164,7 @@ import moment from 'moment'
 import api from '@/Js/Services/axios'
 import AddProductionTask from './Actions/add.vue'
 import { handleApiError } from '@/Views/Utility/Helper'
+import { VUE_APP_API_URL } from '@/Views/Utility/Global.js'
 
 // State
 const productions = ref([])
@@ -230,6 +231,55 @@ const list = async () => {
   }
 }
 
+const printPdf = async () => {
+  try {
+     Swal.fire({
+        title: 'Processing...',
+        text: 'Converting to PDF',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: () => {
+            Swal.showLoading()
+        }
+    })
+    const response = await api.post('/productions/production-pdf-download', {
+       date_from: production.value.dateFrom,
+        date_to: production.value.dateTo
+    })
+
+    if (response.data && !response.data.error) {
+      Swal.close();
+      await Swal.fire({
+        icon: 'success',
+        title: 'Success!',
+        text: 'Voucher Printed successfully',
+        timer: 1500,
+        showConfirmButton: false
+      })
+
+      const pdf = atob(response.data.pdf);
+
+      const bytes = new Uint8Array(pdf.length);
+      for (let i = 0; i < pdf.length; i++) {
+          bytes[i] = pdf.charCodeAt(i);
+        }
+
+      const blob = new Blob([bytes], { type: 'application/pdf' });
+      window.open(URL.createObjectURL(blob));
+    }
+  } catch (error) {
+    console.error('Failed to Print Voucher:', error)
+    Swal.close();
+    await Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Failed to Print voucher',
+      timer: 1500,
+      showConfirmButton: false
+    })
+  }
+  }
+
 const excel = async () => {
   if (!production.value.dateFrom || !production.value.dateTo) {
     await Swal.fire({
@@ -244,27 +294,12 @@ const excel = async () => {
 
   try {
     // Implement Excel download
-    window.open(`/productions/excel?date_from=${production.value.dateFrom}&date_to=${production.value.dateTo}`, '_blank')
+    window.open(`${VUE_APP_API_URL}productions/production-excel/${production.value.dateFrom}/${production.value.dateTo}`, '_blank')
   } catch (error) {
     console.error('Failed to generate Excel:', error)
   }
 }
 
-const printReport = async () => {
-  if (!production.value.dateFrom || !production.value.dateTo) {
-    await Swal.fire({
-      icon: 'warning',
-      title: 'Warning',
-      text: 'Please select from and to dates first',
-      timer: 1500,
-      showConfirmButton: false
-    })
-    return
-  }
-
-  // Implement print functionality
-  window.print()
-}
 
 // Initialize
 onMounted(() => {
