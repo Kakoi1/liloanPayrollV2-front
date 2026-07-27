@@ -85,48 +85,99 @@
                         <div class="mb-6">
                             <h4 class="text-lg font-medium text-gray-900 border-l-4 border-blue-600 pl-4 mb-4">Personal Information</h4>
                             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                                <div><input type="text" v-model="form.n_name" placeholder="Nick Name" class="w-full px-3 py-2 border rounded-md"></div>
-                                <div><input type="number" v-model="form.height" placeholder="Height (cm)" class="w-full px-3 py-2 border rounded-md"></div>
-                                <div><input type="number" v-model="form.weight" placeholder="Weight (kg)" class="w-full px-3 py-2 border rounded-md"></div>
+                                <!-- Nickname -->
                                 <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Nickname</label>
+                                    <input type="text" v-model="form.n_name" placeholder="Nick Name" class="w-full px-3 py-2 border rounded-md">
+                                </div>
+                                
+                                <!-- Height -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Height (cm)</label>
+                                    <input type="number" v-model="form.height" placeholder="Height (cm)" class="w-full px-3 py-2 border rounded-md">
+                                </div>
+                                
+                                <!-- Weight -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Weight (kg)</label>
+                                    <input type="number" v-model="form.weight" placeholder="Weight (kg)" class="w-full px-3 py-2 border rounded-md">
+                                </div>
+                                
+                                <!-- Blood Type -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Blood Type</label>
                                     <SelectComponent v-model="form.blood_type" :options="bloodTypes" placeholder="Blood Type" class="w-full" />
                                 </div>
+                                
+                                <!-- Birth Date -->
                                 <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Birth Date *</label>
+                                    <input type="date" v-model="form.b_date" class="w-full px-3 py-2 border rounded-md" required>
+                                </div>
+                                
+                                <!-- Civil Status -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Civil Status *</label>
+                                    <SelectComponent v-model="form.c_stat" :options="civilStatus" placeholder="Civil Status *" class="w-full" />
+                                </div>
+                                
+                                <!-- Gender -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Gender *</label>
                                     <select v-model="form.gender" class="w-full px-3 py-2 border rounded-md" required>
-                                        <option value="0">Gender *</option>
+                                        <option value="0">Select Gender</option>
                                         <option value="1">Male</option>
                                         <option value="2">Female</option>
                                     </select>
                                 </div>
                                 
-                                <div><input type="date" v-model="form.b_date" class="w-full px-3 py-2 border rounded-md" required></div>
-                               
-                               
-                              <div class="md:col-span-2"><input type="text" v-model="form.birth_add" placeholder="Birthplace *" class="w-full px-3 py-2 border rounded-md" required></div>
-                                 <!-- <br/> 
-                                 <br> -->
-                                 <div>
-                                    <SelectComponent v-model="form.c_stat" :options="civilStatus" placeholder="Civil Status *" class="w-full" />
+                                <!-- Birthplace -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Birthplace *</label>
+                                    <input type="text" v-model="form.birth_add" placeholder="Birthplace *" class="w-full px-3 py-2 border rounded-md" required>
                                 </div>
                                 
-                                
+                                <!-- Housing Arrangement -->
                                 <div>
-                    
-                    
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Housing Arrangement</label>
                                     <SelectComponent v-model="form.house_arr" :options="housingArrangements" placeholder="Housing Arrangement" class="w-full" />
                                 </div>
+                                
+                                <!-- Religion -->
                                 <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Religion</label>
                                     <SelectComponent v-model="form.religion" :options="religions" placeholder="Religion" class="w-full" />
                                 </div>
-                               <div>  </div>
-                                <div><input type="text" v-model="form.sss_crn_no" placeholder="SSS CRN No." class="w-full px-3 py-2 border rounded-md"></div>
-                                <div><input type="text" v-model="form.sss" placeholder="SSS No." class="w-full px-3 py-2 border rounded-md"></div>
-                               
-                                <div><input type="text" v-model="form.hdmf_no" placeholder="Pag-IBIG No." class="w-full px-3 py-2 border rounded-md"></div>
-                                  <div><input type="text" v-model="form.philhealth" placeholder="Philhealth No." class="w-full px-3 py-2 border rounded-md"></div>
-                                <!-- <br/> -->
-                                <div><input type="text" v-model="form.tin_no" placeholder="TIN No." class="w-full px-3 py-2 border rounded-md"></div>
-                               
+                                <div></div><div></div>
+                                <!-- SSS CRN No. -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">SSS CRN No.</label>
+                                    <input type="text" v-model="form.sss_crn_no" placeholder="SSS CRN No." class="w-full px-3 py-2 border rounded-md">
+                                </div>
+                                
+                                <!-- SSS No. -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">SSS No.</label>
+                                    <input type="text" v-model="form.sss" placeholder="SSS No." class="w-full px-3 py-2 border rounded-md">
+                                </div>
+                                
+                                <!-- Pag-IBIG No. -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Pag-IBIG No.</label>
+                                    <input type="text" v-model="form.hdmf_no" placeholder="Pag-IBIG No." class="w-full px-3 py-2 border rounded-md">
+                                </div>
+                                
+                                <!-- Philhealth No. -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Philhealth No.</label>
+                                    <input type="text" v-model="form.philhealth" placeholder="Philhealth No." class="w-full px-3 py-2 border rounded-md">
+                                </div>
+                                
+                                <!-- TIN No. -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">TIN No.</label>
+                                    <input type="text" v-model="form.tin_no" placeholder="TIN No." class="w-full px-3 py-2 border rounded-md">
+                                </div>
                             </div>
                         </div>
 
@@ -148,7 +199,7 @@
                                     <div><input type="text" v-model="form.f_first" placeholder="First Name" class="w-full px-3 py-2 border rounded-md"></div>
                                     <div><input type="text" v-model="form.f_mid" placeholder="Middle Name" class="w-full px-3 py-2 border rounded-md"></div>
                                     <div><input type="text" v-model="form.f_last" placeholder="Last Name" class="w-full px-3 py-2 border rounded-md"></div>
-                                    <div><input type="date" v-model="form.f_birthday" class="w-full px-3 py-2 border rounded-md"></div>
+                                    <div>  <label class="block text-sm font-medium text-gray-700 mb-1">Birth Date *</label><input type="date" v-model="form.f_birthday" class="w-full px-3 py-2 border rounded-md"></div>
                                     <div><input type="text" v-model="form.f_occ" placeholder="Occupation" class="w-full px-3 py-2 border rounded-md"></div>
                                     <div class="md:col-span-2"><input type="text" v-model="form.f_add" placeholder="Address" class="w-full px-3 py-2 border rounded-md"></div>
                                 </div>
@@ -159,7 +210,7 @@
                                     <div><input type="text" v-model="form.m_first" placeholder="First Name" class="w-full px-3 py-2 border rounded-md"></div>
                                     <div><input type="text" v-model="form.m_mid" placeholder="Middle Name" class="w-full px-3 py-2 border rounded-md"></div>
                                     <div><input type="text" v-model="form.m_last" placeholder="Last Name" class="w-full px-3 py-2 border rounded-md"></div>
-                                    <div><input type="date" v-model="form.m_birthday" class="w-full px-3 py-2 border rounded-md"></div>
+                                    <div>  <label class="block text-sm font-medium text-gray-700 mb-1">Birth Date *</label><input type="date" v-model="form.m_birthday" class="w-full px-3 py-2 border rounded-md"></div>
                                     <div><input type="text" v-model="form.m_occ" placeholder="Occupation" class="w-full px-3 py-2 border rounded-md"></div>
                                     <div class="md:col-span-2"><input type="text" v-model="form.m_add" placeholder="Address" class="w-full px-3 py-2 border rounded-md"></div>
                                 </div>
