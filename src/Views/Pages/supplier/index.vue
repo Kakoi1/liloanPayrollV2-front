@@ -106,6 +106,10 @@
                                   :supplierData="d" 
                                   @saved="fetchSuppliers" 
                                 />
+                                <Delete 
+                                  :supplierId="d.id" 
+                                  @updated="fetchSuppliers" 
+                                />
                               </div>
                             </td>
                         </tr>
@@ -141,6 +145,7 @@ import newSupplierModal from './Action/add.vue'
 import { FormDx, handleApiError } from '@/Views/Utility/Helper'
 import EditSupplierModal from './Action/edit.vue'
 import ViewSupplierModal from './Action/view.vue'
+import Delete from './Action/delete.vue'
 // State
 const data = ref([])
 const currentPage = ref(1)

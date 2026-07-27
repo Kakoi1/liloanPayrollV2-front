@@ -34,7 +34,7 @@
           <div></div> 
 
           <!-- Paid To / Supplier (using Dropdown Component) -->
-          <div class="border border-blue-300 border-[2px] rounded-lg p-2">
+          <div v-if="!props.fromPayroll" class="border border-blue-300 border-[2px] rounded-lg p-2">
             <label class="block text-sm font-medium text-gray-700 mb-1">
               Paid To: 
               <i v-if="selectedSupplier?.supplierTier" :class="getMedalIconClass(selectedSupplier?.supplierTier)" class="ml-1"></i>
@@ -64,7 +64,7 @@
           </div>
 
           <!-- Weigh Slip No -->
-          <div>
+          <div v-if="!props.fromPayroll">
             <label class="block text-sm font-medium text-gray-700 mb-1">Weigh Slip No:</label>
             <input 
               type="text" 
@@ -75,7 +75,7 @@
           </div>
 
           <!-- Driver -->
-          <div>
+          <div v-if="!props.fromPayroll">
             <label class="block text-sm font-medium text-gray-700 mb-1">Driver:</label>
             <input 
               type="text" 
@@ -875,7 +875,7 @@ const getCustomComputation = (index) => {
 }
 const saveVoucher = async () => {
   // Validate required fields
-  if (!voucher.value.payee) {
+  if (!voucher.value.payee && !props.fromPayroll) {
     await Swal.fire({
       icon: 'warning',
       title: 'Warning',
