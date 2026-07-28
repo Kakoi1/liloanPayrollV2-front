@@ -420,53 +420,53 @@ const filter = async () => {
 
 // Fetch Functions
 
-// const fetchTasks = async () => {
-//   loading.value.tasks = true
-//   try {
-//     const response = await api.post('/vouchers/task-list')
-//     if (response.data && !response.data.error) {
-//       taskOptions.value = response.data.tasks.map(t => ({
-//         value: t.id,
-//         label: t.name,
-//         deduc: t.deduction,
-//         1: t.normal_price,
-//         2: t.bronze_price,
-//         3: t.silver_price,
-//         4: t.gold_price,
-//       }))
-//     }
-//   } catch (error) {
-//     console.error('Failed to fetch tasks:', error)
-//   } finally {
-//     loading.value.tasks = false
-//   }
-// }
+const fetchTasks = async () => {
+  loading.value.tasks = true
+  try {
+    const response = await api.post('/vouchers/task-list')
+    if (response.data && !response.data.error) {
+      taskOptions.value = response.data.tasks.map(t => ({
+        value: t.id,
+        label: t.name,
+        deduc: t.deduction,
+        1: t.normal_price,
+        2: t.bronze_price,
+        3: t.silver_price,
+        4: t.gold_price,
+      }))
+    }
+  } catch (error) {
+    console.error('Failed to fetch tasks:', error)
+  } finally {
+    loading.value.tasks = false
+  }
+}
 
-// const fetchDeductions = async () => {
-//   loading.value.deductions = true
-//   try {
-//     const response = await api.post('/vouchers/deduction-list')
-//     if (response.data && !response.data.error) {
-//       deductionOptions.value = response.data.deductions.map(d => ({
-//         value: d.id,
-//         label: d.name,
-//         type: d.type,
-//         amount: d.amount
-//       }))
-//     }
-//   } catch (error) {
-//     console.error('Failed to fetch deductions:', error)
-//   } finally {
-//     loading.value.deductions = false
-//   }
-// }
+const fetchDeductions = async () => {
+  loading.value.deductions = true
+  try {
+    const response = await api.post('/vouchers/deduction-list')
+    if (response.data && !response.data.error) {
+      deductionOptions.value = response.data.deductions.map(d => ({
+        value: d.id,
+        label: d.name,
+        type: d.type,
+        amount: d.amount
+      }))
+    }
+  } catch (error) {
+    console.error('Failed to fetch deductions:', error)
+  } finally {
+    loading.value.deductions = false
+  }
+}
 
-// const fetchAllDropdownData = async () => {
-//   await Promise.all([
-//     fetchTasks(),
-//     fetchDeductions()
-//   ])
-// }
+const fetchAllDropdownData = async () => {
+  await Promise.all([
+    fetchTasks(),
+    fetchDeductions()
+  ])
+}
 
 const fetchVouchers = async () => {
   try {
@@ -560,7 +560,7 @@ const batchDeleteVoucher = async () => {
 
 // Initialize
 onMounted(() => {
-  // fetchAllDropdownData()
+  fetchAllDropdownData()
   fetchVouchers()
 })
 </script>

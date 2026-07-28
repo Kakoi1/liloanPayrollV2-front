@@ -225,7 +225,7 @@ const calculateTotalView = computed(() => {
   
   const addLess = parseFloat(vdata.value.voucher?.[0]?.addLess) || 0
   
-  return formatCurrency(total + addLess)
+  return formatCurrency(total)
 })
 
 // Methods

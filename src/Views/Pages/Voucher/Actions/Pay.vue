@@ -825,10 +825,26 @@ const recalculateItemTotal = (index) => {
   updateVoucherTotal()
 }
 
+watch(() => editData.value.addLess, (newValue) => {
+  updateVoucherTotal()
+})
+
+// Improved updateVoucherTotal function
 const updateVoucherTotal = () => {
-  const itemsTotal = voucherItems.value.reduce((sum, item) => sum + (parseFloat(item.totalAmount) || 0), 0)
+  const itemsTotal = voucherItems.value.reduce((sum, item) => {
+    const amount = parseFloat(item.totalAmount) || 0
+    return sum + amount
+  }, 0)
+  
   const addLess = parseFloat(editData.value.addLess) || 0
-  editData.value.totalAmount = (itemsTotal + addLess).toFixed(2)
+  const total = itemsTotal + addLess
+  
+  editData.value.totalAmount = total.toFixed(2)
+  
+  // Also update the voucher details for display
+  if (voucherDetails.value) {
+    voucherDetails.value.totalAmount = total.toFixed(2)
+  }
 }
 
 const formatCurrency = (value) => {
