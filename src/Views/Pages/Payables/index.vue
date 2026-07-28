@@ -147,6 +147,7 @@
                           <th class="px-4 py-3 text-center">No.</th>
                           <th class="px-4 py-3 text-left">Customer Name</th>
                           <th class="px-4 py-3 text-right">Amount</th>
+                          <th class="px-4 py-3 text-right">Date</th>
                           <th class="px-4 py-3 text-left">Bank</th>
                           <th class="px-4 py-3 text-left">Account Number</th>
                           <th class="px-4 py-3 text-center">Proof</th>
@@ -171,6 +172,7 @@
                           <td class="px-4 py-3 text-center">{{ index + 1 }}</td>
                           <td class="px-4 py-3 text-left">{{ voucher.supplier_name }}</td>
                           <td class="px-4 py-3 text-right font-medium">{{ formatCurrency(voucher.totalAmount) }}</td>
+                          <td class="px-4 py-3 text-right font-medium">{{voucher.paymentDate}}</td>
                           <td class="px-4 py-3 text-left">{{ voucher.bankName || '-' }}</td>
                           <td class="px-4 py-3 text-left">{{ voucher.bankAccount || '-' }}</td>
                           <td class="px-4 py-3 text-center">
@@ -228,6 +230,7 @@
                           <th class="px-4 py-3 text-center">No.</th>
                           <th class="px-4 py-3 text-left">Customer Name</th>
                           <th class="px-4 py-3 text-right">Amount</th>
+                          <th class="px-4 py-3 text-right">Date</th>
                           <th class="px-4 py-3 text-left">Bank</th>
                           <th class="px-4 py-3 text-left">Account Number</th>
                           <th class="px-4 py-3 text-center">Proof</th>
@@ -252,6 +255,7 @@
                           <td class="px-4 py-3 text-center">{{ index + 1 }}</td>
                           <td class="px-4 py-3 text-left">{{ voucher.supplier_name }}</td>
                           <td class="px-4 py-3 text-right font-medium">{{ formatCurrency(voucher.totalAmount) }}</td>
+                          <td class="px-4 py-3 text-right font-medium">{{voucher.paymentDate}}</td>
                           <td class="px-4 py-3 text-left">{{ voucher.bankName || '-' }}</td>
                           <td class="px-4 py-3 text-left">{{ voucher.bankAccount || '-' }}</td>
                           <td class="px-4 py-3 text-center">
@@ -308,6 +312,7 @@
                           <th class="px-4 py-3 text-center">No.</th>
                           <th class="px-4 py-3 text-left">Customer Name</th>
                           <th class="px-4 py-3 text-right">Amount</th>
+                          <th class="px-4 py-3 text-right">Date</th>
                           <th class="px-4 py-3 text-left">Bank</th>
                           <th class="px-4 py-3 text-left">Account Number</th>
                           <th class="px-4 py-3 text-center">Proof</th>
@@ -332,6 +337,7 @@
                           <td class="px-4 py-3 text-center">{{ index + 1 }}</td>
                           <td class="px-4 py-3 text-left">{{ voucher.supplier_name }}</td>
                           <td class="px-4 py-3 text-right font-medium">{{ formatCurrency(voucher.totalAmount) }}</td>
+                           <td class="px-4 py-3 text-right font-medium">{{voucher.paymentDate}}</td>
                           <td class="px-4 py-3 text-left">{{ voucher.bankName || '-' }}</td>
                           <td class="px-4 py-3 text-left">{{ voucher.bankAccount || '-' }}</td>
                           <td class="px-4 py-3 text-center">
