@@ -92,14 +92,6 @@
                             <p class="w-full px-3 py-2 bg-gray-50 border rounded-md text-gray-800">{{ selectedBloodTypeLabel || '—' }}</p>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Gender</label>
-                            <p class="w-full px-3 py-2 bg-gray-50 border rounded-md text-gray-800">{{ selectedGenderLabel || '—' }}</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">SSS No.</label>
-                            <p class="w-full px-3 py-2 bg-gray-50 border rounded-md text-gray-800">{{ form.sss || '—' }}</p>
-                        </div>
-                        <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Birth Date</label>
                             <p class="w-full px-3 py-2 bg-gray-50 border rounded-md text-gray-800">{{ form.b_date || '—' }}</p>
                         </div>
@@ -108,16 +100,32 @@
                             <p class="w-full px-3 py-2 bg-gray-50 border rounded-md text-gray-800">{{ selectedCivilStatusLabel || '—' }}</p>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">SSS CRN No.</label>
-                            <p class="w-full px-3 py-2 bg-gray-50 border rounded-md text-gray-800">{{ form.sss_crn_no || '—' }}</p>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+                            <p class="w-full px-3 py-2 bg-gray-50 border rounded-md text-gray-800">{{ selectedGenderLabel || '—' }}</p>
                         </div>
-                        <div class="md:col-span-2">
+                        <div class="block text-sm font-medium text-gray-700 mb-1">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Birthplace</label>
                             <p class="w-full px-3 py-2 bg-gray-50 border rounded-md text-gray-800">{{ form.birth_add || '—' }}</p>
                         </div>
                         <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">SSS No.</label>
+                            <p class="w-full px-3 py-2 bg-gray-50 border rounded-md text-gray-800">{{ form.sss || '—' }}</p>
+                        </div>
+                        <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Pag-IBIG No.</label>
                             <p class="w-full px-3 py-2 bg-gray-50 border rounded-md text-gray-800">{{ form.hdmf_no || '—' }}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Philhealth No.</label>
+                            <p class="w-full px-3 py-2 bg-gray-50 border rounded-md text-gray-800">{{ form.philhealth || '—' }}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">TIN No.</label>
+                            <p class="w-full px-3 py-2 bg-gray-50 border rounded-md text-gray-800">{{ form.tin_no || '—' }}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">SSS CRN No.</label>
+                            <p class="w-full px-3 py-2 bg-gray-50 border rounded-md text-gray-800">{{ form.sss_crn_no || '—' }}</p>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Housing Arrangement</label>
@@ -126,14 +134,6 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Religion</label>
                             <p class="w-full px-3 py-2 bg-gray-50 border rounded-md text-gray-800">{{ selectedReligionLabel || '—' }}</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">TIN No.</label>
-                            <p class="w-full px-3 py-2 bg-gray-50 border rounded-md text-gray-800">{{ form.tin_no || '—' }}</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Philhealth No.</label>
-                            <p class="w-full px-3 py-2 bg-gray-50 border rounded-md text-gray-800">{{ form.philhealth || '—' }}</p>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">License No.</label>
