@@ -56,10 +56,19 @@
                 <span v-else class="text-red-500">Not Assigned</span>
               </p>
             </div>
+            <div>
+              <label class="text-xs text-gray-500">Current Employees:</label>
+              <p class="text-sm font-medium">
+                <span v-if="loading.employees && loading.employees.length > 0">
+                  {{ loading.employees.length }} employee(s)
+                </span>
+                <span v-else class="text-gray-400">None</span>
+              </p>
+            </div>
           </div>
         </div>
 
-        <!-- Team Selection -->
+        <!-- Select Team -->
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Select Team:</label>
           <SelectComponent
@@ -70,25 +79,62 @@
           />
         </div>
 
-        <!-- Team Members Preview (Optional) -->
-        <div v-if="selectedTeam && selectedTeamDetails" class="bg-blue-50 p-3 rounded-lg border border-blue-200">
-          <h5 class="text-sm font-medium text-blue-700 mb-2 flex items-center">
-            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+        <!-- Employee Selector Component -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            <span v-if="selectedTeam && selectedTeam !== 0">Team Members:</span>
+            <span v-else>Current Employees:</span>
+          </label>
+          
+          <!-- Show current employees when no team is selected -->
+          <div v-if="!selectedTeam || selectedTeam === 0">
+            <div v-if="loading.employees && loading.employees.length > 0" class="bg-gray-50 p-3 rounded-lg border border-gray-200">
+              <div class="flex flex-wrap gap-2">
+                <span 
+                  v-for="(emp, idx) in loading.employees" 
+                  :key="idx"
+                  class="inline-flex items-center px-3 py-1.5 bg-green-100 text-green-800 text-sm rounded-full border border-green-200"
+                >
+                  {{ emp.fullName || emp.name }}
+                </span>
+              </div>
+              <!-- <p class="text-xs text-gray-500 mt-2">These are the currently assigned employees. Select a team to replace them with team members.</p> -->
+            </div>
+            <div v-else class="text-sm text-gray-500 italic">
+              No employees currently assigned
+            </div>
+          </div>
+
+          <!-- Show EmployeeSelector when team is selected -->
+          <div v-else>
+            <EmployeeSelector 
+              ref="employeeSelectorRef"
+              :employees="availableEmployees"
+              :initial-employees="initialSelectedEmployees"
+              @add-employee="handleAddEmployee"
+              @remove-employee="handleRemoveEmployee"
+              @employees-updated="handleEmployeesUpdated"
+            />
+          </div>
+        </div>
+
+        <!-- Warning if no team selected -->
+        <!-- <div v-if="!selectedTeam || selectedTeam === 0" class="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-lg text-sm">
+          <div class="flex items-center">
+            <svg class="w-5 h-5 mr-2 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
             </svg>
-            Team Members
-          </h5>
-          <div class="flex flex-wrap gap-1">
-            <span 
-              v-for="(member, idx) in selectedTeamDetails[0].members" 
-              :key="idx"
-              class="inline-flex items-center px-2 py-0.5 bg-blue-100 text-blue-800 text-xs rounded-full"
-            >
-              {{ member.fullName || member.name }}
-            </span>
-            <span v-if="!selectedTeamDetails[0].members || selectedTeamDetails[0].members.length === 0" class="text-xs text-gray-500">
-              No members in this team
-            </span>
+            <span>Please select a team to assign. Current employees will be replaced with team members.</span>
+          </div>
+        </div> -->
+
+        <!-- Info when team is selected -->
+        <div v-if="selectedTeam && selectedTeam !== 0" class="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-lg text-sm">
+          <div class="flex items-center">
+            <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span>Assigning this team will replace all current employees with the team members.</span>
           </div>
         </div>
 
@@ -103,7 +149,7 @@
           <button 
             @click="assignTeam" 
             class="px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white font-medium rounded-lg hover:from-purple-700 hover:to-purple-800 focus:ring-2 focus:ring-purple-500 transition-all duration-200 flex items-center"
-            :disabled="!selectedTeam"
+            :disabled="!selectedTeam || selectedTeam === 0"
           >
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -123,6 +169,7 @@ import moment from 'moment'
 import api from '@/Js/Services/axios'
 import Modal from '@/Js/Components/Modal.vue'
 import SelectComponent from '@/Js/Components/SelectComponent.vue'
+import EmployeeSelector from './EmployeeSelector.vue'
 
 const props = defineProps({
   loading: {
@@ -138,13 +185,42 @@ const showModal = ref(false)
 const selectedTeam = ref(null)
 const selectedTeamDetails = ref(null)
 const teamOptions = ref([])
+const availableEmployees = ref([])
+const initialSelectedEmployees = ref([])
+const selectedEmployeeIds = ref([])
+const selectedEmployeeNames = ref([])
+const employeeSelectorRef = ref(null)
 
 // Methods
 const openModal = () => {
   showModal.value = true
   fetchTeams()
+  fetchAllEmployees()
+  
+  // Set selected team from props
   selectedTeam.value = props.loading.teamId ?? 0
-  selectedTeamDetails.value = null
+  
+  // Load existing employees from props
+  if (props.loading.employees && Array.isArray(props.loading.employees)) {
+    const employeeList = props.loading.employees.map(emp => ({
+      id: emp.empId || emp.id,
+      name: emp.fullName || emp.name || '',
+      email: emp.email || ''
+    }))
+    
+    initialSelectedEmployees.value = employeeList
+    selectedEmployeeIds.value = employeeList.map(emp => emp.id)
+    selectedEmployeeNames.value = employeeList.map(emp => emp.name)
+    
+    if (employeeSelectorRef.value) {
+      employeeSelectorRef.value.setInitialEmployees(employeeList)
+    }
+  }
+  
+  // If team is selected (and not 0), fetch its details
+  if (selectedTeam.value && selectedTeam.value !== 0) {
+    fetchTeamDetails(selectedTeam.value)
+  }
 }
 
 const formatDate = (date) => {
@@ -168,22 +244,86 @@ const fetchTeams = async () => {
   }
 }
 
+const fetchAllEmployees = async () => {
+  try {
+    const response = await api.post('/employee/active-list-dropdown')
+    if (response.data && !response.data.error) {
+      availableEmployees.value = (response.data.employee || []).map(emp => ({
+        id: emp.id,
+        name: emp.fullName || emp.name,
+        email: emp.email || ''
+      }))
+    }
+  } catch (error) {
+    console.error('Failed to fetch employees:', error)
+  }
+}
+
 const fetchTeamDetails = async (teamId) => {
-  if (!teamId) return
+  // Only fetch if teamId is NOT 0, null, or undefined
+  if (!teamId || teamId === 0) {
+    console.log('Skipping team details fetch - invalid team ID:', teamId);
+    return;
+  }
+  
   try {
     const response = await api.post('/teams/details', {
       team_id: teamId
     })
     if (response.data && !response.data.error) {
       selectedTeamDetails.value = response.data.team
+      
+      // Extract team members and replace current employees with team members
+      if (response.data.team && response.data.team[0] && response.data.team[0].members) {
+        const teamMembers = response.data.team[0].members
+        console.log('Team members:', teamMembers);
+        
+        const employeeList = teamMembers.map(member => ({
+          id: member.id,
+          empId: member.empId,
+          name: member.fullName || member.name,
+          email: member.email || ''
+        }))
+        
+        // Replace current employees with team members
+        initialSelectedEmployees.value = employeeList
+        selectedEmployeeIds.value = employeeList.map(emp => emp.id)
+        selectedEmployeeNames.value = employeeList.map(emp => emp.name)
+        
+        // Update the employee selector
+        if (employeeSelectorRef.value) {
+          employeeSelectorRef.value.setInitialEmployees(employeeList)
+        }
+      }
     }
   } catch (error) {
     console.error('Failed to fetch team details:', error)
   }
 }
 
+// Handle employee selection
+const handleAddEmployee = (employee) => {
+  if (!selectedEmployeeIds.value.includes(employee.id)) {
+    selectedEmployeeIds.value.push(employee.id)
+    selectedEmployeeNames.value.push(employee.name)
+  }
+}
+
+const handleRemoveEmployee = (employee) => {
+  const index = selectedEmployeeIds.value.indexOf(employee.id)
+  if (index !== -1) {
+    selectedEmployeeIds.value.splice(index, 1)
+    selectedEmployeeNames.value.splice(index, 1)
+  }
+}
+
+const handleEmployeesUpdated = (employees) => {
+  selectedEmployeeIds.value = employees.map(emp => emp.id)
+  selectedEmployeeNames.value = employees.map(emp => emp.name)
+}
+
 const assignTeam = async () => {
-  if (!selectedTeam.value) {
+  if (!selectedTeam.value || selectedTeam.value === 0) {
     await Swal.fire({
       icon: 'warning',
       title: 'Warning',
@@ -194,13 +334,46 @@ const assignTeam = async () => {
     return
   }
 
+  // Confirm with user if there are existing employees
+  if (props.loading.employees && props.loading.employees.length > 0) {
+    const result = await Swal.fire({
+      title: 'Replace Existing Employees?',
+      text: `This loading currently has ${props.loading.employees.length} employee(s) assigned. Assigning a new team will replace them with the team members. Do you want to continue?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#7c3aed',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Yes, Replace',
+      cancelButtonText: 'Cancel'
+    })
+    
+    if (!result.isConfirmed) {
+      return
+    }
+  }
+
   try {
-    const response = await api.post('/loading/assign-team', {
-      loading_id: props.loading.id,
-      team_id: selectedTeam.value
+    Swal.fire({
+      title: 'Processing...',
+      text: 'Please wait',
+      allowOutsideClick: true,
+      didOpen: () => {
+        Swal.showLoading()
+      }
     })
 
+    const payload = {
+      loading_id: props.loading.id,
+      team_id: selectedTeam.value,
+      employee_ids: selectedEmployeeIds.value,
+      employee_names: selectedEmployeeNames.value
+    }
+
+    const response = await api.post('/loading/assign-team', payload)
+
     if (response.data && !response.data.error) {
+      Swal.close()
+      
       await Swal.fire({
         icon: 'success',
         title: 'Success!',
@@ -211,13 +384,23 @@ const assignTeam = async () => {
       
       emit('updated')
       closeModal()
+    } else {
+      Swal.close()
+      await Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: response.data?.message || 'Failed to assign team',
+        timer: 1500,
+        showConfirmButton: false
+      })
     }
   } catch (error) {
     console.error('Failed to assign team:', error)
+    Swal.close()
     await Swal.fire({
       icon: 'error',
       title: 'Error',
-      text: 'Failed to assign team',
+      text: error.response?.data?.message || 'Failed to assign team',
       timer: 1500,
       showConfirmButton: false
     })
@@ -228,14 +411,29 @@ const closeModal = () => {
   showModal.value = false
   selectedTeam.value = null
   selectedTeamDetails.value = null
+  selectedEmployeeIds.value = []
+  selectedEmployeeNames.value = []
+  initialSelectedEmployees.value = []
+  
+  if (employeeSelectorRef.value) {
+    employeeSelectorRef.value.resetSelection()
+  }
 }
 
 // Watch for team selection changes
-watch(selectedTeam, (newTeamId) => {
-  if (newTeamId) {
+watch(selectedTeam, (newTeamId, oldTeamId) => {
+  // Only fetch if teamId is NOT 0, null, or undefined and it's different from previous
+  if (newTeamId && newTeamId !== 0 && newTeamId !== oldTeamId) {
     fetchTeamDetails(newTeamId)
-  } else {
+  } else if (!newTeamId || newTeamId === 0) {
     selectedTeamDetails.value = null
+    // When team is deselected, clear the employee selector
+    selectedEmployeeIds.value = []
+    selectedEmployeeNames.value = []
+    initialSelectedEmployees.value = []
+    if (employeeSelectorRef.value) {
+      employeeSelectorRef.value.resetSelection()
+    }
   }
 })
 </script>

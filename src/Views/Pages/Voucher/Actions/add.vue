@@ -34,9 +34,9 @@
           <div></div> 
 
           <!-- Paid To / Supplier (using Dropdown Component) -->
-          <div v-if="!props.fromPayroll" class="border border-blue-300 border-[2px] rounded-lg p-2">
+          <div class="border border-blue-300 border-[2px] rounded-lg p-2">
             <label class="block text-sm font-medium text-gray-700 mb-1">
-              Paid To: 
+              Paid To: <sub v-if="props.fromPayroll" class="text-red-500">(optional)</sub>
               <i v-if="selectedSupplier?.supplierTier" :class="getMedalIconClass(selectedSupplier?.supplierTier)" class="ml-1"></i>
               <small v-if="selectedSupplier?.supplierTier" class="ml-1 text-gray-500">{{ getTierName(selectedSupplier?.supplierTier) }} tier</small>
             </label>
@@ -440,7 +440,7 @@ const searchSup = ref({
 
 const voucher = ref({
   transaction_time: 0,
-  payee: '',
+  payee: 0,
   tier: 0,
   weigh_slip: '',
   driver: '',
@@ -966,7 +966,7 @@ const saveVoucher = async () => {
 const resetForm = () => {
   voucher.value = {
     transaction_time: 0,
-    payee: '',
+    payee: 0,
     tier: 0,
     weigh_slip: '',
     driver: '',

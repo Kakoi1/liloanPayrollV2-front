@@ -71,49 +71,23 @@
           </div>
         </div>
 
-        <!-- Payroll Date Field -->
-        <!-- <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Payroll Date:</label>
-          <input 
-            type="date" 
-            v-model="payrollDate"
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-            :min="minPayrollDate"
-            :max="maxPayrollDate"
-          />
-          <p class="text-xs text-gray-500 mt-1">Select the date this loading will be included in payroll</p>
-        </div> -->
-
-        <!-- Team Selection -->
-        <!-- <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Select Team:</label>
-          <SelectComponent
-            v-model="selectedTeam"
-            :options="teamOptions"
-            placeholder="-- Choose Team --"
-            class="w-full"
-          />
-        </div> -->
-
-        <!-- Team Members Preview -->
-        <div v-if="selectedTeam && selectedTeamDetails" class="bg-blue-50 p-3 rounded-lg border border-blue-200">
-          <h5 class="text-sm font-medium text-blue-700 mb-2 flex items-center">
-            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
-            </svg>
-            Team Members
-          </h5>
-          <div class="flex flex-wrap gap-1">
-            <span 
-              v-for="(member, idx) in selectedTeamDetails[0].members" 
-              :key="idx"
-              class="inline-flex items-center px-2 py-0.5 bg-blue-100 text-blue-800 text-xs rounded-full"
-            >
-              {{ member.fullName || member.name }}
-            </span>
-            <span v-if="!selectedTeamDetails[0].members || selectedTeamDetails[0].members.length === 0" class="text-xs text-gray-500">
-              No members in this team
-            </span>
+        <!-- Current Employees Display -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Assigned Employees:</label>
+          <div v-if="loading.employees && loading.employees.length > 0" class="bg-gray-50 p-3 rounded-lg border border-gray-200">
+            <div class="flex flex-wrap gap-2">
+              <span 
+                v-for="(emp, idx) in loading.employees" 
+                :key="idx"
+                class="inline-flex items-center px-3 py-1.5 bg-blue-100 text-blue-800 text-sm rounded-full border border-blue-200"
+              >
+                {{ emp.fullName || emp.name }}
+              </span>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">Total: {{ loading.employees.length }} employee(s)</p>
+          </div>
+          <div v-else class="text-sm text-gray-500 italic bg-gray-50 p-3 rounded-lg border border-gray-200">
+            No employees assigned to this loading
           </div>
         </div>
 
@@ -141,12 +115,13 @@
           </div>
         </div>
 
+        <!-- Loading End Date -->
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Loading End Date:</label>
           <input 
             type="date" 
             v-model="end_date" 
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
           />
         </div>
 
@@ -161,7 +136,7 @@
           <button 
             @click="finishLoading" 
             class="px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white font-medium rounded-lg hover:from-green-700 hover:to-green-800 focus:ring-2 focus:ring-green-500 transition-all duration-200 flex items-center"
-            :disabled="!selectedTeam || !payrollDate"
+            :disabled="!end_date"
           >
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
@@ -175,12 +150,11 @@
 </template>
 
 <script setup>
-import { ref, watch, computed } from 'vue'
+import { ref, watch } from 'vue'
 import Swal from 'sweetalert2'
 import moment from 'moment'
 import api from '@/Js/Services/axios'
 import Modal from '@/Js/Components/Modal.vue'
-import SelectComponent from '@/Js/Components/SelectComponent.vue'
 
 const props = defineProps({
   loading: {
@@ -193,37 +167,13 @@ const emit = defineEmits(['updated'])
 
 // State
 const showModal = ref(false)
-const selectedTeam = ref(null)
-const selectedTeamDetails = ref(null)
-const teamOptions = ref([])
 const end_date = ref('')
-const payrollDate = ref(new Date().toISOString().split('T')[0])
-
-// Computed
-const minPayrollDate = computed(() => {
-  // Allow payroll date up to 15 days after loading date
-  if (props.loading.loadingDate) {
-    return moment(props.loading.loadingDate).format('YYYY-MM-DD')
-  }
-  return moment().subtract(15, 'days').format('YYYY-MM-DD')
-})
-
-const maxPayrollDate = computed(() => {
-  // Allow payroll date up to 15 days after loading date
-  if (props.loading.loadingDate) {
-    return moment(props.loading.loadingDate).add(15, 'days').format('YYYY-MM-DD')
-  }
-  return moment().add(15, 'days').format('YYYY-MM-DD')
-})
 
 // Methods
 const openModal = () => {
   showModal.value = true
-  fetchTeams()
-  selectedTeam.value = props.loading.teamId ?? null
-  selectedTeamDetails.value = null
-  // Set default payroll date to loading date
-  payrollDate.value = props.loading.loadingDate ? moment(props.loading.loadingDate).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD')
+  // Set default end date to today
+  end_date.value = moment().format('YYYY-MM-DD')
 }
 
 const formatDate = (date) => {
@@ -236,59 +186,19 @@ const formatNumber = (value) => {
   return parseFloat(value).toFixed(2)
 }
 
-const fetchTeams = async () => {
-  try {
-    const response = await api.post('/teams/list', {
-      status: 1 // Active teams only
-    })
-    if (response.data && !response.data.error) {
-      teamOptions.value = (response.data.teams || []).map(team => ({
-        value: team.id,
-        label: team.name
-      }))
-    }
-  } catch (error) {
-    console.error('Failed to fetch teams:', error)
-  }
-}
-
-const fetchTeamDetails = async (teamId) => {
-  if (!teamId) return
-  try {
-    const response = await api.post('/teams/details', {
-      team_id: teamId
-    })
-    if (response.data && !response.data.error) {
-      selectedTeamDetails.value = response.data.team
-    }
-  } catch (error) {
-    console.error('Failed to fetch team details:', error)
-  }
-}
-
 const finishLoading = async () => {
-  if (!selectedTeam.value) {
+  // Validate end date
+  if (!end_date.value) {
     await Swal.fire({
       icon: 'warning',
       title: 'Warning',
-      text: 'Please select a team to complete this loading',
-      timer: 1500,
-      showConfirmButton: false
+      text: 'Please select an end date',
+      showConfirmButton: true
     })
     return
   }
 
-  if (!payrollDate.value) {
-    await Swal.fire({
-      icon: 'warning',
-      title: 'Warning',
-      text: 'Please select a payroll date',
-      timer: 1500,
-      showConfirmButton: false
-    })
-    return
-  }
-  
+  // Validate item
   if (!props.loading.itemId) {
     await Swal.fire({
       icon: 'warning',
@@ -298,66 +208,22 @@ const finishLoading = async () => {
     })
     return
   }
+
+  // Validate weights
   if (props.loading.grossWeight <= 0 && props.loading.netWeight <= 0) {
     await Swal.fire({
       icon: 'warning',
       title: 'Warning',
-      text: 'Gross and Net Wight must Not be 0',
+      text: 'Gross and Net Weight must not be 0',
       showConfirmButton: true
     })
     return
-  }
-  if (!end_date.value) {
-    await Swal.fire({
-      icon: 'warning',
-      title: 'Warning',
-      text: 'Please select a End date',
-      showConfirmButton: true
-    })
-    return
-  }
-
-  // Validate payroll date range
-  if (payrollDate.value < minPayrollDate.value || payrollDate.value > maxPayrollDate.value) {
-    await Swal.fire({
-      icon: 'warning',
-      title: 'Warning',
-      text: `Payroll date must be between ${formatDate(minPayrollDate.value)} and ${formatDate(maxPayrollDate.value)}`,
-      timer: 1500,
-      showConfirmButton: false
-    })
-    return
-  }
-
-  // If team is different from current, assign first
-  if (selectedTeam.value !== props.loading.teamId) {
-    try {
-      const assignResponse = await api.post('/loading/assign-team', {
-        loading_id: props.loading.id,
-        team_id: selectedTeam.value,
-      })
-      if (assignResponse.data && !assignResponse.data.error) {
-        // Team assigned successfully
-      } else {
-        throw new Error('Failed to assign team')
-      }
-    } catch (error) {
-      console.error('Failed to assign team:', error)
-      await Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'Failed to assign team before finishing',
-        timer: 1500,
-        showConfirmButton: false
-      })
-      return
-    }
   }
 
   // Confirm finish
   const result = await Swal.fire({
     title: 'Finish Loading?',
-    text: `Do you want to mark this loading as completed with payroll date ${formatDate(payrollDate.value)}?`,
+    text: `Do you want to mark this loading as completed with end date ${formatDate(end_date.value)}?`,
     icon: 'question',
     showCancelButton: true,
     confirmButtonColor: '#10b981',
@@ -368,14 +234,24 @@ const finishLoading = async () => {
 
   if (result.isConfirmed) {
     try {
+      Swal.fire({
+        title: 'Processing...',
+        text: 'Please wait',
+        allowOutsideClick: true,
+        didOpen: () => {
+          Swal.showLoading()
+        }
+      })
+
       const response = await api.post('/loading/finish', {
         loading_id: props.loading.id,
-        team_id: selectedTeam.value,
-        payroll_date: payrollDate.value,
+        team_id: props.loading.teamId,
         end_date: end_date.value
       })
 
       if (response.data && !response.data.error) {
+        Swal.close()
+        
         await Swal.fire({
           icon: 'success',
           title: 'Success!',
@@ -386,9 +262,19 @@ const finishLoading = async () => {
         
         emit('updated')
         closeModal()
+      } else {
+        Swal.close()
+        await Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: response.data?.message || 'Failed to complete loading',
+          timer: 1500,
+          showConfirmButton: false
+        })
       }
     } catch (error) {
       console.error('Failed to finish loading:', error)
+      Swal.close()
       await Swal.fire({
         icon: 'error',
         title: 'Error',
@@ -402,17 +288,6 @@ const finishLoading = async () => {
 
 const closeModal = () => {
   showModal.value = false
-  selectedTeam.value = null
-  selectedTeamDetails.value = null
-  payrollDate.value = ''
+  end_date.value = ''
 }
-
-// Watch for team selection changes
-watch(selectedTeam, (newTeamId) => {
-  if (newTeamId) {
-    fetchTeamDetails(newTeamId)
-  } else {
-    selectedTeamDetails.value = null
-  }
-})
 </script>

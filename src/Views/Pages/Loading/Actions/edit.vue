@@ -78,41 +78,38 @@
             />
           </div>
 
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Select Team:</label>
-          <SelectComponent
-            v-model="selectedTeam"
-            :options="teamOptions"
-            placeholder="-- Choose Team --"
-            class="w-full"
-          />
-
-          <div v-if="selectedTeam && selectedTeamDetails" class="bg-blue-50 p-3 rounded-lg border border-blue-200">
-            <h5 class="text-sm font-medium text-blue-700 mb-2 flex items-center">
-              <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
-              </svg>
-              Team Members
-            </h5>
-            <div class="flex flex-wrap gap-1">
-              <span 
-                v-for="(member, idx) in selectedTeamDetails[0].members" 
-                :key="idx"
-                class="inline-flex items-center px-2 py-0.5 bg-blue-100 text-blue-800 text-xs rounded-full"
-              >
-                {{ member.fullName || member.name }}
-              </span>
-              <span v-if="!selectedTeamDetails[0].members || selectedTeamDetails[0].members.length === 0" class="text-xs text-gray-500">
-                No members in this team
-              </span>
-            </div>
+          <div v-if="formData.itemId == 21 || formData.itemId == 101 ">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Solid Ratio</label>
+            <SelectComponent v-model="formData.solidRatio" :options="ratioOptions" placeholder="Select solid ratio" class="w-full border-gray-700" />
           </div>
 
-        </div>
+          <!-- Select Team -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Select Team:</label>
+            <SelectComponent
+              v-model="selectedTeam"
+              :options="teamOptions"
+              placeholder="-- Choose Team --"
+              class="w-full"
+            />
+          </div>
+
+          <!-- Employee Selector Component -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Selected Employees:</label>
+            <EmployeeSelector 
+              ref="employeeSelectorRef"
+              :employees="availableEmployees"
+              :initial-employees="initialSelectedEmployees"
+              @add-employee="handleAddEmployee"
+              @remove-employee="handleRemoveEmployee"
+              @employees-updated="handleEmployeesUpdated"
+            />
+          </div>
 
           <!-- Container Weight -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Container Weight:</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Container Weight (kg):</label>
             <input 
               type="number" 
               step="any" 
@@ -125,7 +122,7 @@
 
           <!-- Gross Weight -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Gross Weight:</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Gross Weight (kg):</label>
             <input 
               type="number" 
               step="any" 
@@ -138,35 +135,25 @@
 
           <!-- Net Weight (Auto-calculated) -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Net Weight:</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Net Weight (kg):</label>
             <input 
               type="text" 
               :value="calculatedNetWeight" 
               readonly
               class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-700 font-medium"
             />
-            <!-- <p class="text-xs text-gray-500 mt-1">Net Weight = Gross Weight - Container Weight</p> -->
+            <p class="text-xs text-gray-500 mt-1">Net Weight = Gross Weight - Container Weight</p>
           </div>
 
-           <div>
+          <!-- Loading End Date -->
+          <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Loading End Date:</label>
             <input 
               type="date" 
-              v-model="formData.end_date" 
+              v-model="formData.endDate" 
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
             />
           </div>
-
-          <!-- Team Assignment -->
-          <!-- <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Assign Team:</label>
-            <SelectComponent
-              v-model="formData.teamId"
-              :options="teamOptions"
-              placeholder="-- Select Team --"
-              class="w-full"
-            />
-          </div> -->
         </div>
 
         <!-- Action Buttons -->
@@ -199,6 +186,7 @@ import moment from 'moment'
 import api from '@/Js/Services/axios'
 import Modal from '@/Js/Components/Modal.vue'
 import SelectComponent from '@/Js/Components/SelectComponent.vue'
+import EmployeeSelector from './EmployeeSelector.vue'
 
 const props = defineProps({
   loading: {
@@ -215,6 +203,13 @@ const itemOptions = ref([])
 const teamOptions = ref([])
 const selectedTeam = ref(null)
 const selectedTeamDetails = ref(null)
+const selectedEmployeeIds = ref([])
+const selectedEmployeeNames = ref([])
+const initialSelectedEmployees = ref([])
+const availableEmployees = ref([])
+const employeeSelectorRef = ref(null)
+const isModalOpening = ref(false) // Flag to track modal opening state
+
 const formData = ref({
   loadingId: null,
   loadingDate: '',
@@ -223,30 +218,36 @@ const formData = ref({
   itemId: '',
   containerWeight: 0,
   grossWeight: 0,
-  team_id: null,
-  end_date: ''
+  teamId: null,
+  endDate: '',
+  solidRatio: 0
 })
+
 const calculatedNetWeight = ref(0)
 
-// // Computed
-// const isFormValid = computed(() => {
-//   return formData.value.vanNo && 
-//          formData.value.sealNo && 
-//          formData.value.itemId && 
-//          formData.value.containerWeight !== '' &&
-//          formData.value.grossWeight !== ''
-// })
+const ratioOptions = [
+  { value: 1, label: '90% - 10%' },
+  { value: 2, label: '80% - 20%' },
+  { value: 3, label: '70% - 30%' },
+]
 
 // Methods
 const openModal = () => {
   showModal.value = true
-  selectedTeam.value = props.loading.teamId ?? 0
+  isModalOpening.value = true // Set flag when opening
   fetchItems()
   fetchTeams()
+  fetchAllEmployees()
   loadFormData()
+  
+  // Reset flag after a short delay to allow initial load to complete
+  setTimeout(() => {
+    isModalOpening.value = false
+  }, 500)
 }
 
 const loadFormData = () => {
+  // Load basic form data from props
   formData.value = {
     loadingId: props.loading.id,
     loadingDate: props.loading.loadingDate ? moment(props.loading.loadingDate).format('YYYY-MM-DD') : '',
@@ -255,15 +256,36 @@ const loadFormData = () => {
     itemId: props.loading.itemId || '',
     containerWeight: parseFloat(props.loading.containerWeight) || 0,
     grossWeight: parseFloat(props.loading.grossWeight) || 0,
-    team_id: selectedTeam.value,
-    end_date: props.loading.endDate
+    teamId: props.loading.teamId || null,
+    endDate: props.loading.endDate ? moment(props.loading.endDate).format('YYYY-MM-DD') : '',
+    solidRatio: 0
   }
+  
+  // Set selected team
+  selectedTeam.value = props.loading.teamId || null
+  
+  // Load employees from the employees array in props
+  if (props.loading.employees && Array.isArray(props.loading.employees)) {
+    const employeeList = props.loading.employees.map(emp => ({
+      id: emp.empId || emp.id,
+      name: emp.fullName || emp.name || '',
+      email: emp.email || ''
+    }))
+    
+    // Set initial employees for the selector
+    initialSelectedEmployees.value = employeeList
+    
+    // Update selected IDs and names
+    selectedEmployeeIds.value = employeeList.map(emp => emp.id)
+    selectedEmployeeNames.value = employeeList.map(emp => emp.name)
+    
+    // If the employee selector component is mounted, update it
+    if (employeeSelectorRef.value) {
+      employeeSelectorRef.value.setInitialEmployees(employeeList)
+    }
+  }
+  
   calculateNetWeight()
-}
-
-const formatNumber = (value) => {
-  if (!value && value !== 0) return '0'
-  return parseFloat(value).toFixed(2)
 }
 
 const calculateNetWeight = () => {
@@ -309,34 +331,149 @@ const fetchTeams = async () => {
   }
 }
 
+const fetchAllEmployees = async () => {
+  try {
+    const response = await api.post('/employee/active-list-dropdown')
+    if (response.data && !response.data.error) {
+      availableEmployees.value = (response.data.employee || []).map(emp => ({
+        id: emp.id,
+        name: emp.fullName || emp.name,
+        email: emp.email || ''
+      }))
+    }
+  } catch (error) {
+    console.error('Failed to fetch employees:', error)
+  }
+}
+
 const fetchTeamDetails = async (teamId) => {
-  if (!teamId) return
+  // Only fetch if teamId is NOT 0, null, or undefined
+  if (!teamId || teamId === 0) {
+    console.log('Skipping team details fetch - invalid team ID:', teamId);
+    return;
+  }
+  
+  // Don't fetch team details if modal is opening (initial load)
+  if (isModalOpening.value) {
+    console.log('Skipping team details fetch - modal is opening');
+    return;
+  }
+  
   try {
     const response = await api.post('/teams/details', {
       team_id: teamId
     })
     if (response.data && !response.data.error) {
       selectedTeamDetails.value = response.data.team
+      
+      // Extract team members and add them to selected employees
+      if (response.data.team && response.data.team[0] && response.data.team[0].members) {
+        const teamMembers = response.data.team[0].members
+        console.log('Team members:', teamMembers);
+        
+        const employeeList = teamMembers.map(member => ({
+          id: member.id,
+          empId: member.empId,
+          name: member.fullName || member.name,
+          email: member.email || ''
+        }))
+        
+        // Set initial employees for the selector
+        initialSelectedEmployees.value = employeeList
+        
+        // Update selected IDs and names
+        selectedEmployeeIds.value = employeeList.map(emp => emp.id)
+        selectedEmployeeNames.value = employeeList.map(emp => emp.name)
+        
+        // If the employee selector component is mounted, update it
+        if (employeeSelectorRef.value) {
+          employeeSelectorRef.value.setInitialEmployees(employeeList)
+        }
+      }
     }
   } catch (error) {
     console.error('Failed to fetch team details:', error)
   }
 }
 
+// Handle employee selection
+const handleAddEmployee = (employee) => {
+  if (!selectedEmployeeIds.value.includes(employee.id)) {
+    selectedEmployeeIds.value.push(employee.id)
+    selectedEmployeeNames.value.push(employee.name)
+  }
+}
+
+const handleRemoveEmployee = (employee) => {
+  const index = selectedEmployeeIds.value.indexOf(employee.id)
+  if (index !== -1) {
+    selectedEmployeeIds.value.splice(index, 1)
+    selectedEmployeeNames.value.splice(index, 1)
+  }
+}
+
+const handleEmployeesUpdated = (employees) => {
+  selectedEmployeeIds.value = employees.map(emp => emp.id)
+  selectedEmployeeNames.value = employees.map(emp => emp.name)
+}
+
 const updateLoading = async () => {
-  // if (!isFormValid.value) {
-  //   await Swal.fire({
-  //     icon: 'warning',
-  //     title: 'Warning',
-  //     text: 'Please fill in all required fields',
-  //     timer: 1500,
-  //     showConfirmButton: false
-  //   })
-  //   return
-  // }
+  // Validate required fields
+  if (!formData.value.loadingDate) {
+    await Swal.fire({
+      icon: 'warning',
+      title: 'Warning',
+      text: 'Please select loading date',
+      timer: 1500,
+      showConfirmButton: false
+    })
+    return
+  }
+
+  if (!formData.value.vanNo.trim()) {
+    await Swal.fire({
+      icon: 'warning',
+      title: 'Warning',
+      text: 'Please enter van number',
+      timer: 1500,
+      showConfirmButton: false
+    })
+    return
+  }
+
+  if (!formData.value.sealNo.trim()) {
+    await Swal.fire({
+      icon: 'warning',
+      title: 'Warning',
+      text: 'Please enter seal number',
+      timer: 1500,
+      showConfirmButton: false
+    })
+    return
+  }
+
+  if (!formData.value.containerWeight) {
+    await Swal.fire({
+      icon: 'warning',
+      title: 'Warning',
+      text: 'Please enter container weight',
+      timer: 1500,
+      showConfirmButton: false
+    })
+    return
+  }
 
   try {
-    const response = await api.post('/loading/edit', {
+    Swal.fire({
+      title: 'Processing...',
+      text: 'Please wait',
+      allowOutsideClick: true,
+      didOpen: () => {
+        Swal.showLoading()
+      }
+    })
+
+    const payload = {
       loading_id: formData.value.loadingId,
       loading_date: formData.value.loadingDate,
       van_no: formData.value.vanNo,
@@ -345,11 +482,18 @@ const updateLoading = async () => {
       container_weight: formData.value.containerWeight,
       gross_weight: formData.value.grossWeight ?? 0,
       net_weight: calculatedNetWeight.value,
-      team_id: selectedTeam.value,
-      end_date: formData.value.end_date
-    })
+      team_id: selectedTeam.value ?? 0,
+      end_date: formData.value.endDate,
+      solid_ratio: formData.value.solidRatio,
+      employee_ids: selectedEmployeeIds.value,
+      employee_names: selectedEmployeeNames.value
+    }
+
+    const response = await api.post('/loading/edit', payload)
 
     if (response.data && !response.data.error) {
+      Swal.close()
+      
       await Swal.fire({
         icon: 'success',
         title: 'Success!',
@@ -360,13 +504,23 @@ const updateLoading = async () => {
       
       emit('updated')
       closeModal()
+    } else {
+      Swal.close()
+      await Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: response.data?.message || 'Failed to update loading schedule',
+        timer: 1500,
+        showConfirmButton: false
+      })
     }
   } catch (error) {
     console.error('Failed to update loading:', error)
+    Swal.close()
     await Swal.fire({
       icon: 'error',
       title: 'Error',
-      text: 'Failed to update loading schedule',
+      text: error.response?.data?.message || 'Failed to update loading schedule',
       timer: 1500,
       showConfirmButton: false
     })
@@ -375,7 +529,16 @@ const updateLoading = async () => {
 
 const closeModal = () => {
   showModal.value = false
+  isModalOpening.value = false
   selectedTeamDetails.value = null
+  selectedEmployeeIds.value = []
+  selectedEmployeeNames.value = []
+  initialSelectedEmployees.value = []
+  
+  if (employeeSelectorRef.value) {
+    employeeSelectorRef.value.resetSelection()
+  }
+  
   formData.value = {
     loadingId: null,
     loadingDate: '',
@@ -384,15 +547,31 @@ const closeModal = () => {
     itemId: '',
     containerWeight: 0,
     grossWeight: 0,
+    teamId: null,
+    endDate: '',
+    solidRatio: 0
   }
   calculatedNetWeight.value = 0
   selectedTeam.value = null
 }
-watch(selectedTeam, (newTeamId) => {
-  if (newTeamId) {
+
+// Watchers
+watch(selectedTeam, (newTeamId, oldTeamId) => {
+  // Only fetch team details if:
+  // 1. There's a valid team ID
+  // 2. The modal is not in the opening state
+  // 3. The team ID actually changed (not initial load)
+  if (newTeamId && !isModalOpening.value && newTeamId !== oldTeamId) {
     fetchTeamDetails(newTeamId)
-  } else {
+  } else if (!newTeamId) {
     selectedTeamDetails.value = null
+    // Clear selected employees when team is deselected
+    selectedEmployeeIds.value = []
+    selectedEmployeeNames.value = []
+    initialSelectedEmployees.value = []
+    if (employeeSelectorRef.value) {
+      employeeSelectorRef.value.resetSelection()
+    }
   }
 })
 </script>
