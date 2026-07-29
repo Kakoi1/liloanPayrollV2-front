@@ -73,6 +73,27 @@
               {{ getTeamLabel(viewData.teamId) || 'N/A' }}
             </div>
           </div>
+          <!-- {{ console.log(loading.employees) }} -->
+
+          <div>
+            
+            <label class="block text-sm font-medium text-gray-700 mb-2">Assigned Employees:</label>
+            <div v-if="loading.employees && loading.employees.length > 0" class="bg-gray-50 p-3 rounded-lg border border-gray-200">
+              <div class="flex flex-wrap gap-2">
+                <span 
+                  v-for="(emp, idx) in loading.employees" 
+                  :key="idx"
+                  class="inline-flex items-center px-3 py-1.5 bg-blue-100 text-blue-800 text-sm rounded-full border border-blue-200"
+                >
+                  {{ emp.fullName || emp.name }}
+                </span>
+              </div>
+              <!-- <p class="text-xs text-gray-500 mt-2">Total: {{ loading.employees.length }} employee(s)</p> -->
+            </div>
+            <div v-else class="text-sm text-gray-500 italic bg-gray-50 p-3 rounded-lg border border-gray-200">
+              No employees assigned to this loading
+            </div>
+          </div>
 
           <!-- Container Weight -->
           <div>

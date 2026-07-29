@@ -279,7 +279,7 @@
                                 <div v-if="loading.status != 4" class="flex space-x-1">
   
                                   <FinishLoading 
-                                    v-if="loading.status == 3"
+                                    
                                     :loading="loading" 
                                     @updated="fetchOngoingLoadings"
                                   />

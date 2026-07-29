@@ -547,7 +547,9 @@ watch(selectedWorkers, (newWorkers) => {
 
 // Helper function to get deduction details
 const getDeductionDetails = (value) => {
-  return props.deductionOptions.find(d => d.value == value)
+  return deductionOptions.value.find(d => d.value == value)
+  
+  
 }
 
 // Calculate rate deduction (type 2 deductions - off rate)
@@ -614,7 +616,9 @@ const availableDeductions = (taskIndex) => {
 // Add deduction to task row
 const addDeduction = (event, taskIndex) => {
   const value = event.target.value
-  if (!value) return
+  
+  
+  // if (!value) return
   
   const taskItem = task.value[taskIndex]
   if (!taskItem.deduction_type) {
@@ -842,13 +846,14 @@ const getComputation = (taskItem, index) => {
     taskItem.deduction_type.forEach(value => {
       const deduction = getDeductionDetails(value)
       if (deduction && deduction.type == 1) {
+         
         totalWeightDeduction += (gross * (parseFloat(deduction.amount) / 100))
       }
     })
   }
   
   taskItem.deduction_amount = totalWeightDeduction.toFixed(2)
-  
+ 
   // Calculate net weight (gross - weight deduction)
   taskItem.net_weight = (gross - totalWeightDeduction).toFixed(2)
   
@@ -861,6 +866,7 @@ const getComputation = (taskItem, index) => {
 
 const updateVoucherTotal = () => {
   const taskTotal = task.value.reduce((sum, t) => sum + (parseFloat(t.total_amount) || 0), 0)
+  
   const addLess = parseFloat(voucher.value.add_less) || 0
   const cashAdvancePayment = parseFloat(voucher.value.cash_advance_payment) || 0
 
