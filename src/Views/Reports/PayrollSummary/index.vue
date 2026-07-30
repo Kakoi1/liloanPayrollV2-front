@@ -261,8 +261,8 @@ const submitPayroll = async () => {
   submitting.value = true
   try {
     const result = await Swal.fire({
-        title: 'Draft Tasks Exist', 
-        text: 'There are draft tasks that haven\'t been saved. Do you want to save them before submitting?',
+        title: 'Submit Payroll Tasks?', 
+        text: 'Your about to Submit the tasks that is in the selected Period',
         icon: 'warning', 
         showCancelButton: true, 
         confirmButtonText: 'Submit', 
