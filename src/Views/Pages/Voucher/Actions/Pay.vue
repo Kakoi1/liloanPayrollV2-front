@@ -51,6 +51,12 @@
                 readonly
                 class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-700"
               />
+              <span v-if="hasCashAdvance && cashAdvance" class="inline-flex items-center rounded-md mt-1 ml-2 bg-yellow-400/10 px-4 py-3 text-sm font-medium  inset-ring inset-ring-yellow-400/20">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Cash Advance: ₱{{ parseFloat(cashAdvance.ca_data.balance).toFixed(2) }}
+              </span>
             </div>
 
             <!-- Weigh Slip No -->
@@ -326,10 +332,33 @@
                       />
                     </td>
                   </tr>
+                  <tr v-if="hasCashAdvance && cashAdvance">
+                  <td colspan="7" class="px-3 py-2 text-right font-medium text-yellow-600">
+                      Cash Advance Payment
+                      <!-- <span class="text-xs text-gray-500 ml-2">
+                        (Max: ₱{{ parseFloat(cashAdvance.transaction.amount).toFixed(2) }})
+                      </span> -->
+                    </td>
+                    <td colspan="2" class="px-3 py-2">
+                      <input 
+                        type="number" 
+                        v-model="editData.cash_advance_payment" 
+                        @input="updateVoucherTotal"
+                        :max="cashAdvance.ca_data.balance + cashAdvance.transaction.amount"
+                        :min="0"
+                        step="0.01"
+                        class="w-full px-2 py-1 border border-yellow-300 rounded text-sm focus:ring-1 focus:ring-yellow-500"
+                        placeholder="Enter cash advance payment"
+                      />
+                      <div class="text-xs text-gray-500 mt-1">
+                        <!-- Balance after payment: ₱{{ cashAdvanceBalanceAfterPayment }} -->
+                      </div>
+                    </td>
+                  </tr>
                   <tr class="font-bold">
                     <td colspan="7" class="px-3 py-3 text-right text-red-600">Total:</td>
                     <td class="px-3 py-3 text-red-600" colspan="2">{{ formatCurrency(editData.totalAmount) }}</td>
-                  </tr>
+                  </tr> 
                 </tfoot>
               </table>
             </div>
@@ -414,6 +443,8 @@ const deletedWorkers = ref([])
 const newWorkers = ref([])
 const deletedItems = ref([])
 const newItems = ref([])
+const cashAdvance = ref(null)
+const hasCashAdvance = ref(false)
 
 const searchEmp = ref({
   search: '',
@@ -429,7 +460,10 @@ const editData = ref({
   driver: '',
   paymentDate: '',
   addLess: 0,
-  totalAmount: 0
+  totalAmount: 0,
+  cash_advance_payment: 0,
+  transaction_id: 0,
+  cash_advance_id: 0
 })
 
 // Options
@@ -615,7 +649,13 @@ const fetchVoucherData = async () => {
         if (item.deductionType && item.deductionType[0] && item.deductionType[0].length > 0) {
           deductionIds = item.deductionType[0].map(d => d.deductionId)
         }
-        
+        if (response.data.ca_data.length > 0 || response.data.supplier_ca.length > 0 ) {  
+          cashAdvance.value = {
+            transaction: response.data.ca_data[0], 
+            ca_data: response.data.supplier_ca[0]
+          }
+          hasCashAdvance.value = true
+        }    
         return {
           ...item,
           deductionIds: deductionIds,
@@ -642,8 +682,21 @@ const fetchVoucherData = async () => {
         driver: data.voucher[0].driver,
         paymentDate: data.voucher[0].paymentDate,
         addLess: parseFloat(data.voucher[0].addLess) || 0,
-        totalAmount: parseFloat(data.voucher[0].totalAmount) || 0
+        totalAmount: parseFloat(data.voucher[0].totalAmount) || 0,
       }
+
+      if (response.data.ca_data.length > 0 || response.data.supplier_ca.length > 0 ) {  
+          cashAdvance.value = {
+            transaction: response.data.ca_data[0], 
+            ca_data: response.data.supplier_ca[0]
+        }
+         
+          editData.value.cash_advance_payment = parseFloat(data.ca_data[0].amount ?? 0),
+          editData.value.cash_advance_id = data.supplier_ca[0].id ?? 0,
+          editData.value.transaction_id = data.ca_data[0].id ?? 0
+        
+          hasCashAdvance.value = true
+        } 
       
       // Recalculate all items to ensure rate deductions are applied
       voucherItems.value.forEach((item, index) => {
@@ -829,7 +882,6 @@ watch(() => editData.value.addLess, (newValue) => {
   updateVoucherTotal()
 })
 
-// Improved updateVoucherTotal function
 const updateVoucherTotal = () => {
   const itemsTotal = voucherItems.value.reduce((sum, item) => {
     const amount = parseFloat(item.totalAmount) || 0
@@ -837,15 +889,30 @@ const updateVoucherTotal = () => {
   }, 0)
   
   const addLess = parseFloat(editData.value.addLess) || 0
-  const total = itemsTotal + addLess
+  const cashAdvancePayment = parseFloat(editData.value.cash_advance_payment) || 0
   
-  editData.value.totalAmount = total.toFixed(2)
+  const subtotal = itemsTotal + addLess
   
-  // Also update the voucher details for display
+  // Validate cash advance payment doesn't exceed subtotal
+  if (cashAdvancePayment > subtotal) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Invalid Cash Advance Payment',
+      text: `Cash advance payment (₱${cashAdvancePayment.toFixed(2)}) cannot exceed the subtotal (₱${subtotal.toFixed(2)}). Please adjust the payment.`,
+      confirmButtonText: 'OK'
+    })
+    editData.value.cash_advance_payment = subtotal
+    return
+  }
+  
+  const final_total = subtotal - cashAdvancePayment
+  editData.value.totalAmount = final_total.toFixed(2)
+  
   if (voucherDetails.value) {
-    voucherDetails.value.totalAmount = total.toFixed(2)
+    voucherDetails.value.totalAmount = final_total.toFixed(2)
   }
 }
+
 
 const formatCurrency = (value) => {
   if (!value && value !== 0) return '₱0.00'
@@ -906,7 +973,10 @@ const saveVoucher = async (status) => {
         driver: editData.value.driver,
         transaction_time: editData.value.transactionTime,
         add_less: editData.value.addLess,
-        total_amount: editData.value.totalAmount
+        total_amount: editData.value.totalAmount,
+        cash_advance_payment: editData.value.cash_advance_payment || 0,
+        cash_advance_trans: editData.value.transaction_id || 0,
+        cash_advance_id: editData.value.cash_advance_id || 0
       },
       items: {
         update: itemsToUpdate,

@@ -35,7 +35,7 @@
             <!-- Card Body -->
             <div class="p-6">
               <!-- Filter -->
-              <div class="mb-4">
+              <div class="mb-4 flex items-center gap-3">
                 <select 
                   v-model="selectedPayrollPeriod" 
                   @change="fetchPayrollData"
@@ -46,7 +46,21 @@
                     {{ period.datePeriod }}
                   </option>
                 </select>
-                <div class="flex justify-end gap-2 ">
+                
+                <!-- Submit Button - Only show when selected period is not complete -->
+                <button
+                  v-if="selectedPayrollPeriod && !isSelectedPeriodComplete"
+                  @click="submitPayroll"
+                  :disabled="submitting"
+                  class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg flex items-center space-x-2 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <i class="fa fa-check-circle"></i>
+                  <span>{{ submitting ? 'Submitting...' : 'Submit Payroll' }}</span>
+                </button>
+                
+                <div class="flex-1"></div>
+                
+                <div class="flex justify-end gap-2">
                   <a
                     target="_blank"
                     v-if="selectedPayrollPeriod"
@@ -150,7 +164,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import api from '@/Js/Services/axios'
 import { handleApiError } from '@/Views/Utility/Helper'
 import { VUE_APP_API_URL } from '@/Views/Utility/Global'
@@ -165,6 +179,14 @@ const payroll = ref({
   totals: []
 })
 const loading = ref(false)
+const submitting = ref(false)
+
+// Computed property to check if selected period is complete
+const isSelectedPeriodComplete = computed(() => {
+  if (!selectedPayrollPeriod.value) return false
+  const selectedPeriod = payrollPeriods.value.find(p => p.id === selectedPayrollPeriod.value)
+  return selectedPeriod ? selectedPeriod.isComplete === 1 : false
+})
 
 // Helper function to format values
 const formatValue = (value) => {
@@ -229,6 +251,34 @@ const fetchPayrollData = async () => {
     payroll.value.group_headers = []
   } finally {
     loading.value = false
+  }
+}
+
+// Submit payroll
+const submitPayroll = async () => {
+  if (!selectedPayrollPeriod.value) return
+  
+  submitting.value = true
+  try {
+    const response = await api.post('/payroll/submit-all', {
+      payroll_period_id: selectedPayrollPeriod.value
+    })
+    
+    if (response.data && !response.data.error) {
+      // Refresh the payroll periods to update the isComplete status
+      await fetchPayrollPeriods()
+      
+      // Show success message (you can add a toast notification here)
+      alert('Payroll submitted successfully!')
+    } else {
+      alert(response.data?.message || 'Failed to submit payroll')
+    }
+  } catch (error) {
+    handleApiError(error)
+    console.error('Failed to submit payroll:', error)
+    alert('An error occurred while submitting payroll')
+  } finally {
+    submitting.value = false
   }
 }
 

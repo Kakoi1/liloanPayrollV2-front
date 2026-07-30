@@ -354,7 +354,7 @@
                       Balance after payment: ₱{{ cashAdvanceBalanceAfterPayment }}
                     </div>
                   </td>
-                              </tr>
+                </tr>
             </tbody>
             <tfoot class="bg-gray-100 font-bold">
               <tr>

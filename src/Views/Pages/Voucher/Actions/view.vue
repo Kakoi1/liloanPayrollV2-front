@@ -75,7 +75,7 @@
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Transaction Time:</label>
               <p class="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg">
-                {{ vdata.voucher?.[0]?.transactionTime == 1 ? 'Morning' : 'Afternoon' }}
+                {{ vdata.voucher?.[0]?.transactionTime == 1 ? 'Morning' : vdata.voucher?.[0]?.transactionTime == 2 ? 'Afternoon' : 'Evening' }}
               </p>
             </div>
 
@@ -86,6 +86,20 @@
                 <span :class="getStatusClass(vdata.voucher?.[0]?.status)">
                   {{ getStatusText(vdata.voucher?.[0]?.status) }}
                 </span>
+              </p>
+            </div>
+
+            <!-- Cash Advance - Only show if hasCashAdvance -->
+            <div v-if="hasCashAdvance" class="md:col-span-2">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Cash Advance:</label>
+              <p class="px-3 py-2 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <span v-if="vdata.ca_data && vdata.ca_data.length > 0" class="text-yellow-700 font-medium">
+                  ₱{{ formatNumber(vdata.ca_data[0]?.amount) }}
+                  <span class="text-xs text-gray-500 ml-2">
+                    (Balance: ₱{{ formatNumber(vdata.supplier_ca?.[0]?.balance || 0) }})
+                  </span>
+                </span>
+                <span v-else class="text-gray-400">No cash advance applied</span>
               </p>
             </div>
           </div>
@@ -156,6 +170,14 @@
                       {{ formatCurrency(vdata.voucher?.[0]?.addLess) }}
                     </td>
                   </tr>
+                  <!-- Cash Advance Deduction - Only show if hasCashAdvance -->
+                  <tr v-if="hasCashAdvance && vdata.ca_data && vdata.ca_data.length > 0" class="bg-yellow-50">
+                    <td colspan="6"></td>
+                    <td class="px-3 py-2 text-right font-medium text-yellow-600">Cash Advance:</td>
+                    <td class="px-3 py-2 text-center font-medium text-yellow-600">
+                      - {{ formatCurrency(vdata.ca_data[0]?.amount) }}
+                    </td>
+                  </tr>
                 </tbody>
                 <tfoot class="bg-gray-100 font-bold">
                   <tr>
@@ -209,10 +231,13 @@ const props = defineProps({
 // State
 const showModal = ref(false)
 const loading = ref(false)
+const hasCashAdvance = ref(false)
 const vdata = ref({
   voucher: [],
   voucherItem: [],
-  voucherWorker: []
+  voucherWorker: [],
+  ca_data: [],
+  supplier_ca: []
 })
 
 // Computed
@@ -224,8 +249,12 @@ const calculateTotalView = computed(() => {
   }, 0)
   
   const addLess = parseFloat(vdata.value.voucher?.[0]?.addLess) || 0
+  const subtotal = total + addLess
   
-  return formatCurrency(total)
+  // Subtract cash advance if exists
+  const cashAdvance = hasCashAdvance.value ? parseFloat(vdata.value.ca_data?.[0]?.amount) || 0 : 0
+  
+  return formatCurrency(subtotal - cashAdvance)
 })
 
 // Methods
@@ -243,8 +272,19 @@ const fetchVoucherData = async () => {
     })
     
     if (response.data && !response.data.error) {
-      vdata.value = response.data
+      vdata.value = {
+        voucher: response.data.voucher || [],
+        voucherItem: response.data.voucherItem || [],
+        voucherWorker: response.data.voucherWorker || [],
+        ca_data: response.data.ca_data || [],
+        supplier_ca: response.data.supplier_ca || []
+      }
+      
+      // Check if cash advance exists
+      hasCashAdvance.value = response.data.ca_data && response.data.ca_data.length > 0
+      
       console.log('Voucher data:', vdata.value)
+      console.log('Has cash advance:', hasCashAdvance.value)
     } else {
       throw new Error(response.data?.message || 'Failed to fetch voucher data')
     }
@@ -314,7 +354,10 @@ const closeModal = () => {
   vdata.value = {
     voucher: [],
     voucherItem: [],
-    voucherWorker: []
+    voucherWorker: [],
+    ca_data: [],
+    supplier_ca: []
   }
+  hasCashAdvance.value = false
 }
 </script>

@@ -107,6 +107,7 @@
               <th class="px-2 py-2 text-left">Class</th>
               <th class="px-2 py-2 text-left">Task</th>
               <th class="px-2 py-2 text-left">Hours/Weight</th>
+              <th class="px-2 py-2 text-left">Worker Count</th>
                <th class="px-2 py-2 text-left">Rate</th>
               <th class="px-2 py-2 text-left">Total</th>
               <th class="px-2 py-2 text-left">Remarks</th>
@@ -120,7 +121,8 @@
               <td class="px-2 py-2">{{ task.date || '-' }}</td>
               <td class="px-2 py-2">{{ task.task_name || '-' }}</td>
               <td class="px-2 py-2">{{ task.name || '-' }}</td>
-              <td class="px-2 py-2">{{ task.netKgPerEmp || '0' }} {{ task.unitAbbre }}</td>
+              <td class="px-2 py-2">{{ task.unit == 1 ? task.netKgPerEmp : task.originalNet }} {{ task.unitAbbre }}</td>
+              <td class="px-2 py-2">{{ task.workerCount || '0' }}</td>
               <td class="px-2 py-2">{{ task.rate || '0' }}</td>
               <td class="px-2 py-2 font-semibold text-green-600">{{ formatNumber(task.total) }}</td>
               <td class="px-2 py-2 max-w-[100px] text-wrap">{{ task.remarks || '-' }}</td>
