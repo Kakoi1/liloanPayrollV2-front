@@ -168,6 +168,7 @@ import { ref, onMounted, computed } from 'vue'
 import api from '@/Js/Services/axios'
 import { handleApiError } from '@/Views/Utility/Helper'
 import { VUE_APP_API_URL } from '@/Views/Utility/Global'
+import Swal from 'sweetalert2'
 
 // State
 const selectedPayrollPeriod = ref('')
@@ -257,21 +258,39 @@ const fetchPayrollData = async () => {
 // Submit payroll
 const submitPayroll = async () => {
   if (!selectedPayrollPeriod.value) return
-  
   submitting.value = true
   try {
-    const response = await api.post('/payroll/submit-all', {
-      payroll_period_id: selectedPayrollPeriod.value
-    })
-    
-    if (response.data && !response.data.error) {
-      // Refresh the payroll periods to update the isComplete status
-      await fetchPayrollPeriods()
-      
-      // Show success message (you can add a toast notification here)
-      alert('Payroll submitted successfully!')
-    } else {
-      alert(response.data?.message || 'Failed to submit payroll')
+    const result = await Swal.fire({
+        title: 'Draft Tasks Exist', 
+        text: 'There are draft tasks that haven\'t been saved. Do you want to save them before submitting?',
+        icon: 'warning', 
+        showCancelButton: true, 
+        confirmButtonText: 'Submit', 
+      })
+    if (result.isConfirmed) {
+      Swal.fire({
+        title: 'Processing...',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+      })  
+      const response = await api.post('/payroll/submit-all', {
+        payroll_period_id: selectedPayrollPeriod.value
+      })
+
+      if (response.data && !response.data.error) {
+        await fetchPayrollPeriods()
+        Swal.close()
+        alert('')
+        await Swal.fire({
+              icon: 'success',
+              title: 'Success!',
+              text: 'Payroll submitted successfully!',
+              timer: 1500,
+              showConfirmButton: false
+            })
+      } else {
+        alert(response.data?.message || 'Failed to submit payroll')
+      }
     }
   } catch (error) {
     handleApiError(error)
