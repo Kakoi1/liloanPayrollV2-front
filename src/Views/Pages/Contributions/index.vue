@@ -618,9 +618,10 @@ const deleteContribution = async (empIndex, childIndex, type) => {
   if (result.isConfirmed) {
     try {
       if (!contribution.isNew && contribution.id) {
+        console.log(employee);
         const response = await api.post('/employee/delete-contribution', {
           contribution_id: contribution.id,
-          employee_id: employee.id,
+          employee_id: employee.employeeId,
           employeeId: employee.employeeIdNumber || employee.employee_id,
           type: type
         })
