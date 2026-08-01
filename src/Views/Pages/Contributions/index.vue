@@ -66,7 +66,7 @@
 
                   <!-- Contributions Cards -->
                   <div class="space-y-6">
-                    <div v-for="(employee, empIndex) in data" :key="employee.id" class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+                    <div v-for="(employee, empIndex) in data" :key="employee.id" class="bg-white border border-[3px] border-blue-300 rounded-lg shadow-sm overflow-hidden">
                       <!-- Employee Header -->
                       <div class="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200">
                         <div class="flex justify-between items-center">
