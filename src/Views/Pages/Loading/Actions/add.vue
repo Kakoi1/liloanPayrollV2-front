@@ -243,6 +243,11 @@ const calculateNetWeight = () => {
 const fetchTeamDetails = async (teamId) => {
   if (!teamId) return
   try {
+    Swal.fire({
+      title: 'Processing...',
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading()
+    })
     const response = await api.post('/teams/details', {
       team_id: teamId
     })

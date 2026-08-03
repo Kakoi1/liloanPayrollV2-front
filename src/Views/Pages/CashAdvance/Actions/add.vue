@@ -39,6 +39,7 @@
               formatLabel="none"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
+          <span v-if="selectedSupplier" class="inline-flex items-center rounded-md bg-red-400/10 p-2 mt-1 text-sm font-medium text-red-400 inset-ring inset-ring-red-400/20 border border-red-400/20">Supplier: {{ selectedSupplier.supplier_name }}</span>
         </div>
 
         <!-- Amount -->
@@ -231,10 +232,8 @@ const openModal = () => {
 }
 
 const closeModal = () => {
-  if (isLoading.value) return // Prevent closing while loading
-  
   showModal.value = false
-  emit('close')
+  // emit('close')
   resetForm()
 }
 
@@ -253,17 +252,19 @@ const save = async () => {
     const response = await api.post('/cash-advance/add', submissionData)
 
     if (response.data && !response.data.error) {
-      emit('saved', submissionData)
+      console.log('this work');
+      
+      Swal.fire({
+        icon: 'success',
+        title: 'Success!',
+        text: 'Compensation/Deduction request has been submitted',
+        timer: 2000,
+        showConfirmButton: false
+      })
+      emit('saved')
       closeModal()
     }
-    // Show success message
-    Swal.fire({
-      icon: 'success',
-      title: 'Success!',
-      text: 'Compensation/Deduction request has been submitted',
-      timer: 2000,
-      showConfirmButton: false
-    })
+
   } catch (error) {
     console.error('Save error:', error)
     handleApiError(error)

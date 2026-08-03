@@ -34,7 +34,7 @@
           <div class="bg-purple-50 p-4 rounded-lg border border-purple-200">
             <p class="text-sm text-gray-600">Status</p>
             <p class="text-xl font-bold">
-              <span :class="cashAdvanceData.status === 'active' ? 'text-green-600' : 'text-gray-600'">
+              <span :class="getStatusClass(cashAdvanceData.status)">
                 {{getStatusText(cashAdvanceData.status) }}
               </span>
             </p>
@@ -59,48 +59,52 @@
           </div>
         </div>
 
-        <!-- Transactions Table -->
+        <!-- Transactions Table with Deduct Button -->
         <div>
-          <h4 class="font-semibold text-gray-700 mb-3">Transaction History</h4>
+          <div class="flex justify-between items-center mb-3">
+            <h4 class="font-semibold text-gray-700">Transaction History</h4>
+            <button 
+              v-if="cashAdvanceData.status !== 2"
+              @click="openDeductModal"
+              class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm flex items-center gap-2"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4M12 4v16"></path>
+              </svg>
+              Add Deduction
+            </button>
+          </div>
           <div class="overflow-x-auto border rounded-lg">
             <table class="min-w-full divide-y divide-gray-200">
               <thead class="bg-gray-50">
                 <tr>
                   <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                  <!-- <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th> -->
-                  <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Amount</th>
-                  <!-- <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Balance</th> -->
-                  <!-- <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reference</th> -->
+                  <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Amount</th>
+                  <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Remarks</th>
                 </tr>
               </thead>
               <tbody class="bg-white divide-y divide-gray-200">
                 <tr v-if="!transactions?.length">
-                  <td colspan="5" class="px-4 py-6 text-center text-gray-500">
+                  <td colspan="3" class="px-4 py-6 text-center text-gray-500">
                     No transactions found
                   </td>
                 </tr>
-                <tr v-for="(transaction, index) in transactions" :key="index" class="hover:bg-gray-50">
+                <tr v-for="(transaction, index) in transactions" :key="index" class="hover:bg-gray-50" :class="transaction.refId == 0 ? 'bg-red-100' : 'bg-green-100'">
                   <td class="px-4 py-3 text-sm">{{ formatDate(transaction.created_at || transaction.date) }}</td>
-                  <!-- <td class="px-4 py-3 text-sm">
-                    <span :class="transaction.type === 'payment' ? 'text-blue-600' : 'text-green-600'">
-                      {{ transaction.type || 'Payment' }}
-                    </span>
-                  </td> -->
-                  <td class="px-4 py-3 text-sm text-right" :class="transaction.amount < 0 ? 'text-red-600' : 'text-green-600'">
+                  <td class="px-4 py-3 text-sm text-center" :class="transaction.refId  == 0 ? 'text-red-600' : 'text-green-600'">
                     {{ formatCurrency(transaction.amount) }}
                   </td>
-                  <!-- <td class="px-4 py-3 text-sm text-right">{{ formatCurrency(transaction.balance) }}</td> -->
-                  <!-- <td class="px-4 py-3 text-sm text-gray-600">{{ transaction.reference || '—' }}</td> -->
+                  <td class="px-4 py-3 text-sm text-center">
+                    {{ transaction.remarks || 'N/A' }}
+                  </td>
                 </tr>
               </tbody>
-              <tfoot v-if="cashAdvanceData.transactions?.length" class="bg-gray-50 font-bold">
+              <!-- <tfoot v-if="transactions?.length" class="bg-gray-50 font-bold">
                 <tr>
-                  <td colspan="2" class="px-4 py-3 text-right">Total</td>
+                  <td class="px-4 py-3 text-right">Total</td>
                   <td class="px-4 py-3 text-right text-blue-600">{{ formatCurrency(cashAdvanceData.amount) }}</td>
-                  <td class="px-4 py-3 text-right text-green-600">{{ formatCurrency(cashAdvanceData.balance || cashAdvanceData.amount) }}</td>
-                  <td></td>
                 </tr>
-              </tfoot>
+              </tfoot> -->
             </table>
           </div>
         </div>
@@ -116,11 +120,105 @@
         </div>
       </div>
     </Modal>
+
+    <!-- Deduction Modal -->
+    <Modal 
+      :show="showDeductModal" 
+      @close="closeDeductModal"
+      title="Add Manual Deduction"
+      color="bg-gradient-to-r from-blue-600 to-blue-700"
+      maxWidth="md"
+      :closeable="true"
+    >
+      <div class="p-6">
+        <form @submit.prevent="submitDeduction">
+          <!-- Current Balance Display -->
+          <div class="mb-4 p-3 bg-gray-50 rounded-lg">
+            <p class="text-sm text-gray-600">Current Balance</p>
+            <p class="text-2xl font-bold text-blue-600">
+              {{ formatCurrency(cashAdvanceData?.balance || cashAdvanceData?.amount) }}
+            </p>
+          </div>
+
+          <!-- Deduction Amount -->
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Deduction Amount <span class="text-red-500">*</span>
+            </label>
+            <div class="relative">
+              <span class="absolute left-3 top-2.5 text-gray-500">₱</span>
+              <input 
+                type="number" 
+                v-model="deductionForm.amount"
+                step="0.01"
+                min="0.01"
+                :max="cashAdvanceData?.balance || cashAdvanceData?.amount"
+                required
+                class="w-full pl-8 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="0.00"
+              />
+            </div>
+            <p v-if="deductionForm.amount > (cashAdvanceData?.balance || cashAdvanceData?.amount)" 
+               class="text-red-500 text-sm mt-1">
+              Amount cannot exceed the current balance
+            </p>
+          </div>
+
+          <!-- Deduction Date -->
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Deduction Date <span class="text-red-500">*</span>
+            </label>
+            <input 
+              type="date" 
+              v-model="deductionForm.date"
+              required
+              class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+
+          <!-- Remarks -->
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Remarks <span class="text-gray-400 text-xs">(Optional)</span>
+            </label>
+            <textarea 
+              v-model="deductionForm.remarks"
+              rows="3"
+              class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Enter deduction remarks..."
+            ></textarea>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex justify-end gap-3 mt-6">
+            <button 
+              type="button"
+              @click="closeDeductModal"
+              class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition"
+            >
+              Cancel
+            </button>
+            <button 
+              type="submit"
+              :disabled="isSubmitting || !isValidDeduction"
+              class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              <svg v-if="isSubmitting" class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              {{ isSubmitting ? 'Processing...' : 'Add Deduction' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </Modal>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import Swal from 'sweetalert2'
 import Modal from '@/Js/Components/Modal.vue'
 import { handleApiError } from '@/Views/Utility/Helper'
@@ -133,13 +231,27 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['saved', 'close'])
+const emit = defineEmits(['saved', 'close', 'deduction-added'])
 
 // State
 const showModal = ref(false)
+const showDeductModal = ref(false)
 const isLoading = ref(false)
+const isSubmitting = ref(false)
 const cashAdvanceData = ref(null)
 const transactions = ref([])
+const deductionForm = ref({
+  amount: '',
+  date: '',
+  remarks: ''
+})
+
+// Computed
+const isValidDeduction = computed(() => {
+  const amount = parseFloat(deductionForm.value.amount)
+  const balance = cashAdvanceData.value?.balance || cashAdvanceData.value?.amount || 0
+  return amount > 0 && amount <= balance && deductionForm.value.date
+})
 
 // Helper functions
 const formatCurrency = (amount) => {
@@ -152,8 +264,6 @@ const formatCurrency = (amount) => {
 
 const getStatusClass = (status) => {
   const classes = {
-    // pending: 'bg-yellow-100 text-yellow-800',
-    // approved: 'bg-blue-100 text-blue-800',
     1: 'bg-purple-100 text-purple-800',
     2: 'bg-green-100 text-green-800'
   }
@@ -162,8 +272,6 @@ const getStatusClass = (status) => {
 
 const getStatusText = (status) => {
   const texts = {
-    // pending: 'Pending',
-    // approved: 'Approved',
     1: 'Released',
     2: 'Fully Paid'
   }
@@ -218,6 +326,68 @@ const closeModal = () => {
   showModal.value = false
   emit('close')
   cashAdvanceData.value = null
+  transactions.value = []
+}
+
+// Deduction modal functions
+const openDeductModal = () => {
+  // Set default date to today
+  const today = new Date().toISOString().split('T')[0]
+  deductionForm.value = {
+    amount: '',
+    date: today,
+    remarks: ''
+  }
+  showDeductModal.value = true
+}
+
+const closeDeductModal = () => {
+  showDeductModal.value = false
+  deductionForm.value = {
+    amount: '',
+    date: '',
+    remarks: ''
+  }
+}
+
+const submitDeduction = async () => {
+  if (!isValidDeduction.value) return
+  
+  isSubmitting.value = true
+  try {
+    const payload = {
+      ca_id: props.caId,
+      amount: parseFloat(deductionForm.value.amount),
+      date: deductionForm.value.date,
+      remarks: deductionForm.value.remarks || 'Manual deduction'
+    }
+    
+    const response = await api.post('/cash-advance/add-deduction', payload)
+    
+    if (response.data && !response.data.error) {
+      Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: 'Deduction added successfully'
+      })
+      
+      // Refresh data
+      await fetchCashAdvanceData()
+      emit('deduction-added', response.data.data)
+      closeDeductModal()
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: response.data?.message || 'Failed to add deduction'
+      })
+    }
+  } catch (error) {
+    console.error('Deduction error:', error)
+    handleApiError(error)
+  } finally {
+    isSubmitting.value = false
+  }
 }
 
 // Expose methods

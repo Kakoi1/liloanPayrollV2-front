@@ -920,7 +920,11 @@ const saveVoucher = async () => {
   }
 
   try {
-    // Prepare form data for file upload
+      Swal.fire({
+        title: 'Processing...',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+      })
     const formData = new FormData()
     formData.append('voucher', JSON.stringify(voucher.value))
     formData.append('tasks', JSON.stringify(task.value))

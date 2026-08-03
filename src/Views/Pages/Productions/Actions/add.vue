@@ -350,6 +350,11 @@ const removeTask = async (record) => {
 
   if (result.isConfirmed) {
     try {
+      Swal.fire({
+        title: 'Processing...',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+      })
       const response = await api.post('/productions/delete', {
         id: record.id
       })

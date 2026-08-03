@@ -935,7 +935,12 @@ const markForPayment = async () => {
 
 const saveVoucher = async (status) => {
   try {
-    console.log(voucherItems);
+
+    Swal.fire({
+      title: 'Processing...',
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading()
+    })
     
     const itemsToUpdate = voucherItems.value
       .filter(item => !item.isNew)

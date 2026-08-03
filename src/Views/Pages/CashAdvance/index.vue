@@ -326,8 +326,36 @@ const deleteRecord = async (id) => {
     confirmButtonText: 'Yes, delete'
   })
   if (result.isConfirmed) {
-    cashAdvances.value = cashAdvances.value.filter(item => item.id !== id)
-    await Swal.fire({ icon: 'success', title: 'Deleted!', timer: 1500, showConfirmButton: false })
+      try {
+        Swal.fire({
+          title: 'Processing...',
+          allowOutsideClick: false,
+          didOpen: () => Swal.showLoading()
+        })
+        const response = await api.post('/cash-advance/delete', {
+          ca_id: id
+        })
+
+        if (response.data && !response.data.error) {
+          await Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: 'Cash Advance Deleted successfully',
+            timer: 1500,
+            showConfirmButton: false
+          })
+          await fetchData()
+        }
+      } catch (error) {
+        console.error('Failed to Delete Cash Advance:', error)
+        await Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Failed to Delete Cash Advance',
+          timer: 1500,
+          showConfirmButton: false
+        })
+      }
   }
 }
 
