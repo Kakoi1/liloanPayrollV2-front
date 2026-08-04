@@ -137,7 +137,7 @@
               <td class="px-6 py-4 whitespace-nowrap text-center">
                 <div class="flex justify-center gap-2">
                   
-                  <ViewCashAdvance :caId="item.id" />
+                  <ViewCashAdvance :caId="item.id" @close="fetchData" />
                   <button v-if="item.status === 'pending'" @click="approveRequest(item.id)" class="text-green-600 hover:text-green-800" title="Approve">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
