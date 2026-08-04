@@ -155,6 +155,8 @@ import { ref, computed, onMounted } from 'vue';
 import api from '@/Js/Services/axios';
 import ManualItemInput from './Actions/add.vue';
 import { handleApiError } from '@/Views/Utility/Helper.js';
+import { VUE_APP_API_URL } from '@/Views/Utility/Global.js';
+import Swal from 'sweetalert2';
 
 // State
 const loading = ref(false);
@@ -272,68 +274,60 @@ const list = async () => {
   }
 };
 
-const excel = async () => {
-  if (!dateRange.value.from || !dateRange.value.to) {
-    alert('Please select both from and to dates');
-    return;
+const excel = async () => {  
+ if (!dateRange.value.from || !dateRange.value.to) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Warning',
+      text: 'Please select date range first',
+      timer: 1500,
+      showConfirmButton: false
+    })
+    return
   }
-  
-  try {
-    const response = await api.post('/inventory/daily-excel', {
-      dateFrom: dateRange.value.from,
-      dateTo: dateRange.value.to
-    }, {
-      responseType: 'blob'
-    });
-    
-    const url = window.URL.createObjectURL(new Blob([response.data]));
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `daily_inventory_${dateRange.value.from}_to_${dateRange.value.to}.xlsx`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
-  } catch (error) {
-    console.error('Error:', error);
-    alert('Failed to generate Excel');
-  }
+  window.open(`${VUE_APP_API_URL}vouchers/daily-inventory-excel-download/${dateRange.value.from}/${dateRange.value.to}`, '_blank')
 };
 
-const printReport = () => {
-  const printContent = document.querySelector('.overflow-x-auto').innerHTML;
-  const dateInfo = document.querySelector('.mb-4.p-3.bg-gray-50').cloneNode(true);
-  const printWindow = window.open('', '_blank');
-  printWindow.document.write(`
-    <html>
-      <head>
-        <title>Daily Item Inventory - ${dateRange.value.from} to ${dateRange.value.to}</title>
-        <style>
-          body { font-family: Arial, sans-serif; padding: 20px; }
-          table { width: 100%; border-collapse: collapse; }
-          th, td { padding: 8px; text-align: right; border: 1px solid #ddd; }
-          th { background-color: #f2f2f2; }
-          .text-right { text-align: right; }
-          .text-center { text-align: center; }
-          .text-red { color: #dc3545; }
-          .font-bold { font-weight: bold; }
-          .mb-4 { margin-bottom: 1rem; }
-          .p-3 { padding: 0.75rem; }
-          .bg-gray-50 { background-color: #f9fafb; }
-          .border { border: 1px solid #e5e7eb; }
-          .rounded-md { border-radius: 0.375rem; }
-        </style>
-      </head>
-      <body>
-        <h2>Daily Item Inventory</h2>
-        ${dateInfo.outerHTML}
-        ${printContent}
-      </body>
-    </html>
-  `);
-  printWindow.document.close();
-  printWindow.print();
-  printWindow.close();
+const printReport = async () => {
+  try {
+    
+    Swal.fire({
+      title: 'Processing...',
+      text: 'Please wait',
+      allowOutsideClick: true,
+      didOpen: () => {
+        Swal.showLoading()
+      }
+    })
+  
+   const response = await api.post('/vouchers/daily-inventory-pdf-download',{
+      dateFrom: dateRange.value.from,
+      dateTo: dateRange.value.to
+    })
+
+    if (response.data && !response.data.error) {
+      await Swal.fire({
+        icon: 'success',
+        title: 'Success!',
+        text: response.data.message,
+        // timer: 1500,
+        showConfirmButton: true
+      })
+
+    const pdf = atob(response.data.pdf);
+
+    const bytes = new Uint8Array(pdf.length);
+    for (let i = 0; i < pdf.length; i++) {
+        bytes[i] = pdf.charCodeAt(i);
+    }
+
+    const blob = new Blob([bytes], { type: 'application/pdf' });
+      window.open(URL.createObjectURL(blob));
+    }
+  } catch (error) {
+    console.error('Failed to fetch team details:', error)
+    handleApiError(error)
+  }
 };
 
 const maximizeCard = () => {
