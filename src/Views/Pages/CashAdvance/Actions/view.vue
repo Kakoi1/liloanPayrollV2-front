@@ -75,26 +75,26 @@
             </button>
           </div>
           <div class="overflow-x-auto border rounded-lg">
-            <table class="min-w-full divide-y divide-gray-200">
-              <thead class="bg-gray-50">
+            <table class="min-w-full divide-y divide-gray-200 ">
+              <thead class="bg-gray-50 font-bold">
                 <tr>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                  <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Amount</th>
-                  <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Remarks</th>
+                  <th class="px-4 py-3 text-left text-md font-medium text-gray-500 uppercase">Date</th>
+                  <th class="px-4 py-3 text-center text-md font-medium text-gray-500 uppercase">Amount</th>
+                  <th class="px-4 py-3 text-center text-md font-medium text-gray-500 uppercase">Remarks</th>
                 </tr>
               </thead>
-              <tbody class="bg-white divide-y divide-gray-200">
+              <tbody class="bg-white divide-y divide-gray-200 font-semibold">
                 <tr v-if="!transactions?.length">
                   <td colspan="3" class="px-4 py-6 text-center text-gray-500">
                     No transactions found
                   </td>
                 </tr>
                 <tr v-for="(transaction, index) in transactions" :key="index" class="hover:bg-gray-50" :class="transaction.refId == 0 ? 'bg-red-100' : 'bg-green-100'">
-                  <td class="px-4 py-3 text-sm">{{ formatDate(transaction.created_at || transaction.date) }}</td>
-                  <td class="px-4 py-3 text-sm text-center" :class="transaction.refId  == 0 ? 'text-red-600' : 'text-green-600'">
+                  <td class="px-4 py-3 text-md">{{ formatDate(transaction.created_at || transaction.date) }}</td>
+                  <td class="px-4 py-3 text-md text-center" :class="transaction.refId  == 0 ? 'text-red-600' : 'text-green-600'">
                     {{ formatCurrency(transaction.amount) }}
                   </td>
-                  <td class="px-4 py-3 text-sm text-center">
+                  <td class="px-4 py-3 text-md text-center">
                     {{ transaction.remarks || 'N/A' }}
                   </td>
                 </tr>

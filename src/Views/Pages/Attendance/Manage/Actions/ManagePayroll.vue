@@ -223,7 +223,8 @@
                         <!-- <option :value="2">Spec</option> -->
                         <option :value="3">Hol</option>
                         <option :value="4">Double</option>
-                        <option :value="7">Sun/Spec Hol</option>
+                        <option :value="7">Sunday</option>
+                        <option :value="11">Spe Hol</option>
                         <option :value="6">Reg OT</option>
                         <option :value="8">Sun/Spec Hol OT</option>
                         <option :value="9">Hol OT</option>
@@ -317,7 +318,8 @@
                         <!-- <option :value="2">Spec</option> -->
                         <option :value="3">Hol</option>
                         <option :value="4">Double</option>
-                        <option :value="7">Sun/Spec Hol</option>
+                        <option :value="7">Sunday</option>
+                        <option :value="11">Spe Hol</option>
                         <option :value="6">Reg OT</option>
                         <option :value="8">Sun/Spec Hol OT</option>
                         <option :value="9">Hol OT</option>
@@ -669,8 +671,10 @@ const calculateHourlyRate = (type, daily, hours) => {
     switch(type) {
         case 1:  // regular (dayType 1)
             return hour_rate * 1 * hours;
-        case 7:  // special/sunday (dayType 2)
+        case 7:  // sunday (dayType 2)
             return hour_rate * 1.3 * hours;
+        case 11:  // special holiday (dayType 2)
+            return hour_rate * .3 * hours;
         case 3:  // holiday (dayType 3)
             return hour_rate * 2 * hours;
         case 4: // double ot (dayType 4)
@@ -739,7 +743,7 @@ const updateTaskTotal = (task) => {
             console.log(baseTotal, task.dayType,
             dailyRate,
             task.netKgPerEmp);
-        }else if(task.dayType == 1 || task.dayType == 3|| task.dayType == 4 || task.dayType == 7){
+        }else if(task.dayType == 1 || task.dayType == 3|| task.dayType == 4 || task.dayType == 7 ||task.dayType == 11){
           baseTotal = calculateHourlyRate(
             task.dayType,
             dailyRate,

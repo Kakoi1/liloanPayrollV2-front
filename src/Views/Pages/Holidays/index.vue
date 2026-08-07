@@ -72,7 +72,7 @@
                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white"
                         >
                           <option :value="3">Regular Holiday</option>
-                          <option :value="7">Special Holiday</option>
+                          <option :value="11">Special Holiday</option>
                         </select>
                       </div>
                       <button 
