@@ -679,6 +679,7 @@ import {
   faChevronRight
 } from '@fortawesome/free-solid-svg-icons'
 import { handleApiError } from '@/Views/Utility/Helper'
+import Swal from 'sweetalert2'
 const user_data = JSON.parse(localStorage.getItem('user'))
 
 const router = useRouter()
@@ -784,20 +785,27 @@ const printPayslip = async () => {
       groupId: printData.value.group,
       payroll_period_id: printData.value.period,
       includeContribution: printData.value.contribution ?? false
-    }, {
-      responseType: 'blob'
-    });
+    })
+
+    await Swal.fire({
+        icon: 'success',
+        title: 'Success!',
+        text: 'Payslip Printed successfully',
+        timer: 1500,
+        showConfirmButton: false
+      })
     
     // Create download link
-    const url = window.URL.createObjectURL(new Blob([response.data]));
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `payslip_${printData.value.period}.pdf`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
-    
+    const pdf = atob(response.data.pdf);
+
+    const bytes = new Uint8Array(pdf.length);
+    for (let i = 0; i < pdf.length; i++) {
+        bytes[i] = pdf.charCodeAt(i);
+      }
+
+    const blob = new Blob([bytes], { type: 'application/pdf' });
+    window.open(URL.createObjectURL(blob));
+
     closePrintModal();
   } catch (error) {
     handleApiError(error)
