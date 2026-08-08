@@ -3,12 +3,12 @@
   <!-- Button to open modal -->
   <button 
     @click="openModal"
-    class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white text-sm font-medium rounded-lg hover:from-green-700 hover:to-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 shadow-sm transition-all duration-200"
+    class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-sm font-medium rounded-lg hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-sm transition-all duration-200"
   >
     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
     </svg>
-    Payroll Manager
+    Edit Payroll
   </button>
 
   <!-- Modal -->
@@ -24,7 +24,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
             </div>
-            Payroll Manager - {{ selectedEmployee?.full_name || 'Employee' }}
+            Edit Payroll - {{ selectedEmployee?.full_name || 'Employee' }}
           </h3>
           <button @click="closeModal" class="text-white hover:text-gray-200 transition-colors duration-200">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -622,7 +622,7 @@ const getUnitLabel = (unit) => {
 
 const fetchPayrollPeriods = async () => {
   try {
-    const response = await api.post('/payroll/list-payroll', { 
+    const response = await api.post('/payroll/list-payroll-completed', { 
       employee_id: selectedEmployee.value?.id 
     })
 
@@ -802,9 +802,9 @@ const fetchPayrollData = async () => {
   if (!selectedEmployee.value) return
   try {
     const response = await api.post('/payroll/get-by-employee', { 
-      employee_id: selectedEmployee.value.id, 
-      payroll_id: selectedPayrollPeriod.value ?? 0,
-      is_complete: 0
+        employee_id: selectedEmployee.value.id, 
+        payroll_id: selectedPayrollPeriod.value ?? 0,
+        is_complete: 1
     })
     
     if (response.data && !response.data.error) {
@@ -910,7 +910,7 @@ const fetchCompensations = async () => {
     const response = await api.post('/payroll/compensation-list', { 
       emp_id: selectedEmployee.value?.id,
       payroll_id: selectedPayrollPeriod.value,
-      is_complete: 0
+      is_complete: 1
     })
     if (response.data && !response.data.error) {
       const allCompensations = response.data.compensations || []
@@ -962,8 +962,9 @@ const addRowTask = async () => {
   
   try {
     const response = await api.post('/payroll/add-task', { 
-      employee_id: selectedEmployee.value.id, 
-      task_data: newTask 
+         employee_id: selectedEmployee.value.id, 
+        task_data: newTask 
+      
     })
     if (response.data && !response.data.error) {
       await fetchPayrollData()
@@ -1008,13 +1009,14 @@ const updateTask = async (task, index, type) => {
     }
     
     const payload = {
-      employee_id: selectedEmployee.value.id,
-      payroll_id: selectedPayrollPeriod.value,
-      task_data: taskData,
-      task_id: task.id,
-      update_task: 1,
-      save_task: 1,
-      is_complete: 0
+        employee_id: selectedEmployee.value.id,
+        payroll_id: selectedPayrollPeriod.value,
+        task_data: taskData,
+        task_id: task.id,
+        update_task: 1,
+        save_task: 1,
+        is_complete: 1,
+        gross_total: income.value
     }
     if (hasPayrollData.value && payrollData.value?.payroll?.id) payload.payroll_id = payrollData.value.payroll.id
     
@@ -1083,12 +1085,14 @@ const saveDraftTask = async (index) => {
     }
     
     const payload = {
-      employee_id: selectedEmployee.value.id, 
-      payroll_id: selectedPayrollPeriod.value,
-      task_data: taskData, 
-      task_id: task.id,
-      save_task: saveAsDraft ? 0 : 1,
-      is_complete: 0
+        employee_id: selectedEmployee.value.id, 
+        payroll_id: selectedPayrollPeriod.value,
+        task_data: taskData, 
+        task_id: task.id,
+        save_task: saveAsDraft ? 0 : 1,
+        is_complete: 1,
+        gross_total: income.value
+      
     }
     if (hasPayrollData.value && payrollData.value?.payroll?.id) payload.payroll_id = payrollData.value.payroll.id
     
@@ -1284,7 +1288,7 @@ const miscSave = async (index) => {
         ...item, 
         payroll_id: selectedPayrollPeriod.value, 
         emp_id: selectedEmployee.value.id ,
-        is_complete: 0
+        is_complete: 1
       } 
     })
     if (response.data && !response.data.error) {
@@ -1312,7 +1316,7 @@ const confirmMiscDelete = async (index) => {
     const item = nonMandatoryCompensations.value[index]
     if (!item.is_draft && item.id) {
       try { 
-        await api.post('/payroll/compensation-delete', { compensation_id: item.id, is_complete: 0, payroll_id: selectedPayrollPeriod.value, emp_id: selectedEmployee.value.id }) 
+        await api.post('/payroll/compensation-delete', { compensation_id: item.id, is_complete: 1, payroll_id: selectedPayrollPeriod.value, emp_id: selectedEmployee.value.id }) 
       } catch (error) { 
         console.error('Failed to delete item:', error) 
       }

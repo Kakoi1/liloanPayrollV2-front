@@ -95,6 +95,9 @@
                       <ManagePayroll
                       :employee="m"
                       />
+                      <EditPayroll
+                      :employee="m"
+                      />
                       <PayrollHistory :employeeId="m.id" />
                    </div>
                   </td>
@@ -144,6 +147,7 @@ import PayrollHistory from './Actions/History.vue'
 import api from '@/Js/Services/axios'
 import ManagePayroll from './Actions/ManagePayroll.vue'
 import { FormDx, handleApiError } from '@/Views/Utility/Helper'
+import EditPayroll from './Actions/EditPayroll.vue'
 
 // State
 const search = ref({
