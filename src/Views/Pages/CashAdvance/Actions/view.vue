@@ -81,6 +81,7 @@
                   <th class="px-4 py-3 text-left text-md font-medium text-gray-500 uppercase">Date</th>
                   <th class="px-4 py-3 text-center text-md font-medium text-gray-500 uppercase">Amount</th>
                   <th class="px-4 py-3 text-center text-md font-medium text-gray-500 uppercase">Remarks</th>
+                  <th class="px-4 py-3 text-center text-md font-medium text-gray-500 uppercase">Actions</th>
                 </tr>
               </thead>
               <tbody class="bg-white divide-y divide-gray-200 font-semibold">
@@ -96,6 +97,10 @@
                   </td>
                   <td class="px-4 py-3 text-md text-center">
                     {{ transaction.remarks || 'N/A' }}
+                  </td>
+                  <td class="px-4 py-3 text-md text-center flex justify-center gap-2">
+                    <EditTransaction :record="transaction" @updated="fetchCashAdvanceData"/>
+                    <DeleteTransaction :transId="transaction.id" @updated="fetchCashAdvanceData" v-if="transaction.refId == 0"/>
                   </td>
                 </tr>
               </tbody>
@@ -223,6 +228,8 @@ import Swal from 'sweetalert2'
 import Modal from '@/Js/Components/Modal.vue'
 import { handleApiError } from '@/Views/Utility/Helper'
 import api from '@/Js/Services/axios'
+import EditTransaction from './EditTransaction.vue'
+import DeleteTransaction from './DeleteTransaction.vue'
 
 const props = defineProps({
   caId: {
