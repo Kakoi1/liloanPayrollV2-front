@@ -23,7 +23,7 @@ import PayrollSummary from '@/Views/Reports/PayrollSummary/index.vue'
 import PakyawTask from '@/Views/Reports/PakyawTask/index.vue'
 import Inventory from '@/Views/Pages/Inventory/index.vue'
 import Holidays from '@/Views/Pages/Holidays/index.vue'
-import Logs from '@/Views/Pages/Logs/index.vue'
+import Logs from '@/Views/Pages/SystemLogs/index.vue'
 // Check auth status function (from localStorage, token, or API)
 const isAuthenticated = () => {
   // Here, you can replace this with a proper API check
