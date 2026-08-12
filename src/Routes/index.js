@@ -23,6 +23,7 @@ import PayrollSummary from '@/Views/Reports/PayrollSummary/index.vue'
 import PakyawTask from '@/Views/Reports/PakyawTask/index.vue'
 import Inventory from '@/Views/Pages/Inventory/index.vue'
 import Holidays from '@/Views/Pages/Holidays/index.vue'
+import Logs from '@/Views/Pages/Logs/index.vue'
 // Check auth status function (from localStorage, token, or API)
 const isAuthenticated = () => {
   // Here, you can replace this with a proper API check
@@ -176,6 +177,12 @@ const routes = [
         name: 'holidays',
         component: Holidays,
         meta: { title: titleFormat('Holidays'), requiresAuth: true }
+      },
+      {
+        path: 'logs/',
+        name: 'Logs',
+        component: Logs,
+        meta: { title: titleFormat('Logs'), requiresAuth: true }
       },
     ]
   }
