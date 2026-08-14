@@ -35,18 +35,31 @@
           <div class="p-6">
             
             <!-- Filters -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Date:</label>
-                <input
-                  type="date"
-                  v-model="date"
-                  class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                  :disabled="loading"
+            <div class="grid grid-cols- md:grid-cols-2 gap-4 mb-6">
+              <div class="flex items-end gap-2">
+                <div class="w-64">
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Date:
+                  </label>
+
+                  <input
+                    type="date"
+                    v-model="date"
+                    class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    :disabled="loading"
+                  >
+                </div>
+
+                <button
+                  @click="manualAdd"
+                  class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 whitespace-nowrap"
+                  :disabled="loading || updatingDayType"
                 >
+                  Manual Add
+                </button>
               </div>
               <div>
-                <div class="flex items-end gap-2">
+                <!-- <div class="flex items-end gap-2">
                   <div class="flex-1">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Day Type:</label>
                     <select
@@ -60,13 +73,13 @@
                       </option>
                     </select>
                   </div>
-                </div>
-                <div class="flex items-center mt-1">
+                </div> -->
+                <!-- <div class="flex items-center mt-1">
                   <FontAwesomeIcon :icon="faArrowRight" class="text-xs text-gray-500 mr-1" />
                   <p class="text-xs text-gray-500">
                     {{ updatingDayType ? 'Updating day type...' : 'Day type is automatically saved when changed' }}
                   </p>
-                </div>
+                </div> -->
               </div>
             </div>
 
@@ -212,14 +225,14 @@
               <div class="text-sm text-gray-600">
                 Total Employees: {{ present.length + absent.length + halfday.length + restday.length }}
               </div>
-              <button
+              <!-- <button
                 @click="endDay"
                 class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
                 :disabled="loading || updatingDayType"
               >
                 <FontAwesomeIcon :icon="faArrowCircleRight" class="mr-2" />
                 END DAY
-              </button>
+              </button> -->
             </div>
           </div>
         </div>
@@ -563,6 +576,32 @@ const endDay = async () => {
       })
       await fetchAttendance()
     }
+  } catch (error) {
+    console.error('Failed to end day:', error.response)
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: error.response?.data?.message || 'Failed to end day'
+    })
+  }
+}
+
+const manualAdd = async () => {
+
+  try {
+    const response = await api.post('attendance/manual-add', { date: date.value, })
+
+    if (response.data && !response.data.error) {
+      Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: response.data.message,
+        // timer: 1500,
+        // showConfirmButton: false
+      })
+      await fetchAttendance()
+    }
+
   } catch (error) {
     console.error('Failed to end day:', error.response)
     Swal.fire({
