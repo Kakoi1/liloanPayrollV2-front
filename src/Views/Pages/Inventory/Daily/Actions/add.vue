@@ -41,14 +41,28 @@
           <div class="mb-4">
             <label class="block text-sm font-medium text-gray-700 mb-1">Item:</label>
             <select 
-              v-model="form.itemId"
+              v-model="form.id"
               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
             >
-              <option value="">Choose item!</option>
-              <option v-for="item in props.items" :key="item.name" :value="item.name">
+              <option :value="0">Choose item!</option>
+              <option v-for="item in props.items" :key="item.id" :value="item.id">
                 {{ item.name }}
               </option>
             </select>
+          </div>
+
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Weigh Slip:</label>
+            <input 
+              type="text" 
+              v-model="form.slip" 
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            />
+          </div>
+
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Remarks:</label>
+            <textarea v-model="form.remarks" rows="3" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="Enter Remarks..."></textarea>
           </div>
 
           <!-- Add Rows Button -->
@@ -175,7 +189,10 @@ const emit = defineEmits(['update:modelValue', 'saved', 'close']);
 const showModal = ref(false);
 const form = ref({
   date: new Date().toISOString().slice(0, 10),
-  itemId: ''
+  itemName: '',
+  id: 0,
+  slip: '',
+  remarks: ''
 });
 const amountRows = ref([]);
 const manualItems = ref([]);
@@ -201,7 +218,10 @@ const closeModal = () => {
 const resetForm = () => {
   form.value = {
     date: new Date().toISOString().slice(0, 10),
-    itemId: ''
+    itemName: '',
+    id: 0,
+    slip: '',
+    remarks: ''
   };
   amountRows.value = [];
   manualItems.value = [];
@@ -215,14 +235,14 @@ const removeAmountRow = (index) => {
   amountRows.value.splice(index, 1);
 };
 
-const editManualItem = (item, index) => {
-  // Populate form for editing
-  form.value.date = item.date || form.value.date;
-  form.value.itemId = item.itemId;
-  amountRows.value = item.amounts || [];
-  // Remove the item being edited
-  manualItems.value.splice(index, 1);
-};
+// const editManualItem = (item, index) => {
+//   // Populate form for editing
+//   form.value.date = item.date || form.value.date;
+//   form.value.itemId = item.itemId;
+//   amountRows.value = item.amounts || [];
+//   // Remove the item being edited
+//   manualItems.value.splice(index, 1);
+// };
 
 const removeManualItem = (index) => {
   manualItems.value.splice(index, 1);
@@ -234,7 +254,7 @@ const saveManual = async () => {
     return;
   }
   
-  if (!form.value.itemId) {
+  if (!form.value.id) {
     Swal.fire('Error', 'Please select an item', 'error');
     return;
   }
@@ -243,6 +263,9 @@ const saveManual = async () => {
     Swal.fire('Error', 'Please add at least one amount', 'error');
     return;
   }
+
+  const selectedItem = props.items.find(item => item.id === form.value.id);
+  const itemName = selectedItem ? selectedItem.name : '';
 
   Swal.fire({ 
     title: 'Saving...', 
@@ -254,9 +277,12 @@ const saveManual = async () => {
     // Prepare data to save
     const payload = {
       date: form.value.date,
-      itemId: form.value.itemId,
+      itemId: form.value.id,
+      itemName: itemName,
+      slip: form.value.slip,
       amounts: amountRows.value.filter(row => row.amount && row.amount !== '').map(row => parseFloat(row.amount)),
-      manualItems: manualItems.value
+      manualItems: manualItems.value,
+      remarks: form.value.remarks
     };
 
     const response = await api.post('/vouchers/manual-input', payload);

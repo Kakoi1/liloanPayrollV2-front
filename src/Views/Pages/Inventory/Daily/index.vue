@@ -7,16 +7,6 @@
           <div class="w-full sm:w-auto">
             <h1 class="text-2xl font-bold text-gray-800 m-0">Daily Item Inventory</h1>
           </div>
-          <!-- <div class="w-full sm:w-auto">
-            <ol class="flex flex-wrap items-center text-sm text-gray-600">
-              <li class="breadcrumb-item">
-                <a href="#" class="text-blue-600 hover:text-blue-800">Home</a>
-              </li>
-              <li class="breadcrumb-item active text-gray-800 ml-2">
-                <span class="mx-2">/</span>Daily Item Inventory
-              </li>
-            </ol>
-          </div> -->
         </div>
       </div>
     </div>
@@ -43,19 +33,12 @@
             <div class="p-4" :class="{ 'hidden': isCollapsed }">
               <div class="flex flex-wrap gap-4 mb-4 items-end">
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">From Date:</label>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Select Month:</label>
                   <input 
-                    type="date" 
-                    v-model="dateRange.from" 
+                    type="month" 
+                    v-model="selectedMonth" 
                     class="w-full md:w-48 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">To Date:</label>
-                  <input 
-                    type="date" 
-                    v-model="dateRange.to" 
-                    class="w-full md:w-48 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    @change="list"
                   />
                 </div>
                 <div class="flex gap-2">
@@ -77,17 +60,17 @@
                 @saved="list()"
               />
 
-              <!-- Date Range Display -->
-              <div v-if="dateRange.from && dateRange.to && !loading && Object.keys(groupedData).length > 0" class="mb-4 p-3 bg-gray-50 rounded-md border border-gray-200">
+              <!-- Month Display -->
+              <div v-if="selectedMonth && !loading && Object.keys(groupedData).length > 0" class="mb-4 p-3 bg-gray-50 rounded-md border border-gray-200">
                 <div class="flex items-center justify-between">
                   <div>
-                    <span class="font-semibold text-gray-700">Report Period:</span>
-                    <span class="ml-2 text-gray-600">{{ formatDate(dateRange.from) }} - {{ formatDate(dateRange.to) }}</span>
+                    <span class="font-semibold text-gray-700">Report Month:</span>
+                    <span class="ml-2 text-gray-600">{{ formatMonth(selectedMonth) }}</span>
                   </div>
-                  <!-- <div>
+                  <div>
                     <span class="font-semibold text-gray-700">Total Dates:</span>
                     <span class="ml-2 text-gray-600">{{ Object.keys(groupedData).length }}</span>
-                  </div> -->
+                  </div>
                 </div>
               </div>
 
@@ -165,10 +148,8 @@ const isMaximized = ref(false);
 const itemList = ref([]);
 const showManualModal = ref(false);
 
-const dateRange = ref({
-  from: new Date().toISOString().slice(0, 10),
-  to: new Date().toISOString().slice(0, 10)
-});
+// Set default to current month
+const selectedMonth = ref(new Date().toISOString().slice(0, 7));
 
 const inventoryResponse = ref({
   headers: [],
@@ -245,17 +226,29 @@ const formatDate = (dateString) => {
   return date.toLocaleDateString();
 };
 
+const formatMonth = (monthString) => {
+  if (!monthString) return '';
+  const [year, month] = monthString.split('-');
+  const date = new Date(year, month - 1);
+  return date.toLocaleString('default', { month: 'long', year: 'numeric' });
+};
+
 const list = async () => {
-  if (!dateRange.value.from || !dateRange.value.to) {
-    alert('Please select both from and to dates');
+  if (!selectedMonth.value) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Warning',
+      text: 'Please select a month',
+      timer: 1500,
+      showConfirmButton: false
+    });
     return;
   }
   
   loading.value = true;
   try {
     const response = await api.post('/vouchers/daily-inventory', {
-      dateFrom: dateRange.value.from,
-      dateTo: dateRange.value.to
+      month: selectedMonth.value // Send just the month
     });
     if (response.data.error === false) {
       itemList.value = response.data.items;
@@ -264,7 +257,11 @@ const list = async () => {
         data: response.data.data || []
       };
     } else {
-      alert(response.data.message || 'Failed to load data');
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: response.data.message || 'Failed to load data'
+      });
     }
   } catch (error) {
     console.error('Error:', error);
@@ -275,58 +272,65 @@ const list = async () => {
 };
 
 const excel = async () => {  
- if (!dateRange.value.from || !dateRange.value.to) {
+  if (!selectedMonth.value) {
     Swal.fire({
       icon: 'warning',
       title: 'Warning',
-      text: 'Please select date range first',
+      text: 'Please select a month first',
       timer: 1500,
       showConfirmButton: false
-    })
-    return
+    });
+    return;
   }
-  window.open(`${VUE_APP_API_URL}vouchers/daily-inventory-excel-download/${dateRange.value.from}/${dateRange.value.to}`, '_blank')
+  
+  window.open(`${VUE_APP_API_URL}vouchers/daily-inventory-excel-download/${selectedMonth.value}`, '_blank');
 };
 
 const printReport = async () => {
+  if (!selectedMonth.value) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Warning',
+      text: 'Please select a month first',
+      timer: 1500,
+      showConfirmButton: false
+    });
+    return;
+  }
+  
   try {
-    
     Swal.fire({
       title: 'Processing...',
       text: 'Please wait',
       allowOutsideClick: true,
       didOpen: () => {
-        Swal.showLoading()
+        Swal.showLoading();
       }
-    })
-  
-   const response = await api.post('/vouchers/daily-inventory-pdf-download',{
-      dateFrom: dateRange.value.from,
-      dateTo: dateRange.value.to
-    })
+    });
+    
+    const response = await api.post('/vouchers/daily-inventory-pdf-download', {
+      month: selectedMonth.value // Send just the month
+    });
 
     if (response.data && !response.data.error) {
       await Swal.fire({
         icon: 'success',
         title: 'Success!',
         text: response.data.message,
-        // timer: 1500,
         showConfirmButton: true
-      })
+      });
 
-    const pdf = atob(response.data.pdf);
-
-    const bytes = new Uint8Array(pdf.length);
-    for (let i = 0; i < pdf.length; i++) {
+      const pdf = atob(response.data.pdf);
+      const bytes = new Uint8Array(pdf.length);
+      for (let i = 0; i < pdf.length; i++) {
         bytes[i] = pdf.charCodeAt(i);
-    }
-
-    const blob = new Blob([bytes], { type: 'application/pdf' });
+      }
+      const blob = new Blob([bytes], { type: 'application/pdf' });
       window.open(URL.createObjectURL(blob));
     }
   } catch (error) {
-    console.error('Failed to fetch team details:', error)
-    handleApiError(error)
+    console.error('Failed to fetch team details:', error);
+    handleApiError(error);
   }
 };
 
