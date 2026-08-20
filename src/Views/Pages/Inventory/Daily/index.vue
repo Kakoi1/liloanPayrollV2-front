@@ -5,7 +5,7 @@
       <div class="container-fluid">
         <div class="flex flex-wrap items-center justify-between mb-2">
           <div class="w-full sm:w-auto">
-            <h1 class="text-2xl font-bold text-gray-800 m-0">Daily Item Inventory</h1>
+            <!-- <h1 class="text-2xl font-bold text-gray-800 m-0">Daily Item Inventory</h1> -->
           </div>
         </div>
       </div>
@@ -42,9 +42,9 @@
                   />
                 </div>
                 <div class="flex gap-2">
-                  <button @click="list" class="inline-flex items-center px-4 py-2 bg-maroon hover:bg-maroon-dark text-white rounded-md transition">
-                    <i class="fa fa-file-alt mr-2"></i> Generate Report
-                  </button>
+                  <!-- <button @click="list" class="inline-flex items-center px-4 py-2 bg-maroon hover:bg-maroon-dark text-white rounded-md transition">
+                    <i class="fa-solid fa-magnifying-glass mr-2"></i> Search
+                  </button> -->
                   <button @click="excel" class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md transition">
                     <i class="fa fa-file-excel mr-2"></i> Generate Excel
                   </button>
