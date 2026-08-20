@@ -221,6 +221,12 @@ const addHoliday = async () => {
     return
   }
 
+  Swal.fire({
+      title: 'Processing...',
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading()
+    }) 
+
   const holidayData = {
     name: newHoliday.value.name.trim(),
     date: newHoliday.value.date,
