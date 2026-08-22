@@ -98,22 +98,32 @@
 
           <!-- Workers Selection (using Dropdown Component for adding workers) -->
           <div class="md:col-span-2 border border-blue-300 border-[2px] rounded-lg p-2">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Workers:</label>
             
             <!-- Dropdown for selecting workers -->
-            <div class="mb-3">
-              <SearchDropdown
-                :apiEndpoint="'employee/active-list'"
-                :searchModel="searchEmp"
-                placeholder="Search and select worker..."
-                itemLabel="name"
-                itemId="id"
-                returnName="['name']"
-                dataKey="employees"
-                @item-selected="addWorker"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-              <!-- <p class="text-xs text-gray-500 mt-1">Search and select workers to add them to the list</p> -->
+            <div class="grid grid-cols- md:grid-cols-2 gap-4 mb">
+              <div class="mb-3">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Workers:</label>
+                <SearchDropdown
+                  :apiEndpoint="'employee/active-list'"
+                  :searchModel="searchEmp"
+                  placeholder="Search and select worker..."
+                  itemLabel="name"
+                  itemId="id"
+                  returnName="['name']"
+                  dataKey="employees"
+                  @item-selected="addWorker"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+                <!-- <p class="text-xs text-gray-500 mt-1">Search and select workers to add them to the list</p> -->
+              </div>
+              <div class="mb-3">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Payment Method:</label>
+                <SelectComponent
+                    v-model="voucher.method"
+                    :options="pmOptions"
+                    :placeholder="'--Choose Payment Option--'"
+                  />
+              </div>
             </div>
 
             <!-- Selected Workers as Input Fields -->
@@ -417,6 +427,7 @@ const props = defineProps({
 
 const taskOptions = ref([])
 const deductionOptions = ref([])
+const pmOptions = ref([])
 
 // State
 const showModal = ref(false)
@@ -449,7 +460,8 @@ const voucher = ref({
   add_less: 0,
   cash_advance_payment: 0,
   cash_advance_id: 0,
-  total_amount: 0
+  total_amount: 0,
+  method: 0,
 })
 
 const task = ref([])
@@ -483,6 +495,23 @@ const fetchTasks = async () => {
   }
 }
 
+const fetchPaymentMethods = async () => {
+  // loading.value.tasks = true
+  try {
+    const response = await api.post('/payment-method/list-all')
+    if (response.data && !response.data.error) {
+      pmOptions.value = response.data.pm_data.map(p => ({
+        value: p.id,
+        label: p.name
+      }))
+    }
+  } catch (error) {
+    console.error('Failed to fetch pm_data:', error)
+  } finally {
+    // loading.value.tasks = false
+  }
+}
+
 const fetchDeductions = async () => {
   // loading.value.deductions = true
   try {
@@ -505,7 +534,8 @@ const fetchDeductions = async () => {
 const fetchAllDropdownData = async () => {
   await Promise.all([
     fetchTasks(),
-    fetchDeductions()
+    fetchDeductions(),
+    fetchPaymentMethods()
   ])
 }
 
@@ -985,7 +1015,8 @@ const resetForm = () => {
     add_less: 0,
     cash_advance_payment: 0,
     cash_advance_id: 0,
-    total_amount: 0
+    total_amount: 0,
+    method: 0
   }
   task.value = []
   selectedSupplier.value = null

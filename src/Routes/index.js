@@ -24,6 +24,7 @@ import PakyawTask from '@/Views/Reports/PakyawTask/index.vue'
 import Inventory from '@/Views/Pages/Inventory/index.vue'
 import Holidays from '@/Views/Pages/Holidays/index.vue'
 import Logs from '@/Views/Pages/SystemLogs/index.vue'
+import Payments from '@/Views/Pages/PaymentMethod/index.vue'
 // Check auth status function (from localStorage, token, or API)
 const isAuthenticated = () => {
   // Here, you can replace this with a proper API check
@@ -183,6 +184,12 @@ const routes = [
         name: 'Logs',
         component: Logs,
         meta: { title: titleFormat('Logs'), requiresAuth: true }
+      },
+      {
+        path: 'payment_methods/',
+        name: 'Payment Methods',
+        component: Payments,
+        meta: { title: titleFormat('Payment Methods'), requiresAuth: true }
       },
     ]
   }

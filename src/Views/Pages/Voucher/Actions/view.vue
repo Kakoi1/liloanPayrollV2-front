@@ -79,7 +79,13 @@
               </p>
             </div>
 
-            <!-- Status -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Payment Method:</label>
+              <p class="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg">
+                {{ vdata.voucher?.[0]?.payMethod || 'N/A'}}
+              </p>
+            </div>
+            
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Status:</label>
               <p class="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg">

@@ -228,6 +228,7 @@
                                     :taskOptions="taskOptions"
                                     :deductionOptions="deductionOptions"
                                     :voucherId="v.id"
+                                    :pmOptions = "pmOptions"
                                     @updated="fetchVouchers"
                                   />
                                   
@@ -331,7 +332,7 @@ const loading = ref({
 
 const taskOptions = ref([])
 const deductionOptions = ref([])
-
+const pmOptions = ref([])
 const searchVoucher = ref({
   search: '',
   date_from: '',
@@ -442,6 +443,23 @@ const fetchTasks = async () => {
   }
 }
 
+const fetchPaymentMethods = async () => {
+  // loading.value.tasks = true
+  try {
+    const response = await api.post('/payment-method/list-all')
+    if (response.data && !response.data.error) {
+      pmOptions.value = response.data.pm_data.map(p => ({
+        value: p.id,
+        label: p.name
+      }))
+    }
+  } catch (error) {
+    console.error('Failed to fetch pm_data:', error)
+  } finally {
+    // loading.value.tasks = false
+  }
+}
+
 const fetchDeductions = async () => {
   loading.value.deductions = true
   try {
@@ -464,7 +482,8 @@ const fetchDeductions = async () => {
 const fetchAllDropdownData = async () => {
   await Promise.all([
     fetchTasks(),
-    fetchDeductions()
+    fetchDeductions(),
+    fetchPaymentMethods()
   ])
 }
 

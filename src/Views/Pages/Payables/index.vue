@@ -52,6 +52,7 @@
                       type="datetime-local" 
                       v-model="dateRange.from" 
                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                      @change="list"
                     />
                   </div>
                   <div class="w-full md:w-64">
@@ -60,10 +61,11 @@
                       type="datetime-local" 
                       v-model="dateRange.to" 
                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                      @change="list"
                     />
                   </div>
                   <div class="flex flex-wrap gap-2 mt-6">
-                    <button 
+                    <!-- <button 
                       @click="list" 
                       class="px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white font-medium rounded-lg hover:from-purple-700 hover:to-purple-800 focus:ring-2 focus:ring-purple-500 transition-all duration-200 flex items-center"
                     >
@@ -71,6 +73,15 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                       </svg>
                       Generate Report
+                    </button> -->
+                    <button 
+                      @click="excelPaidSummary" 
+                      class="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium rounded-lg hover:from-blue-700 hover:to-blue-800 focus:ring-2 focus:ring-green-500 transition-all duration-200 flex items-center"
+                    >
+                      <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      Excel Summary
                     </button>
                     <button 
                       @click="excelPayables" 
@@ -81,6 +92,7 @@
                       </svg>
                       Excel (All)
                     </button>
+                    
                     <button 
                       @click="excelPaid" 
                       class="px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white font-medium rounded-lg hover:from-green-700 hover:to-green-800 focus:ring-2 focus:ring-green-500 transition-all duration-200 flex items-center"
@@ -655,6 +667,20 @@ const excelPayables = () => {
     return
   }
   window.open(`${VUE_APP_API_URL}vouchers/payables-excel/${dateRange.value.from}/${dateRange.value.to}/1`, '_blank')
+}
+
+const excelPaidSummary = () => {
+  if (!dateRange.value.from || !dateRange.value.to) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Warning',
+      text: 'Please select date range first',
+      timer: 1500,
+      showConfirmButton: false
+    })
+    return
+  }
+  window.open(`${VUE_APP_API_URL}vouchers/payment-summary-excel/${dateRange.value.from}/${dateRange.value.to}`, '_blank')
 }
 
 const excelPaid = () => {

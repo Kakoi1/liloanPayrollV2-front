@@ -102,22 +102,31 @@
 
             <!-- Workers Selection -->
             <div class="md:col-span-2">
-              <label class="block text-sm font-medium text-gray-700 mb-1">Workers:</label>
-              
               <!-- Dropdown for adding workers -->
-              <div class="mb-3">
-                <SearchDropdown
-                  :apiEndpoint="'employee/active-list'"
-                  :searchModel="searchEmp"
-                  placeholder="Search and add worker..."
-                  itemLabel="name"
-                  itemId="id"
-                  returnName="['name']"
-                  dataKey="employees"
-                  @item-selected="addWorker"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                />
-                <p class="text-xs text-gray-500 mt-1">Search and select workers to add them to the list</p>
+              <div class="grid grid-cols- md:grid-cols-2 gap-4 mb">
+                <div class="mb-3">
+                   <label class="block text-sm font-medium text-gray-700 mb-1">Workers:</label>
+                  <SearchDropdown
+                    :apiEndpoint="'employee/active-list'"
+                    :searchModel="searchEmp"
+                    placeholder="Search and select worker..."
+                    itemLabel="name"
+                    itemId="id"
+                    returnName="['name']"
+                    dataKey="employees"
+                    @item-selected="addWorker"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <!-- <p class="text-xs text-gray-500 mt-1">Search and select workers to add them to the list</p> -->
+                </div>
+                <div class="mb-3">
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Payment Method:</label>
+                  <SelectComponent
+                      v-model="editData.method"
+                      :options="pmOptions"
+                      :placeholder="'--Choose Payment Option--'"
+                    />
+                </div>
               </div>
 
               <!-- Selected Workers with Remove Option -->
@@ -427,6 +436,10 @@ const props = defineProps({
     type: Array,
     default: () => []
   },
+  pmOptions: {
+    type: Array,
+    default: () => []
+  },
   deductionOptions: {
     type: Array,
     default: () => []
@@ -463,7 +476,8 @@ const editData = ref({
   totalAmount: 0,
   cash_advance_payment: 0,
   transaction_id: 0,
-  cash_advance_id: 0
+  cash_advance_id: 0,
+  method: 0
 })
 
 // Options
@@ -683,6 +697,7 @@ const fetchVoucherData = async () => {
         paymentDate: data.voucher[0].paymentDate,
         addLess: parseFloat(data.voucher[0].addLess) || 0,
         totalAmount: parseFloat(data.voucher[0].totalAmount) || 0,
+        method: data.voucher[0].pmId,
       }
 
       if (response.data.ca_data.length > 0 || response.data.supplier_ca.length > 0 ) {  
@@ -981,7 +996,8 @@ const saveVoucher = async (status) => {
         total_amount: editData.value.totalAmount,
         cash_advance_payment: editData.value.cash_advance_payment || 0,
         cash_advance_trans: editData.value.transaction_id || 0,
-        cash_advance_id: editData.value.cash_advance_id || 0
+        cash_advance_id: editData.value.cash_advance_id || 0,
+        method: editData.value.method || 0
       },
       items: {
         update: itemsToUpdate,
