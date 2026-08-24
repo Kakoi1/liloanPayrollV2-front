@@ -453,8 +453,6 @@ const saveManual = async () => {
         newItem.id = response.data.id;
       }
       
-      manualItems.value.push(newItem);
-      
       Swal.close();
       await Swal.fire({
         icon: 'success',
