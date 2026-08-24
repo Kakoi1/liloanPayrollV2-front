@@ -32,21 +32,40 @@
             <!-- Card Body -->
             <div class="p-4" :class="{ 'hidden': isCollapsed }">
               <div class="flex flex-wrap gap-4 mb-4 items-end">
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Select Month:</label>
-                  <input 
-                    type="month" 
-                    v-model="selectedMonth" 
-                    class="w-full md:w-48 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    @change="list"
+                <div class="flex gap-2 flex-wrap">
+                  <select
+                    v-model="dateType"
+                    class="shadow shadow-gray-700 text-sm md:text-md py-2 px-4 rounded"
+                    @change="handleTypeChange"
+                  >
+                    <option :value="2">Daily</option>
+                    <option :value="4">Monthly</option>
+                  </select>
+
+                  <input
+                    v-if="dateType == 2"
+                    type="date"
+                    v-model="search.date"
+                    class="shadow shadow-gray-700 text-sm md:text-md py-2 px-4 rounded"
+                    @change="handleDateChange"
                   />
-                </div>
-                <div class="flex gap-2">
-                  <!-- <button @click="list" class="inline-flex items-center px-4 py-2 bg-maroon hover:bg-maroon-dark text-white rounded-md transition">
+
+                  <input
+                    v-if="dateType == 4"
+                    type="month"
+                    v-model="search.date"
+                    class="shadow shadow-gray-700 text-sm md:text-md py-2 px-4 rounded"
+                    @change="handleDateChange"
+                  />
+                  
+                  <!-- <button @click="list" class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition">
                     <i class="fa-solid fa-magnifying-glass mr-2"></i> Search
                   </button> -->
                   <button @click="excel" class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md transition">
                     <i class="fa fa-file-excel mr-2"></i> Generate Excel
+                  </button>
+                  <button @click="excel2" class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition">
+                    <i class="fa fa-file-excel mr-2"></i> Generate Excel V2
                   </button>
                   <button @click="printReport" class="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md transition">
                     <i class="fa fa-print mr-2"></i> Print Report
@@ -63,14 +82,14 @@
               <!-- Month Display -->
               <div v-if="selectedMonth && !loading && Object.keys(groupedData).length > 0" class="mb-4 p-3 bg-gray-50 rounded-md border border-gray-200">
                 <div class="flex items-center justify-between">
-                  <div>
+                  <!-- <div>
                     <span class="font-semibold text-gray-700">Report Month:</span>
                     <span class="ml-2 text-gray-600">{{ formatMonth(selectedMonth) }}</span>
-                  </div>
-                  <div>
+                  </div> -->  
+                  <!-- <div>
                     <span class="font-semibold text-gray-700">Total Dates:</span>
                     <span class="ml-2 text-gray-600">{{ Object.keys(groupedData).length }}</span>
-                  </div>
+                  </div> -->
                 </div>
               </div>
 
@@ -100,7 +119,7 @@
                       </td>
                     </tr>
                     <!-- Each date becomes one row with values spread across headers -->
-                    <tr v-for="(dateData, date) in groupedData" :key="date" class="hover:bg-gray-50">
+                    <tr v-for="(dateData, date) in sortedGroupedData" :key="date" class="hover:bg-gray-50">
                       <td 
                         v-for="(header, headerIndex) in dynamicHeaders" 
                         :key="headerIndex" 
@@ -147,9 +166,16 @@ const isCollapsed = ref(false);
 const isMaximized = ref(false);
 const itemList = ref([]);
 const showManualModal = ref(false);
+const dateType = ref(2); // Default to Daily
+
+// Search object
+const search = ref({
+  date: '',
+  type: 2
+});
 
 // Set default to current month
-const selectedMonth = ref(new Date().toISOString().slice(0, 7));
+const selectedMonth = ref('');
 
 const inventoryResponse = ref({
   headers: [],
@@ -159,6 +185,20 @@ const inventoryResponse = ref({
 // Computed
 const dynamicHeaders = computed(() => inventoryResponse.value.headers || []);
 const inventoryData = computed(() => inventoryResponse.value.data || []);
+
+// Sort dates in ascending order
+const sortedGroupedData = computed(() => {
+  const grouped = groupedData.value;
+  const sortedKeys = Object.keys(grouped).sort((a, b) => {
+    return new Date(a) - new Date(b);
+  });
+  
+  const sorted = {};
+  sortedKeys.forEach(key => {
+    sorted[key] = grouped[key];
+  });
+  return sorted;
+});
 
 // Group data by date, with each header's value
 const groupedData = computed(() => {
@@ -226,32 +266,34 @@ const formatDate = (dateString) => {
   return date.toLocaleDateString();
 };
 
-const formatMonth = (monthString) => {
-  if (!monthString) return '';
-  const [year, month] = monthString.split('-');
-  const date = new Date(year, month - 1);
-  return date.toLocaleString('default', { month: 'long', year: 'numeric' });
-};
-
 const list = async () => {
-  if (!selectedMonth.value) {
+  // Validate date based on type
+  if (!search.value.date) {
     Swal.fire({
       icon: 'warning',
       title: 'Warning',
-      text: 'Please select a month',
+      text: dateType.value === 2 ? 'Please select a date' : 'Please select a month',
       timer: 1500,
       showConfirmButton: false
     });
     return;
   }
   
+  // Extract month from the selected date for the API
+  const dateParts = search.value.date.split('-');
+  if (dateParts.length >= 2) {
+    selectedMonth.value = `${dateParts[0]}-${dateParts[1]}`;
+  }
+  
   loading.value = true;
   try {
     const response = await api.post('/vouchers/daily-inventory', {
-      month: selectedMonth.value // Send just the month
+      month: selectedMonth.value,
+      date_type: dateType.value,
+      date: search.value.date // This will be "2026-08-24" for daily or "2026-08" for monthly
     });
     if (response.data.error === false) {
-      itemList.value = response.data.items;
+      itemList.value = response.data.items || [];
       inventoryResponse.value = {
         headers: response.data.headers || [],
         data: response.data.data || []
@@ -271,27 +313,65 @@ const list = async () => {
   }
 };
 
+const handleTypeChange = () => {
+  // Reset date when type changes and set appropriate default
+  const now = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const year = now.getFullYear();
+  
+  if (dateType.value === 2) {
+    // Daily - set to today
+    const day = String(now.getDate()).padStart(2, '0');
+    search.value.date = `${year}-${month}-${day}`;
+  } else if (dateType.value === 4) {
+    // Monthly - set to current month
+    search.value.date = `${year}-${month}`;
+  }
+  
+  // Auto-load based on new type
+  list();
+};
+
+const handleDateChange = () => {
+  list();
+};
+
 const excel = async () => {  
-  if (!selectedMonth.value) {
+  if (!search.value.date) {
     Swal.fire({
       icon: 'warning',
       title: 'Warning',
-      text: 'Please select a month first',
+      text: 'Please select a date first',
       timer: 1500,
       showConfirmButton: false
     });
     return;
   }
   
-  window.open(`${VUE_APP_API_URL}vouchers/daily-inventory-excel-download/${selectedMonth.value}`, '_blank');
+  window.open(`${VUE_APP_API_URL}vouchers/daily-inventory-excel-download/${search.value.date}/${dateType.value}`, '_blank');
 };
 
-const printReport = async () => {
-  if (!selectedMonth.value) {
+const excel2 = async () => {  
+  if (!search.value.date) {
     Swal.fire({
       icon: 'warning',
       title: 'Warning',
-      text: 'Please select a month first',
+      text: 'Please select a date first',
+      timer: 1500,
+      showConfirmButton: false
+    });
+    return;
+  }
+  
+  window.open(`${VUE_APP_API_URL}vouchers/daily-inventory-excel-download2/${search.value.date}/${dateType.value}`, '_blank');
+};
+
+const printReport = async () => {
+  if (!search.value.date) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Warning',
+      text: 'Please select a date first',
       timer: 1500,
       showConfirmButton: false
     });
@@ -309,7 +389,8 @@ const printReport = async () => {
     });
     
     const response = await api.post('/vouchers/daily-inventory-pdf-download', {
-      month: selectedMonth.value // Send just the month
+      date: search.value.date,
+      date_type: dateType.value
     });
 
     if (response.data && !response.data.error) {
@@ -353,6 +434,16 @@ const collapseCard = () => {
 
 // Lifecycle
 onMounted(() => {
+  // Set default date to today for Daily view
+  const now = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const year = now.getFullYear();
+  const day = String(now.getDate()).padStart(2, '0');
+  
+  // Default to daily view with today's date
+  dateType.value = 2;
+  search.value.date = `${year}-${month}-${day}`;
+  
   list();
 });
 </script>
