@@ -217,7 +217,7 @@ const filter = async () => {
 
 const handlePageNum = (page_num) => {
   search.value.page_num = page_num
-  fetchCompensations()
+  fetchData()
 }
 
 // Helper functions
