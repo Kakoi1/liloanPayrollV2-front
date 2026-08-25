@@ -19,7 +19,7 @@
       @close="closeModal"
       title="Create a Voucher"
       color="bg-gradient-to-r from-blue-600 to-blue-700"
-      maxWidth="4xl"
+      maxWidth="6xl"
       :closeable="true"
     >
       <div class="bg-white rounded-lg shadow-xl mx-4 max-h-[90vh]">
@@ -126,14 +126,14 @@
                   @change="fetchSavedItems"
                 />
               </div>
-              <div class="flex items-end">
+              <!-- <div class="flex items-end">
                 <button 
                   @click="fetchSavedItems" 
                   class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition"
                 >
                   <i class="fa-solid fa-magnifying-glass mr-2"></i> Search
                 </button>
-              </div>
+              </div> -->
             </div>
             
             <div v-if="loading" class="text-center py-4">
@@ -148,31 +148,28 @@
               <table class="w-full border-collapse border border-gray-300">
                 <thead>
                   <tr class="bg-gray-100">
-                    <th class="border border-gray-300 px-3 py-2 text-left text-sm font-semibold">#</th>
                     <th class="border border-gray-300 px-3 py-2 text-left text-sm font-semibold">Date</th>
                     <th class="border border-gray-300 px-3 py-2 text-left text-sm font-semibold">Item</th>
                     <th class="border border-gray-300 px-3 py-2 text-left text-sm font-semibold">Weigh Slip</th>
                     <th class="border border-gray-300 px-3 py-2 text-left text-sm font-semibold">Amounts</th>
-                    <th class="border border-gray-300 px-3 py-2 text-left text-sm font-semibold">Total</th>
+                    <!-- <th class="border border-gray-300 px-3 py-2 text-left text-sm font-semibold">Total</th> -->
                     <th class="border border-gray-300 px-3 py-2 text-left text-sm font-semibold">Remarks</th>
                     <th class="border border-gray-300 px-3 py-2 text-left text-sm font-semibold">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr v-for="(item, index) in manualItems" :key="index" class="hover:bg-gray-50">
-                    <td class="border border-gray-300 px-3 py-2 text-sm text-center">{{ index + 1 }}</td>
                     <td class="border border-gray-300 px-3 py-2 text-sm">{{ item.date || '-' }}</td>
                     <td class="border border-gray-300 px-3 py-2 text-sm">{{ item.itemName }}</td>
-                    <td class="border border-gray-300 px-3 py-2 text-sm">{{ item.slip || '-' }}</td>
+                    <td class="border border-gray-300 px-3 py-2 text-sm">{{ item.weightSlip || '-' }}</td>
                     <td class="border border-gray-300 px-3 py-2 text-sm">
-                      <span v-for="(amount, idx) in item.amounts" :key="idx" class="inline-block mr-1">
-                        {{ formatNumber(amount) }}
-                        <span v-if="idx < item.amounts.length - 1">, </span>
-                      </span>
+                      
+                        {{ item.amount }}
+  
                     </td>
-                    <td class="border border-gray-300 px-3 py-2 text-sm font-semibold text-blue-600">
+                    <!-- <td class="border border-gray-300 px-3 py-2 text-sm font-semibold text-blue-600">
                       {{ formatNumber(item.total) }}
-                    </td>
+                    </td> -->
                     <td class="border border-gray-300 px-3 py-2 text-sm">{{ item.remarks || '-' }}</td>
                     <td class="border border-gray-300 px-3 py-2 text-sm text-center">
                       <button 
@@ -188,20 +185,22 @@
                     </td>
                   </tr>
                 </tbody>
-                <Pagination
-                    v-if="data.totalrows"
-                    :page_number="search.page_num"
-                    :total_rows="data.totalrows ?? 0"
-                    :itemsperpage="search.itemsperpage"
-                    @page_num="handlePagination"
-                  />
-                <tfoot v-if="manualItems.length > 0">
+                <div class="p-2">
+                  <Pagination
+                      v-if="data.totalrows"
+                      :page_number="search.page_num"
+                      :total_rows="data.totalrows ?? 0"
+                      :itemsperpage="search.itemsperpage"
+                      @page_num="handlePagination"
+                    />
+                </div>
+                <!-- <tfoot v-if="manualItems.length > 0">
                   <tr class="bg-gray-50 font-bold">
                     <td colspan="5" class="border border-gray-300 px-3 py-2 text-right text-sm">Grand Total:</td>
                     <td class="border border-gray-300 px-3 py-2 text-sm text-blue-600">{{ formatNumber(grandTotal) }}</td>
                     <td colspan="2" class="border border-gray-300 px-3 py-2"></td>
                   </tr>
-                </tfoot>
+                </tfoot> -->
               </table>
             </div>
           </div>
@@ -260,8 +259,8 @@ const data = ref({
 });
 
 const search = ref({
-  date_from: "",
-  date_to: "",
+  date_from: new Date().toISOString().split('T')[0],
+  date_to: new Date().toISOString().split('T')[0],
   page_num: 1,
   itemsperpage: 10,
 });
@@ -323,10 +322,10 @@ const fetchSavedItems = async () => {
   loading.value = true;
   try {
     const payload = {
-      date_from: search.value.date_from,
-      date_to: search.value.date_to,
+      dateFrom: search.value.date_from,
+      dateTo: search.value.date_to,
       page_num: search.value.page_num,
-      itemsperpage: search.value.itemsperpage
+      items_perpage: search.value.itemsperpage
     };
 
     const response = await api.post('/vouchers/manual-items', payload);
@@ -369,7 +368,7 @@ const deleteItem = async (id, index) => {
     if (result.isConfirmed) {
       deleting.value = true;
       try {
-        const response = await api.delete(`/vouchers/manual-items/${id}`);
+        const response = await api.post(`/vouchers/delete-items`, {id: id});
         
         if (response.data && !response.data.error) {
           manualItems.value.splice(index, 1);
@@ -381,7 +380,7 @@ const deleteItem = async (id, index) => {
             timer: 1500,
             showConfirmButton: false
           });
-          
+          fetchSavedItems()
           emit('saved');
         } else {
           Swal.fire('Error', response.data.message || 'Failed to delete', 'error');
@@ -466,7 +465,7 @@ const saveManual = async () => {
       form.value.slip = '';
       form.value.remarks = '';
       amountRows.value = [];
-      
+      fetchSavedItems()
       emit('saved');
     } else {
       Swal.close();
