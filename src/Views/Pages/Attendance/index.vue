@@ -518,6 +518,14 @@ const updateStatus = async (employeeId, newStatus, att_id) => {
   }
 
   try {
+  Swal.fire({
+      title: "Processing...",
+      text: "Updating...",
+      didOpen: () => {
+        Swal.showLoading();
+      },
+      allowOutsideClick: false, // Disable click outside to dismiss
+    });
     const response = await api.post('/attendance/update-employee', {
       empAtt_id: att_id,
       work_status: statusMap[newStatus],
@@ -589,6 +597,14 @@ const endDay = async () => {
 const manualAdd = async () => {
 
   try {
+     Swal.fire({
+      title: "Processing...",
+      text: "Adding...",
+      didOpen: () => {
+        Swal.showLoading();
+      },
+      allowOutsideClick: false, // Disable click outside to dismiss
+    });
     const response = await api.post('attendance/manual-add', { date: date.value, })
 
     if (response.data && !response.data.error) {
