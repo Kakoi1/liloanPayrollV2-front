@@ -314,12 +314,21 @@
                                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                     </svg>
                                   </button>
+                                  <deleteLoading
+                                    :loadId="loading.id" 
+                                    @updated="fetchOngoingLoadings"
+                                    />
                                 </div>
-                                <div v-else>
+                                <div v-else  class="flex space-x-1">
                                  <ViewLoading
                                    :loading="loading" 
                                  />
+                                 <deleteLoading
+                                  :loadId="loading.id" 
+                                  @updated="fetchOngoingLoadings"
+                                  />
                                 </div>
+
                               </td>
                             </tr>
                           </tbody>
@@ -359,6 +368,7 @@ import EditTeam from './Actions/EditTeam.vue'
 import AssignTeam from './Actions/AssignTeam.vue'
 import EditLoading from './Actions/edit.vue'
 import FinishLoading from './Actions/FinishLoading.vue'
+import deleteLoading from './Actions/delete.vue'
 import ViewLoading from './Actions/view.vue'
 import { handleApiError } from '@/Views/Utility/Helper'
 
