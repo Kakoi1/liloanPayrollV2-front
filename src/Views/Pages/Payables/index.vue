@@ -158,8 +158,9 @@
                           <th v-if="userPosition === 'SuperAdmin'" class="px-4 py-3 text-center w-12">Select</th>
                           <th class="px-4 py-3 text-center">No.</th>
                           <th class="px-4 py-3 text-left">Customer Name</th>
-                          <th class="px-4 py-3 text-right">Amount</th>
+                          <th class="px-4 py-3 text-right">Net Payables</th>
                           <th class="px-4 py-3 text-right">CA Deduction</th>
+                          <th class="px-4 py-3 text-right">Over/Under</th>
                           <th class="px-4 py-3 text-right">Date</th>
                           <th class="px-4 py-3 text-left">Bank</th>
                           <th class="px-4 py-3 text-left">Account Number</th>
@@ -170,7 +171,7 @@
                       </thead>
                       <tbody class="divide-y divide-gray-200">
                         <tr v-if="!morningData || morningData.length === 0">
-                          <td :colspan="userPosition === 'SuperAdmin' ? 9 : 8" class="px-4 py-8 text-green-500 text-center">
+                          <td :colspan="userPosition === 'SuperAdmin' ? 11 : 10" class="px-4 py-8 text-green-500 text-center">
                             No vouchers available
                           </td>
                         </tr>
@@ -186,6 +187,7 @@
                           <td class="px-4 py-3 text-left">{{ voucher.supplier_name }}</td>
                           <td class="px-4 py-3 text-right font-medium">{{ formatCurrency(voucher.totalAmount) }}</td>
                           <td class="px-4 py-3 text-right font-medium">{{formatCurrency(voucher.caAmount) }}</td>
+                          <td class="px-4 py-3 text-right font-medium">{{formatCurrency(voucher.addLess) }}</td>
                           <td class="px-4 py-3 text-right font-medium">{{voucher.paymentDate}}</td>
                           <td class="px-4 py-3 text-left">{{ voucher.bankName || '-' }}</td>
                           <td class="px-4 py-3 text-left">{{ voucher.bankAccount || '-' }}</td>
@@ -243,8 +245,9 @@
                           <th v-if="userPosition === 'SuperAdmin'" class="px-4 py-3 text-center w-12">Select</th>
                           <th class="px-4 py-3 text-center">No.</th>
                           <th class="px-4 py-3 text-left">Customer Name</th>
-                          <th class="px-4 py-3 text-right">Amount</th>
+                          <th class="px-4 py-3 text-right">Net Payables</th>
                           <th class="px-4 py-3 text-right">CA Deduction</th>
+                          <th class="px-4 py-3 text-right">Over/Under</th>
                           <th class="px-4 py-3 text-right">Date</th>
                           <th class="px-4 py-3 text-left">Bank</th>
                           <th class="px-4 py-3 text-left">Account Number</th>
@@ -255,7 +258,7 @@
                       </thead>
                       <tbody class="divide-y divide-gray-200">
                         <tr v-if="!afternoonData || afternoonData.length === 0">
-                          <td :colspan="userPosition === 'SuperAdmin' ? 9 : 8" class="px-4 py-8 text-red-500 text-center">
+                          <td :colspan="userPosition === 'SuperAdmin' ? 11 : 10" class="px-4 py-8 text-red-500 text-center">
                             No vouchers available
                            </td>
                         </tr>
@@ -271,6 +274,7 @@
                           <td class="px-4 py-3 text-left">{{ voucher.supplier_name }}</td>
                           <td class="px-4 py-3 text-right font-medium">{{ formatCurrency(voucher.totalAmount) }}</td>
                           <td class="px-4 py-3 text-right font-medium">{{formatCurrency(voucher.caAmount) }}</td>
+                          <td class="px-4 py-3 text-right font-medium">{{formatCurrency(voucher.addLess) }}</td>
                           <td class="px-4 py-3 text-right font-medium">{{voucher.paymentDate}}</td>
                           <td class="px-4 py-3 text-left">{{ voucher.bankName || '-' }}</td>
                           <td class="px-4 py-3 text-left">{{ voucher.bankAccount || '-' }}</td>
@@ -327,8 +331,9 @@
                           <th v-if="userPosition === 'SuperAdmin'" class="px-4 py-3 text-center w-12">Select</th>
                           <th class="px-4 py-3 text-center">No.</th>
                           <th class="px-4 py-3 text-left">Customer Name</th>
-                          <th class="px-4 py-3 text-right">Amount</th>
+                          <th class="px-4 py-3 text-right">Net Payables</th>
                           <th class="px-4 py-3 text-right">CA Deduction</th>
+                          <th class="px-4 py-3 text-right">Over/Under</th>
                           <th class="px-4 py-3 text-right">Date</th>
                           <th class="px-4 py-3 text-left">Bank</th>
                           <th class="px-4 py-3 text-left">Account Number</th>
@@ -339,7 +344,7 @@
                       </thead>
                       <tbody class="divide-y divide-gray-200">
                         <tr v-if="!eveningData || eveningData.length === 0">
-                          <td :colspan="userPosition === 'SuperAdmin' ? 9 : 8" class="px-4 py-8 text-red-500 text-center">
+                          <td :colspan="userPosition === 'SuperAdmin' ? 11 : 10" class="px-4 py-8 text-red-500 text-center">
                             No vouchers available
                            </td>
                         </tr>
@@ -355,6 +360,7 @@
                           <td class="px-4 py-3 text-left">{{ voucher.supplier_name }}</td>
                           <td class="px-4 py-3 text-right font-medium">{{ formatCurrency(voucher.totalAmount) }}</td>
                           <td class="px-4 py-3 text-right font-medium">{{formatCurrency(voucher.caAmount) }}</td>
+                          <td class="px-4 py-3 text-right font-medium">{{formatCurrency(voucher.addLess) }}</td>
                            <td class="px-4 py-3 text-right font-medium">{{voucher.paymentDate}}</td>
                           <td class="px-4 py-3 text-left">{{ voucher.bankName || '-' }}</td>
                           <td class="px-4 py-3 text-left">{{ voucher.bankAccount || '-' }}</td>
