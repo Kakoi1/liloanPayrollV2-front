@@ -520,9 +520,17 @@
             </select>
           </div> -->
 
-          <div class="flex items-center">
+          <!-- <div class="flex items-center">
             <input type="checkbox" v-model="printData.contribution" id="contribution" class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded">
             <label for="contribution" class="ml-2 block text-sm text-gray-700">Include Contribution</label>
+          </div> -->
+          <div class="flex items-center">
+            <input type="checkbox" v-model="printData.manda" id="manda" class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded">
+            <label for="manda" class="ml-2 block text-sm text-gray-700">Include Mandatory</label>
+          </div>
+          <div class="flex items-center">
+            <input type="checkbox" v-model="printData.nonmanda" id="nonmanda" class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded">
+            <label for="nonmanda" class="ml-2 block text-sm text-gray-700">Include Non Mandatory</label>
           </div>
         </div>
        <div
@@ -710,7 +718,9 @@ const user = ref({
 const printData = ref({
   group: 0,
   period: 0,
-  fetchPayrollPeriods: true
+  fetchPayrollPeriods: true,
+  nonmanda: true,
+  manda: true,
 })
 
 const requestData = ref({
@@ -790,7 +800,9 @@ const printPayslip = async () => {
     const response = await api.post('/reports/payslip-print', {
       groupId: printData.value.group,
       payroll_period_id: printData.value.period,
-      includeContribution: printData.value.contribution ?? false
+      includeContribution: true,
+      nonMandatoryOnly: printData.value.nonmanda ?? false,
+      mandatoryOnly: printData.value.manda ?? false
     })
 
     await Swal.fire({
