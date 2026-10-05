@@ -471,7 +471,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                           </svg>
                         </button>
-                        <button @click="confirmMiscDelete(i)" class="p-1.5 bg-red-600 text-white rounded hover:bg-red-700 transition-colors duration-150" title="Delete">
+                        <button @click="confirmMiscDelete(ded.id)" class="p-1.5 bg-red-600 text-white rounded hover:bg-red-700 transition-colors duration-150" title="Delete">
                           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                           </svg>
@@ -514,7 +514,14 @@
               <div class="space-y-3">
                 <div v-for="(comp, index) in mandatoryCompensations" :key="index" class="flex items-center justify-between bg-gray-50 p-2 rounded-lg">
                   <span class="text-sm text-gray-600">{{ comp.name }}:</span>
-                  <input type="text" v-model="comp.amount" readonly class="w-36 px-3 py-1 bg-white border border-gray-300 rounded-lg text-sm text-right">
+                  <div class="flex gap-2">
+                    <input type="text" v-model="comp.amount" readonly class="w-36 px-3 py-1 bg-white border border-gray-300 rounded-lg text-sm text-right">
+                    <button @click="confirmMiscDelete(comp.id)" class="p-1.5 bg-red-600 text-white rounded hover:bg-red-700 transition-colors duration-150" title="Delete">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                    </div>
                 </div>
                 
                 <div v-if="mandatoryCompensations.length === 0" class="text-center text-gray-500 py-4">
@@ -1300,7 +1307,7 @@ const miscSave = async (index) => {
   }
 }
 
-const confirmMiscDelete = async (index) => {
+const confirmMiscDelete = async (id) => {
   const result = await Swal.fire({ 
     title: 'Are you sure?', 
     text: 'Do you want to remove this item?', 
@@ -1309,15 +1316,16 @@ const confirmMiscDelete = async (index) => {
     confirmButtonText: 'Yes, remove it!' 
   })
   if (result.isConfirmed) {
-    const item = nonMandatoryCompensations.value[index]
-    if (!item.is_draft && item.id) {
+    // const item = nonMandatoryCompensations.value[index]
+    // if (!item.is_draft && item.id) {
       try { 
-        await api.post('/payroll/compensation-delete', { compensation_id: item.id, is_complete: 0, payroll_id: selectedPayrollPeriod.value, emp_id: selectedEmployee.value.id }) 
+        await api.post('/payroll/compensation-delete', { compensation_id: id, is_complete: 0, payroll_id: selectedPayrollPeriod.value, emp_id: selectedEmployee.value.id }) 
       } catch (error) { 
         console.error('Failed to delete item:', error) 
       }
-    }
-    nonMandatoryCompensations.value.splice(index, 1)
+    // }
+    // nonMandatoryCompensations.value.splice(index, 1)
+    fetchCompensations();
     await Swal.fire({ icon: 'success', title: 'Removed!', text: 'Item removed successfully', timer: 1500, showConfirmButton: false })
   }
 }
