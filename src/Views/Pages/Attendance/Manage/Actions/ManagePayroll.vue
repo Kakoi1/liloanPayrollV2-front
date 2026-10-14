@@ -877,21 +877,17 @@ const fetchClassesForAllTasks = async () => {
     const task = checkedTasks.value[i]
     if (task.taskType && task.taskType > 0) {
       await fetchClassForTask(task, i, 'checked')
+      updateTaskTotal(task)
     }
-     if (task.taskId) {
-        updateRateFromClass(task, i)
-        
-      }
+
   }
   for (let i = 0; i < draftTasks.value.length; i++) {
     const task = draftTasks.value[i]
     if (task.taskType && task.taskType > 0) {
       await fetchClassForTask(task, i, 'draft')
+      updateTaskTotal(task)
     }
-     if (task.taskId) {
-        updateRateFromClass(task, i)
-        
-      }
+
   }
 }
 
