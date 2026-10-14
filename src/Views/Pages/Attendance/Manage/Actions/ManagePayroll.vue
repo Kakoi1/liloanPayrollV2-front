@@ -250,7 +250,7 @@
                       </select>
                     </td>
                     <td class="px-3 py-2">
-                      <input type="text" v-model="task.rate" readonly class="w-full px-2 py-1 border border-gray-300 rounded text-sm bg-gray-100">
+                      <input type="text" v-model="task.rate"  @input="updateTaskTotal(task)" class="w-full px-2 py-1 border border-gray-300 rounded text-sm bg-gray-100">
                     </td>
                     <td class="px-3 py-2">
                       <div v-if="task.taskType != 1" class="flex items-center space-x-1">
@@ -345,7 +345,7 @@
                       </select>
                     </td>
                     <td class="px-3 py-2">
-                      <input type="text" v-model="task.rate" readonly class="w-full px-2 py-1 border border-gray-300 rounded text-sm bg-gray-100">
+                      <input type="text" v-model="task.rate" @input="updateTaskTotal(task)" class="w-full px-2 py-1 border border-gray-300 rounded text-sm bg-gray-100">
                     </td>
                     <td class="px-3 py-2">
                       <div v-if="task.taskType != 1" class="flex items-center space-x-1">
