@@ -48,6 +48,60 @@
                   <!-- Add Supplier Button -->
                   <newSupplierModal @saved="fetchSuppliers" />
 
+                  <div class="flex gap-2 flex-wrap">
+                  <!-- Date Type Dropdown (now includes Year) -->
+                  <select
+                    v-model="dateType"
+                    class="shadow shadow-gray-700 text-sm md:text-md py-2 px-4 rounded"
+                    @change="handleTypeChange"
+                  >
+                    <option :value="2">Daily</option>
+                    <option :value="4">Monthly</option>
+                    <option :value="5">Yearly</option>
+                  </select>
+
+                  <!-- Daily: date input -->
+                  <input
+                    v-if="dateType == 2"
+                    type="date"
+                    v-model="search.date"
+                    class="shadow shadow-gray-700 text-sm md:text-md py-2 px-4 rounded"
+                    @change="handleDateChange"
+                  />
+
+                  <!-- Monthly: month input -->
+                  <input
+                    v-if="dateType == 4"
+                    type="month"
+                    v-model="search.date"
+                    class="shadow shadow-gray-700 text-sm md:text-md py-2 px-4 rounded"
+                    @change="handleDateChange"
+                  />
+
+                  <!-- Yearly: year input (number) -->
+                  <input
+                    v-if="dateType == 5"
+                    type="number"
+                    v-model="search.year"
+                    min="1900"
+                    max="2100"
+                    placeholder="Enter year"
+                    class="shadow shadow-gray-700 text-sm md:text-md py-2 px-4 rounded"
+                    @change="handleYearChange"
+                  />
+
+                  <!-- NEW: Report Button -->
+                  <button 
+                    @click="generateReport" 
+                    :disabled="reportLoading"
+                    class="inline-flex items-center px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 disabled:cursor-not-allowed text-white rounded-md transition"
+                  >
+                    <i v-if="reportLoading" class="fa fa-spinner fa-spin mr-2"></i>
+                    <i v-else class="fa fa-download mr-2"></i>
+                    {{ reportLoading ? 'Generating...' : 'Generate Report' }}
+                  </button>
+                </div>
+
                   <!-- Search Table -->
                   <table class="w-full mb-4">
                     <tr>
@@ -137,7 +191,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import Swal from 'sweetalert2'
 import api from '@/Js/Services/axios'
 import Paginate from '@/Js/Components/Paginate.vue'
@@ -146,12 +200,14 @@ import { FormDx, handleApiError } from '@/Views/Utility/Helper'
 import EditSupplierModal from './Action/edit.vue'
 import ViewSupplierModal from './Action/view.vue'
 import Delete from './Action/delete.vue'
+
 // State
 const data = ref([])
 const currentPage = ref(1)
 const rowCountPage = ref(10)
 const totalRows = ref(0)
 const bankingInfo = ref([])
+const reportLoading = ref(false)
 
 // Methods
 const maximize = () => {
@@ -161,6 +217,19 @@ const maximize = () => {
 const collapse = () => {
   // Implement collapse functionality
 }
+
+const reportFilter = ref({
+  date: '',
+  type: 0,
+})
+
+// dateType: 2 = Daily, 4 = Monthly, 5 = Yearly
+const dateType = ref(2)
+
+const search = ref({
+  date: '',
+  year: ''
+})
 
 const getTierIconClass = (tier) => {
   switch(tier) {
@@ -173,6 +242,41 @@ const getTierIconClass = (tier) => {
     default: // Normal (1) or any other
       return 'text-gray-500'
   }
+}
+
+const handleTypeChange = () => {
+  const now = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const year = now.getFullYear();
+
+  // Clear both values first when switching type
+  search.value.date = '';
+  search.value.year = '';
+
+  if (dateType.value === 2) {
+    // Daily - set to today
+    const day = String(now.getDate()).padStart(2, '0');
+    search.value.date = `${year}-${month}-${day}`;
+  } else if (dateType.value === 4) {
+    // Monthly - set to current month
+    search.value.date = `${year}-${month}`;
+  } else if (dateType.value === 5) {
+    // Yearly - set to current year
+    search.value.year = String(year);
+  }
+
+  // Auto-load based on new type
+  list();
+};
+
+const handleDateChange = () => {
+  // Optional: auto-refresh list when date changes
+  // list();
+}
+
+const handleYearChange = () => {
+  // Optional: auto-refresh list when year changes
+  // list();
 }
 
 const getTierName = (tier) => {
@@ -207,7 +311,7 @@ const fetchSuppliers = async () => {
   try {
     const formData = FormDx(searchSupplier.value);
     const response = await api.post('/suppliers/list', formData)
-    
+
     if (response.data && !response.data.error) {
       data.value = response.data.suppliers
       totalRows.value = response.data.totalrows
@@ -223,7 +327,7 @@ const banking_info = async (supplierId) => {
     const response = await api.post('/suppliers/banking-info', {
       supplier_id: supplierId
     })
-    
+
     if (response.data && !response.data.error) {
       bankingInfo.value = response.data.banking_info
     }
@@ -239,6 +343,81 @@ const pageUpdate = (page) => {
 
 const reset = () => {
   // Reset form fields when opening new supplier modal
+}
+
+const generateReport = async () => {
+  reportLoading.value = true
+
+  try {
+    const payload = {
+      date: dateType.value !== 5 ? (search.value.date || null) : null,
+      year: dateType.value === 5 ? (search.value.year || null) : null,
+      type: dateType.value,
+      search: searchSupplier.value.search || null,
+    }
+
+    const response = await api.post('/suppliers/report', payload, {
+      responseType: 'blob', 
+    })
+
+    // Create a blob URL and trigger download
+    const blob = new Blob([response.data], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    })
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+
+    // Extract filename from headers
+    let filename = 'supplier_report.xlsx'
+    const disposition = response.headers?.['content-disposition']
+    if (disposition) {
+      const match = disposition.match(/filename="?([^"]+)"?/)
+      if (match && match[1]) {
+        filename = match[1]
+      }
+    }
+
+    link.setAttribute('download', filename)
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    window.URL.revokeObjectURL(url)
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Report Generated',
+      text: 'Your Excel report has been downloaded.',
+      timer: 2000,
+      showConfirmButton: false,
+    })
+  } catch (error) {
+    console.error('Failed to generate report:', error)
+    
+    // Debugging: Check if the error is actually a JSON error inside a Blob
+    if (error.response?.data instanceof Blob) {
+      try {
+        const text = await error.response.data.text()
+        const json = JSON.parse(text)
+        Swal.fire({
+          icon: 'error',
+          title: 'Report Failed',
+          text: json.message || 'Failed to generate report.',
+        })
+      } catch {
+        Swal.fire({
+          icon: 'error',
+          title: 'Network Error',
+          text: 'Could not download the file. Check your network or CORS settings.',
+        })
+      }
+    } else {
+      // Use your existing handleApiError
+      handleApiError(error)
+    }
+  } finally {
+    reportLoading.value = false
+  }
 }
 
 // Initialize
